@@ -18,8 +18,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend application source files
+# Copy all application source files (backend + frontend)
 COPY main.py .
+COPY index.html .
+COPY style.css .
+COPY app.js .
 COPY database/ ./database/
 COPY models/ ./models/
 COPY schemas/ ./schemas/
