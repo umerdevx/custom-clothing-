@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AURA-WEAR | AI-Integrated Custom Streetwear & Sportswear</title>
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-fontawesome/6.4.0/css/all.min.css">
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+  <!-- Notification Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Header / Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <a href="#" class="brand-logo" onclick="switchView('landing')">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> AURA<span>WEAR</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#" class="nav-link active" id="nav-landing" onclick="switchView('landing')">Home</a>
+        <a href="#" class="nav-link" id="nav-catalog" onclick="switchView('catalog')">Shop Catalog</a>
+        <a href="#" class="nav-link" id="nav-customizer" onclick="switchView('customizer')">AI Customizer</a>
+        <a href="#" class="nav-link" id="nav-admin" onclick="switchView('admin')">Admin Panel</a>
+      </nav>
+      <div class="header-actions">
+        <button class="cart-btn" onclick="toggleCartDrawer()">
+          <i class="fa-solid fa-bag-shopping"></i>
+          <span class="cart-badge" id="cart-count">0</span>
+        </button>
+        <div class="user-profile">
+          <i class="fa-solid fa-user-circle"></i>
+          <span class="user-name">Umer Javed</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main View Container -->
+  <main class="app-main">
+
+    <!-- VIEW 1: LANDING PAGE -->
+    <section id="view-landing" class="view-section active">
+      <div class="hero-section">
+        <div class="hero-content">
+          <div class="badge-premium"><i class="fa-solid fa-crown"></i> NEXT-GEN APPAREL DESIGN</div>
+          <h1>Create Your Identity with <span class="gradient-text">AI Customization</span></h1>
+          <p class="hero-lead">Design high-performance streetwear & sportswear in real-time. Power your fabric choices with our RAG AI assistant and watch your design come to life in 2D instantly.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary btn-lg" onclick="switchView('customizer')">
+              <i class="fa-solid fa-compass"></i> Enter AI Customizer
+            </button>
+            <button class="btn btn-outline btn-lg" onclick="switchView('catalog')">
+              Browse Catalog
+            </button>
+          </div>
+          <div class="hero-stats">
+            <div class="stat-item">
+              <h3>2D</h3>
+              <span>Live Render</span>
+            </div>
+            <div class="stat-item">
+              <h3>RAG</h3>
+              <span>AI Guidance</span>
+            </div>
+            <div class="stat-item">
+              <h3>100%</h3>
+              <span>Custom Fit</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-showcase">
+          <div class="showcase-card glass">
+            <div class="showcase-visual">
+              <div class="glow-effect"></div>
+              <img src="https://images.unsplash.com/photo-1578587018452-892bacefd3f2?w=500&auto=format&fit=crop&q=60" alt="Streetwear Hoodie" class="floating-img">
+            </div>
+            <div class="showcase-info">
+              <h3>Aura Signature Hoodie</h3>
+              <div class="showcase-footer">
+                <span class="price">PKR 3,500</span>
+                <span class="rating"><i class="fa-solid fa-star"></i> 4.9</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features Section -->
+      <div class="features-grid">
+        <div class="feature-card glass">
+          <div class="feature-icon"><i class="fa-solid fa-crop-simple"></i></div>
+          <h3>Dynamic 2D Canvas</h3>
+          <p>Change product colors, fabrics, and stitching in real-time. Upload and position custom logos dynamically.</p>
+        </div>
+        <div class="feature-card glass">
+          <div class="feature-icon"><i class="fa-solid fa-robot"></i></div>
+          <h3>RAG AI Advisor</h3>
+          <p>Retrieve live product details, stock levels, and fabric performance guides based on your exact needs.</p>
+        </div>
+        <div class="feature-card glass">
+          <div class="feature-icon"><i class="fa-solid fa-truck-fast"></i></div>
+          <h3>Order Tracking</h3>
+          <p>Monitor your apparel from production floor, quality check, shipping, all the way to your door.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: PRODUCT CATALOG -->
+    <section id="view-catalog" class="view-section">
+      <div class="section-header">
+        <div>
+          <h2>Shop <span class="gradient-text">Catalog</span></h2>
+          <p class="subtitle">Select a base style to start your dynamic customization</p>
+        </div>
+        <div class="catalog-filters">
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="catalog-search" placeholder="Search catalog..." oninput="filterCatalog()">
+          </div>
+          <select id="catalog-category-filter" onchange="filterCatalog()">
+            <option value="all">All Categories</option>
+            <option value="T-Shirt">T-Shirts</option>
+            <option value="Hoodie">Hoodies</option>
+            <option value="Jacket">Jackets</option>
+            <option value="Sports Uniform">Sports Uniforms</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="products-grid" id="catalog-grid">
+        <!-- Dynmically loaded products -->
+      </div>
+    </section>
+
+    <!-- VIEW 3: AI CUSTOMIZER -->
+    <section id="view-customizer" class="view-section">
+      <div class="customizer-container">
+        <!-- Left Column: 2D Live Preview -->
+        <div class="customizer-preview-pane glass">
+          <div class="preview-badge"><i class="fa-solid fa-eye"></i> Live 2D Render</div>
+          
+          <!-- Dynamic SVG Container for clothing -->
+          <div class="clothing-render-box" id="apparel-canvas-container">
+            <!-- SVGs will be dynamically injected here based on apparel type -->
+          </div>
+
+          <div class="preview-controls">
+            <button class="preview-btn" onclick="togglePreviewMode('front')" id="btn-view-front">
+              Front View
+            </button>
+            <button class="preview-btn active" onclick="togglePreviewMode('back')" id="btn-view-back">
+              Back View
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Column: Control Panels -->
+        <div class="customizer-controls-pane glass">
+          <div class="controls-header">
+            <h2>Customize <span class="gradient-text" id="selected-product-title">Premium T-Shirt</span></h2>
+            <div class="price-bubble" id="price-display">PKR 1,200</div>
+          </div>
+
+          <div class="tabs-navigation">
+            <button class="tab-btn active" onclick="switchControlTab('apparel')">Base</button>
+            <button class="tab-btn" onclick="switchControlTab('fabric')">Fabric</button>
+            <button class="tab-btn" onclick="switchControlTab('design')">Design</button>
+            <button class="tab-btn" onclick="switchControlTab('logo')">Logo & Finish</button>
+          </div>
+
+          <!-- TAB 1: Base Apparel Choice -->
+          <div class="tab-content active" id="tab-apparel">
+            <div class="control-group">
+              <label class="group-title">Apparel Type</label>
+              <div class="tile-grid">
+                <div class="tile-card active" onclick="setApparelType('tshirt')" id="tile-type-tshirt">
+                  <i class="fa-solid fa-shirt"></i>
+                  <span>T-Shirt</span>
+                </div>
+                <div class="tile-card" onclick="setApparelType('hoodie')" id="tile-type-hoodie">
+                  <i class="fa-solid fa-circle-user"></i>
+                  <span>Hoodie</span>
+                </div>
+                <div class="tile-card" onclick="setApparelType('jacket')" id="tile-type-jacket">
+                  <i class="fa-solid fa-vest"></i>
+                  <span>Jacket</span>
+                </div>
+                <div class="tile-card" onclick="setApparelType('uniform')" id="tile-type-uniform">
+                  <i class="fa-solid fa-person-running"></i>
+                  <span>Sport Jersey</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: Fabric Options -->
+          <div class="tab-content" id="tab-fabric">
+            <div class="control-group">
+              <label class="group-title">Fabric Material</label>
+              <div class="tile-grid">
+                <div class="tile-card active" onclick="setFabricType('cotton')" id="tile-fabric-cotton">
+                  <i class="fa-solid fa-cloud"></i>
+                  <span>Cotton</span>
+                  <small>Soft & Breathable</small>
+                </div>
+                <div class="tile-card" onclick="setFabricType('polyester')" id="tile-fabric-polyester">
+                  <i class="fa-solid fa-dna"></i>
+                  <span>Polyester</span>
+                  <small>Durable & Dry Fit</small>
+                </div>
+                <div class="tile-card" onclick="setFabricType('blended')" id="tile-fabric-blended">
+                  <i class="fa-solid fa-shuffle"></i>
+                  <span>Blended</span>
+                  <small>Optimal Comfort</small>
+                </div>
+                <div class="tile-card" onclick="setFabricType('fleece')" id="tile-fabric-fleece">
+                  <i class="fa-solid fa-temperature-high"></i>
+                  <span>Fleece</span>
+                  <small>Warm & Heavyweight</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <div class="label-with-val">
+                <label class="group-title">Fabric Grade</label>
+                <span class="range-val" id="grade-val-display">Grade 1 (Standard)</span>
+              </div>
+              <input type="range" class="slider-input" id="fabric-grade" min="1" max="5" value="1" step="1" oninput="updateFabricGrade(this.value)">
+              <div class="slider-labels">
+                <span>Grade 1</span>
+                <span>Grade 2</span>
+                <span>Grade 3</span>
+                <span>Grade 4</span>
+                <span>Grade 5 (Premium)</span>
+              </div>
+              <p class="hint-text"><i class="fa-solid fa-circle-info"></i> Higher fabric grades represent denser thread counts and premium texture (+15% base price per grade).</p>
+            </div>
+          </div>
+
+          <!-- TAB 3: Design Details (Colors & Stitching) -->
+          <div class="tab-content" id="tab-design">
+            <div class="control-group">
+              <label class="group-title">Primary Accent Color</label>
+              <div class="color-palette">
+                <div class="color-swatch active" style="background-color: #1e1e24;" onclick="setColor('primary', '#1e1e24', this)"></div>
+                <div class="color-swatch" style="background-color: #ffffff; border: 1px solid #444;" onclick="setColor('primary', '#ffffff', this)"></div>
+                <div class="color-swatch" style="background-color: #ff3366;" onclick="setColor('primary', '#ff3366', this)"></div>
+                <div class="color-swatch" style="background-color: #00f0ff;" onclick="setColor('primary', '#00f0ff', this)"></div>
+                <div class="color-swatch" style="background-color: #39ff14;" onclick="setColor('primary', '#39ff14', this)"></div>
+                <div class="color-swatch" style="background-color: #ffaa00;" onclick="setColor('primary', '#ffaa00', this)"></div>
+                <div class="color-swatch" style="background-color: #8a2be2;" onclick="setColor('primary', '#8a2be2', this)"></div>
+                <div class="custom-color-input-wrapper">
+                  <input type="color" id="primary-color-picker" onchange="setColor('primary', this.value)" title="Custom color">
+                  <i class="fa-solid fa-eye-dropper"></i>
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label class="group-title">Secondary Trim Color</label>
+              <div class="color-palette">
+                <div class="color-swatch active" style="background-color: #00f0ff;" onclick="setColor('secondary', '#00f0ff', this)"></div>
+                <div class="color-swatch" style="background-color: #1e1e24;" onclick="setColor('secondary', '#1e1e24', this)"></div>
+                <div class="color-swatch" style="background-color: #ffffff; border: 1px solid #444;" onclick="setColor('secondary', '#ffffff', this)"></div>
+                <div class="color-swatch" style="background-color: #ff3366;" onclick="setColor('secondary', '#ff3366', this)"></div>
+                <div class="color-swatch" style="background-color: #39ff14;" onclick="setColor('secondary', '#39ff14', this)"></div>
+                <div class="color-swatch" style="background-color: #ffaa00;" onclick="setColor('secondary', '#ffaa00', this)"></div>
+                <div class="color-swatch" style="background-color: #8a2be2;" onclick="setColor('secondary', '#8a2be2', this)"></div>
+                <div class="custom-color-input-wrapper">
+                  <input type="color" id="secondary-color-picker" onchange="setColor('secondary', this.value)" title="Custom color">
+                  <i class="fa-solid fa-eye-dropper"></i>
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label class="group-title">Stitching Style</label>
+              <div class="tile-grid text-only-grid">
+                <div class="tile-card active" onclick="setStitchStyle('flatlock')" id="tile-stitch-flatlock">
+                  <span>Flatlock Stitching</span>
+                  <small>No chafing, robust (+PKR 100)</small>
+                </div>
+                <div class="tile-card" onclick="setStitchStyle('overlock')" id="tile-stitch-overlock">
+                  <span>Overlock Stitching</span>
+                  <small>Standard durable (+PKR 0)</small>
+                </div>
+                <div class="tile-card" onclick="setStitchStyle('chainstitch')" id="tile-stitch-chainstitch">
+                  <span>Chain Stitching</span>
+                  <small>Authentic vintage (+PKR 150)</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 4: Logo Upload & Print Method / Finishing -->
+          <div class="tab-content" id="tab-logo">
+            <div class="control-group">
+              <label class="group-title">Logo Placement</label>
+              <div class="tile-grid text-only-grid">
+                <div class="tile-card active" onclick="setLogoPlacement('chest')" id="tile-logo-chest">
+                  <span>Chest Center</span>
+                </div>
+                <div class="tile-card" onclick="setLogoPlacement('back')" id="tile-logo-back">
+                  <span>Back Center</span>
+                </div>
+                <div class="tile-card" onclick="setLogoPlacement('left_sleeve')" id="tile-logo-left_sleeve">
+                  <span>Left Sleeve</span>
+                </div>
+                <div class="tile-card" onclick="setLogoPlacement('right_sleeve')" id="tile-logo-right_sleeve">
+                  <span>Right Sleeve</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label class="group-title">Upload Custom Logo</label>
+              <div class="logo-uploader-box">
+                <div class="logo-preview-thumbnail" id="logo-thumbnail-preview">
+                  <i class="fa-solid fa-image"></i>
+                </div>
+                <div class="upload-controls">
+                  <input type="file" id="logo-file-input" accept="image/png, image/jpeg" style="display:none" onchange="handleLogoUpload(event)">
+                  <button class="btn btn-sm btn-outline" onclick="document.getElementById('logo-file-input').click()">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Select Image
+                  </button>
+                  <button class="btn btn-sm btn-text text-danger" onclick="clearUploadedLogo()">Clear</button>
+                  <span class="upload-hint">PNG/JPG under 5MB</span>
+                </div>
+              </div>
+              
+              <!-- Quick Presets -->
+              <div class="preset-logo-row">
+                <span class="small-title">Or use preset graphics:</span>
+                <div class="presets-container">
+                  <button class="btn-preset-logo" onclick="usePresetLogo('cyberpunk')" title="Cyberpunk Eagle">
+                    <i class="fa-solid fa-burst"></i> Cyber
+                  </button>
+                  <button class="btn-preset-logo" onclick="usePresetLogo('streetwear')" title="Aura Brand Crest">
+                    <i class="fa-solid fa-shield-halved"></i> Aura
+                  </button>
+                  <button class="btn-preset-logo" onclick="usePresetLogo('athletic')" title="Lightning Bolt">
+                    <i class="fa-solid fa-bolt-lightning"></i> Bolt
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label class="group-title">Print / Placement Method</label>
+              <div class="tile-grid text-only-grid">
+                <div class="tile-card active" onclick="setPrintMethod('dtg')" id="tile-print-dtg">
+                  <span>Direct-To-Garment</span>
+                  <small>Vivid photographic (+PKR 350)</small>
+                </div>
+                <div class="tile-card" onclick="setPrintMethod('screen')" id="tile-print-screen">
+                  <span>Screen Printing</span>
+                  <small>Classic thick inks (+PKR 200)</small>
+                </div>
+                <div class="tile-card" onclick="setPrintMethod('embroidery')" id="tile-print-embroidery">
+                  <span>Embroidery</span>
+                  <small>Stitched texture (+PKR 500)</small>
+                </div>
+                <div class="tile-card" onclick="setPrintMethod('heat')" id="tile-print-heat">
+                  <span>Heat Transfer</span>
+                  <small>Flexible sporty (+PKR 250)</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label class="group-title">Fabric Wash & Finish</label>
+              <select class="select-input" id="wash-finish" onchange="updateWashFinish(this.value)">
+                <option value="standard">Standard Finished Cotton</option>
+                <option value="stone">Stone Wash Effect (+PKR 150)</option>
+                <option value="acid">Acid Wash Effect (+PKR 250)</option>
+                <option value="enzyme">Enzyme Wash (Eco-soft) (+PKR 100)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Checkout / Action Footer -->
+          <div class="controls-footer">
+            <div class="qty-selector">
+              <button class="qty-btn" onclick="adjustCustomizerQty(-1)">-</button>
+              <input type="number" id="customizer-qty" value="1" min="1" max="500" onchange="updatePrice()">
+              <button class="qty-btn" onclick="adjustCustomizerQty(1)">+</button>
+            </div>
+            
+            <button class="btn btn-primary btn-grow" onclick="addToCartFromCustomizer()">
+              <i class="fa-solid fa-cart-plus"></i> Add Customized to Bag
+            </button>
+          </div>
+
+          <!-- RAG Quick Assist -->
+          <div class="rag-quick-assist-card" onclick="triggerAIChatbot('Can you recommend a stitching style and print method for custom sportswear?')">
+            <div class="assist-avatar"><i class="fa-solid fa-robot"></i></div>
+            <div class="assist-body">
+              <strong>Need design advice?</strong>
+              <p>Ask AURA AI for best combinations of fabric & print method.</p>
+            </div>
+            <div class="assist-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: ADMIN PANEL -->
+    <section id="view-admin" class="view-section">
+      <div class="admin-dashboard-container">
+        
+        <!-- Sidebar Navigation -->
+        <div class="admin-sidebar glass">
+          <div class="admin-profile">
+            <i class="fa-solid fa-user-shield"></i>
+            <div>
+              <h3>Admin Console</h3>
+              <span>Project Demo Mode</span>
+            </div>
+          </div>
+          <ul class="admin-nav">
+            <li class="active" onclick="switchAdminTab('overview', this)"><i class="fa-solid fa-chart-line"></i> Overview Stats</li>
+            <li onclick="switchAdminTab('orders', this)"><i class="fa-solid fa-dolly"></i> Manage Orders</li>
+            <li onclick="switchAdminTab('inventory', this)"><i class="fa-solid fa-warehouse"></i> Inventory Stock</li>
+            <li onclick="switchAdminTab('logs', this)"><i class="fa-solid fa-comments"></i> RAG Chat Logs</li>
+          </ul>
+        </div>
+
+        <!-- Dashboard Body Content -->
+        <div class="admin-body glass">
+          
+          <!-- TAB: Overview -->
+          <div class="admin-tab-content active" id="admin-tab-overview">
+            <h2 class="tab-title">System Overview</h2>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <span class="label">Total Revenue</span>
+                <span class="value" id="admin-revenue">PKR 0</span>
+                <div class="trend positive"><i class="fa-solid fa-arrow-up"></i> Demo Uptime</div>
+              </div>
+              <div class="stat-card">
+                <span class="label">Total Orders</span>
+                <span class="value" id="admin-orders-count">0</span>
+                <div class="trend positive"><i class="fa-solid fa-arrow-up"></i> Real-time updates</div>
+              </div>
+              <div class="stat-card">
+                <span class="label">Active Users</span>
+                <span class="value">2</span>
+                <div class="trend">Umer Javed, Admin</div>
+              </div>
+              <div class="stat-card">
+                <span class="label">Low-Stock Warnings</span>
+                <span class="value text-warning" id="admin-stock-warnings">0</span>
+                <div class="trend text-warning"><i class="fa-solid fa-triangle-exclamation"></i> Action required</div>
+              </div>
+            </div>
+
+            <div class="recent-activities">
+              <h3>System Health & Operations</h3>
+              <div class="log-list">
+                <div class="log-item">
+                  <span class="log-time">Just Now</span>
+                  <span class="log-msg"><strong class="text-info">Database</strong> Simulated MySQL running locally in browser storage.</span>
+                </div>
+                <div class="log-item">
+                  <span class="log-time">5 mins ago</span>
+                  <span class="log-msg"><strong class="text-info">RAG Pipeline</strong> n8n server status simulation is online.</span>
+                </div>
+                <div class="log-item">
+                  <span class="log-time">10 mins ago</span>
+                  <span class="log-msg"><strong class="text-info">System</strong> Loaded core tables (users, products, fabric_options, faqs)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: Manage Orders -->
+          <div class="admin-tab-content" id="admin-tab-orders">
+            <h2 class="tab-title">Order Processing Flow</h2>
+            <p class="hint-text">Simulate manufacturing workflow. Move orders through pipeline to trigger client-side notifications and status emails.</p>
+            
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Apparel Details</th>
+                    <th>Total Price</th>
+                    <th>Payment</th>
+                    <th>Order Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-orders-list">
+                  <!-- Injected dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB: Inventory Stock -->
+          <div class="admin-tab-content" id="admin-tab-inventory">
+            <h2 class="tab-title">Material Inventory levels</h2>
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Material Type</th>
+                    <th>Material Name</th>
+                    <th>Stock Level</th>
+                    <th>Reorder Thresholds</th>
+                    <th>Multiplier / Cost</th>
+                    <th>Status Alert</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-inventory-list">
+                  <!-- Injected dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB: RAG Chat Logs -->
+          <div class="admin-tab-content" id="admin-tab-logs">
+            <h2 class="tab-title">AI Chat Logs (n8n RAG Auditing)</h2>
+            <p class="hint-text">Review real-time prompt context retrieved from MySQL tables during supervisor interactions with AURA-AI.</p>
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>User Query</th>
+                    <th>Retrieved Context (MySQL RAG)</th>
+                    <th>AI Response (GPT-4o-mini)</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-chat-logs-list">
+                  <!-- Injected dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- CART SIDE DRAWER -->
+  <div class="cart-overlay" id="cart-drawer">
+    <div class="cart-drawer-container glass">
+      <div class="cart-drawer-header">
+        <h2>Your Shopping Bag</h2>
+        <button class="close-btn" onclick="toggleCartDrawer()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="cart-items-list" id="cart-items-container">
+        <!-- Injected dynamically -->
+      </div>
+
+      <div class="cart-drawer-footer">
+        <div class="summary-line">
+          <span>Subtotal:</span>
+          <span class="price-val" id="cart-subtotal">PKR 0</span>
+        </div>
+        <div class="summary-line">
+          <span>GST (5%):</span>
+          <span class="price-val" id="cart-tax">PKR 0</span>
+        </div>
+        <div class="summary-line total">
+          <span>Grand Total:</span>
+          <span class="price-val" id="cart-grandtotal">PKR 0</span>
+        </div>
+        <button class="btn btn-primary btn-block btn-lg" onclick="openCheckoutModal()">
+          Proceed to Checkout <i class="fa-solid fa-credit-card"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECKOUT MODAL -->
+  <div class="modal-overlay" id="checkout-modal">
+    <div class="modal-content glass">
+      <div class="modal-header">
+        <h2>Checkout Details</h2>
+        <button class="close-btn" onclick="closeCheckoutModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="checkout-form" onsubmit="handlePlaceOrder(event)">
+          <div class="form-section">
+            <h3>1. Delivery Address</h3>
+            <div class="form-grid">
+              <div class="form-group col-6">
+                <label for="c-name">Full Name</label>
+                <input type="text" id="c-name" value="Umer Javed" required>
+              </div>
+              <div class="form-group col-6">
+                <label for="c-phone">Phone Number</label>
+                <input type="text" id="c-phone" value="+92 300 1234567" required>
+              </div>
+              <div class="form-group col-12">
+                <label for="c-address">Delivery Address</label>
+                <textarea id="c-address" rows="2" required>Department of Computer Science, Federal Urdu University, Islamabad</textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>2. Payment Method</h3>
+            <div class="payment-methods-grid">
+              <label class="payment-card-label active">
+                <input type="radio" name="payment-method" value="Card" checked onclick="togglePaymentSection('card')">
+                <i class="fa-solid fa-credit-card"></i>
+                <span>Credit/Debit Card</span>
+              </label>
+              <label class="payment-card-label">
+                <input type="radio" name="payment-method" value="JazzCash" onclick="togglePaymentSection('wallet')">
+                <i class="fa-solid fa-wallet"></i>
+                <span>JazzCash</span>
+              </label>
+              <label class="payment-card-label">
+                <input type="radio" name="payment-method" value="Easypaisa" onclick="togglePaymentSection('wallet')">
+                <i class="fa-solid fa-mobile-screen"></i>
+                <span>Easypaisa</span>
+              </label>
+              <label class="payment-card-label">
+                <input type="radio" name="payment-method" value="COD" onclick="togglePaymentSection('cod')">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+                <span>Cash on Delivery</span>
+              </label>
+            </div>
+
+            <!-- Card Sub-fields -->
+            <div class="payment-sub-fields active" id="pay-fields-card">
+              <div class="form-grid">
+                <div class="form-group col-12">
+                  <label>Cardholder Name</label>
+                  <input type="text" value="Umer Javed">
+                </div>
+                <div class="form-group col-8">
+                  <label>Card Number</label>
+                  <input type="text" placeholder="xxxx xxxx xxxx xxxx" value="4242 4242 4242 4242">
+                </div>
+                <div class="form-group col-4">
+                  <label>Expiry / CVV</label>
+                  <input type="text" placeholder="MM/YY - CVC" value="12/28 - 123">
+                </div>
+              </div>
+            </div>
+
+            <!-- Wallet Sub-fields -->
+            <div class="payment-sub-fields" id="pay-fields-wallet">
+              <div class="form-group col-12">
+                <label>Mobile Account Number</label>
+                <input type="text" placeholder="03xx xxxxxxx" value="03001234567">
+                <span class="hint-text">Simulated OTP request will be sent to this number</span>
+              </div>
+            </div>
+
+            <!-- COD Description -->
+            <div class="payment-sub-fields" id="pay-fields-cod">
+              <p class="hint-text text-success"><i class="fa-solid fa-check-circle"></i> Pay in cash upon delivery. Standard COD processing applies.</p>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeCheckoutModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">
+              Confirm Order (PKR <span id="checkout-total-price">0</span>)
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDER SUCCESS MODAL -->
+  <div class="modal-overlay" id="success-modal">
+    <div class="modal-content glass success-content">
+      <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
+      <h2>Order Placed Successfully!</h2>
+      <p class="lead-text">Thank you for designing with AuraWear.</p>
+      
+      <div class="order-receipt-card">
+        <div class="receipt-row">
+          <span>Order ID:</span>
+          <strong id="success-order-id" class="text-teal">ORD-998822</strong>
+        </div>
+        <div class="receipt-row">
+          <span>Total Paid:</span>
+          <strong id="success-order-total">PKR 0</strong>
+        </div>
+        <div class="receipt-row">
+          <span>Est. Delivery:</span>
+          <strong>7-10 Working Days</strong>
+        </div>
+      </div>
+
+      <p class="info-note"><i class="fa-solid fa-envelope"></i> A mock order confirmation email has been dispatched to your mailbox.</p>
+      
+      <div class="success-actions">
+        <button class="btn btn-primary" onclick="closeSuccessModalAndGoHome()">
+          Return to Home
+        </button>
+        <button class="btn btn-outline" onclick="triggerAIChatbotStatusQuery()">
+          Track Order Status via AI
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING RAG AI CHATBOT -->
+  <div class="chatbot-container">
+    <button class="chatbot-toggle-btn" onclick="toggleChatbot()" id="chat-toggle">
+      <i class="fa-solid fa-comment-dots"></i>
+      <span class="ping-wave"></span>
+    </button>
+
+    <div class="chatbot-window glass" id="chat-window">
+      <div class="chatbot-header">
+        <div class="chat-bot-info">
+          <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+          <div>
+            <h4>AURA AI Chatbot</h4>
+            <span>RAG recommendation engine</span>
+          </div>
+        </div>
+        <button class="close-btn" onclick="toggleChatbot()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="chatbot-messages" id="chat-messages-container">
+        <!-- AI Messages will populate here -->
+        <div class="chat-message bot">
+          <div class="msg-text">
+            Hi! I am the AURA RAG AI assistant. I can query our database to recommend fabrics, colors, printing techniques, or track your current orders. 
+            <br><br>
+            What kind of custom apparel are you looking to design today?
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Suggestion Chips -->
+      <div class="chat-suggestions">
+        <button class="chip" onclick="submitChatMessage('Recommend a fabric for summer gym shirts')">Summer Fabrics</button>
+        <button class="chip" onclick="submitChatMessage('What printing method has the best texture?')">Best Print Method</button>
+        <button class="chip" onclick="submitChatMessage('Where is my order?')">Track My Order</button>
+      </div>
+
+      <div class="chatbot-input-bar">
+        <input type="text" id="chat-input-field" placeholder="Ask AURA-AI about fabric, options..." onkeydown="if(event.key === 'Enter') sendChatMessage()">
+        <button class="send-btn" onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main JavaScript File -->
+  <script src="app.js"></script>
+</body>
+</html>
