@@ -59,186 +59,585 @@ const LOGO_PRESETS = {
 const APPAREL_SVGS = {
   tshirt: {
     front: (primary, secondary, logoMarkup) => `
-      <svg viewBox="0 0 350 350" xmlns="http://www.w3.org/2000/svg">
-        <!-- Shadow Under -->
-        <path d="M 70,120 L 110,80 L 240,80 L 280,120 L 250,150 L 235,135 L 235,320 L 115,320 L 115,135 L 100,150 Z" fill="rgba(0,0,0,0.15)"/>
-        <!-- Main Body (Primary Color) -->
-        <path id="svg-primary" d="M 115,110 L 235,110 L 235,320 L 115,320 Z" fill="${primary}"/>
-        <!-- Sleeves (Primary Color) -->
-        <path id="svg-left-sleeve" d="M 115,110 L 70,125 L 90,165 L 115,140 Z" fill="${primary}"/>
-        <path id="svg-right-sleeve" d="M 235,110 L 280,125 L 260,165 L 235,140 Z" fill="${primary}"/>
-        <!-- Sleeve Trim / Cuffs (Secondary Color) -->
-        <path d="M 70,125 L 73,121 L 93,161 L 90,165 Z" fill="${secondary}"/>
-        <path d="M 280,125 L 277,121 L 257,161 L 260,165 Z" fill="${secondary}"/>
-        <!-- Shoulder Seams -->
-        <path d="M 115,110 L 145,85 L 205,85 L 235,110 Z" fill="${primary}"/>
-        <!-- Collar (Secondary Color) -->
-        <path d="M 145,85 Q 175,108 205,85 Q 205,75 145,75 Z" fill="${secondary}"/>
-        <!-- Neck opening shadow -->
-        <path d="M 145,85 Q 175,108 205,85 Z" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="4"/>
-        <!-- Shadows & Wrinkles Layer -->
-        <path d="M 115,120 Q 135,135 115,150" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="2"/>
-        <path d="M 235,120 Q 215,135 235,150" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="2"/>
-        <path d="M 120,300 Q 175,310 230,300" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="3"/>
-        <!-- Stitching Lines (Fine dotted lines representing stitching style selection) -->
-        <path d="M 118,316 L 232,316" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="2,2"/>
-        <!-- Logo Area -->
-        <g id="svg-logo-container">
-          ${logoMarkup}
-        </g>
+      <svg viewBox="0 0 350 430" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="ts_body" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.32)"/>
+            <stop offset="18%"  stop-color="rgba(0,0,0,0.08)"/>
+            <stop offset="50%"  stop-color="rgba(255,255,255,0.05)"/>
+            <stop offset="82%"  stop-color="rgba(0,0,0,0.08)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.32)"/>
+          </linearGradient>
+          <linearGradient id="ts_sL" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.38)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.0)"/>
+          </linearGradient>
+          <linearGradient id="ts_sR" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.0)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.38)"/>
+          </linearGradient>
+        </defs>
+
+        <ellipse cx="175" cy="423" rx="110" ry="7" fill="rgba(0,0,0,0.28)"/>
+
+        <!-- LEFT SLEEVE -->
+        <path d="M 88,122 C 78,127 50,140 32,164 L 38,210 C 43,218 56,220 66,214 L 76,180 C 82,158 86,140 90,128 Z" fill="${primary}"/>
+        <path d="M 88,122 C 78,127 50,140 32,164 L 38,210 C 43,218 56,220 66,214 L 76,180 C 82,158 86,140 90,128 Z" fill="url(#ts_sL)" opacity="0.85"/>
+        <path d="M 33,202 C 40,215 54,219 66,213 L 66,221 C 53,227 38,222 31,209 Z" fill="${secondary}" opacity="0.88"/>
+
+        <!-- RIGHT SLEEVE -->
+        <path d="M 262,122 C 272,127 300,140 318,164 L 312,210 C 307,218 294,220 284,214 L 274,180 C 268,158 264,140 260,128 Z" fill="${primary}"/>
+        <path d="M 262,122 C 272,127 300,140 318,164 L 312,210 C 307,218 294,220 284,214 L 274,180 C 268,158 264,140 260,128 Z" fill="url(#ts_sR)" opacity="0.85"/>
+        <path d="M 317,202 C 310,215 296,219 284,213 L 284,221 C 297,227 312,222 319,209 Z" fill="${secondary}" opacity="0.88"/>
+
+        <!-- MAIN BODY -->
+        <path d="M 88,122 C 94,110 114,100 144,96 C 155,94 165,93 175,93 C 185,93 195,94 206,96 C 236,100 256,110 262,122 L 264,414 C 262,420 257,423 251,423 L 99,423 C 93,423 88,420 86,414 Z" fill="${primary}"/>
+        <path d="M 88,122 C 94,110 114,100 144,96 C 155,94 165,93 175,93 C 185,93 195,94 206,96 C 236,100 256,110 262,122 L 264,414 C 262,420 257,423 251,423 L 99,423 C 93,423 88,420 86,414 Z" fill="url(#ts_body)" opacity="0.92"/>
+
+        <!-- COLLAR BAND -->
+        <path d="M 144,96 C 155,94 165,93 175,93 C 185,93 195,94 206,96 C 203,79 192,72 180,70 C 177,69 175,69 175,69 C 172,69 170,70 170,70 C 158,72 147,79 144,96 Z" fill="${secondary}" opacity="0.92"/>
+        <path d="M 151,94 C 161,91 168,90 175,91 C 182,90 189,91 199,94 C 196,81 188,75 180,73 C 178,72 175,72 175,72 C 172,72 170,73 170,73 C 162,75 154,81 151,94 Z" fill="rgba(0,0,0,0.52)"/>
+        <path d="M 154,93 C 161,90 168,89 174,90" fill="none" stroke="rgba(0,0,0,0.22)" stroke-width="1.3"/>
+        <path d="M 196,93 C 189,90 182,89 176,90" fill="none" stroke="rgba(0,0,0,0.22)" stroke-width="1.3"/>
+
+        <!-- ARMHOLE CREASE LINES -->
+        <path d="M 90,125 C 90,150 91,172 92,193" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M 260,125 C 260,150 259,172 258,193" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="2.5" stroke-linecap="round"/>
+
+        <!-- FABRIC WRINKLES -->
+        <path d="M 175,165 Q 172,218 175,278 Q 178,335 174,382" fill="none" stroke="rgba(0,0,0,0.09)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 115,305 Q 138,322 150,340" fill="none" stroke="rgba(0,0,0,0.07)" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 235,305 Q 212,322 200,340" fill="none" stroke="rgba(0,0,0,0.07)" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 118,205 Q 128,220 116,235" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M 232,205 Q 222,220 234,235" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="1.8" stroke-linecap="round"/>
+
+        <!-- SHOULDER HIGHLIGHT -->
+        <path d="M 96,130 C 108,112 126,102 146,97" fill="none" stroke="rgba(255,255,255,0.13)" stroke-width="7" stroke-linecap="round"/>
+        <path d="M 254,130 C 242,112 224,102 204,97" fill="none" stroke="rgba(255,255,255,0.13)" stroke-width="7" stroke-linecap="round"/>
+
+        <!-- HEM FOLD -->
+        <path d="M 86,412 C 138,418 212,418 264,412 L 264,423 C 212,423 138,423 86,423 Z" fill="rgba(0,0,0,0.13)"/>
+        <path d="M 87,417 C 138,421 212,421 263,417" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="1.2" stroke-dasharray="3,3"/>
+
+        <g id="svg-logo-container">${logoMarkup}</g>
       </svg>
     `,
     back: (primary, secondary, logoMarkup) => `
-      <svg viewBox="0 0 350 350" xmlns="http://www.w3.org/2000/svg">
-        <!-- Main Body -->
-        <path d="M 115,110 L 235,110 L 235,320 L 115,320 Z" fill="${primary}"/>
-        <path d="M 115,110 L 70,125 L 90,165 L 115,140 Z" fill="${primary}"/>
-        <path d="M 235,110 L 280,125 L 260,165 L 235,140 Z" fill="${primary}"/>
-        <!-- Cuffs -->
-        <path d="M 70,125 L 73,121 L 93,161 L 90,165 Z" fill="${secondary}"/>
-        <path d="M 280,125 L 277,121 L 257,161 L 260,165 Z" fill="${secondary}"/>
-        <!-- Shoulders & Back Neck -->
-        <path d="M 115,110 L 145,85 L 205,85 L 235,110 Z" fill="${primary}"/>
-        <path d="M 145,85 Q 175,90 205,85 L 205,75 Q 175,80 145,75 Z" fill="${secondary}"/>
-        <!-- Stitching Lines -->
-        <path d="M 118,316 L 232,316" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="2,2"/>
-        <!-- Logo Area -->
-        <g id="svg-logo-container">
-          ${logoMarkup}
-        </g>
+      <svg viewBox="0 0 350 430" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="tsb_body" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.32)"/>
+            <stop offset="18%"  stop-color="rgba(0,0,0,0.08)"/>
+            <stop offset="50%"  stop-color="rgba(255,255,255,0.05)"/>
+            <stop offset="82%"  stop-color="rgba(0,0,0,0.08)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.32)"/>
+          </linearGradient>
+          <linearGradient id="tsb_sL" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.38)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.0)"/>
+          </linearGradient>
+          <linearGradient id="tsb_sR" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.0)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.38)"/>
+          </linearGradient>
+        </defs>
+
+        <ellipse cx="175" cy="423" rx="110" ry="7" fill="rgba(0,0,0,0.28)"/>
+
+        <!-- LEFT SLEEVE -->
+        <path d="M 88,122 C 78,127 50,140 32,164 L 38,210 C 43,218 56,220 66,214 L 76,180 C 82,158 86,140 90,128 Z" fill="${primary}"/>
+        <path d="M 88,122 C 78,127 50,140 32,164 L 38,210 C 43,218 56,220 66,214 L 76,180 C 82,158 86,140 90,128 Z" fill="url(#tsb_sL)" opacity="0.85"/>
+        <path d="M 33,202 C 40,215 54,219 66,213 L 66,221 C 53,227 38,222 31,209 Z" fill="${secondary}" opacity="0.88"/>
+
+        <!-- RIGHT SLEEVE -->
+        <path d="M 262,122 C 272,127 300,140 318,164 L 312,210 C 307,218 294,220 284,214 L 274,180 C 268,158 264,140 260,128 Z" fill="${primary}"/>
+        <path d="M 262,122 C 272,127 300,140 318,164 L 312,210 C 307,218 294,220 284,214 L 274,180 C 268,158 264,140 260,128 Z" fill="url(#tsb_sR)" opacity="0.85"/>
+        <path d="M 317,202 C 310,215 296,219 284,213 L 284,221 C 297,227 312,222 319,209 Z" fill="${secondary}" opacity="0.88"/>
+
+        <!-- MAIN BODY -->
+        <path d="M 88,122 C 94,110 114,100 144,96 C 155,94 165,93 175,93 C 185,93 195,94 206,96 C 236,100 256,110 262,122 L 264,414 C 262,420 257,423 251,423 L 99,423 C 93,423 88,420 86,414 Z" fill="${primary}"/>
+        <path d="M 88,122 C 94,110 114,100 144,96 C 155,94 165,93 175,93 C 185,93 195,94 206,96 C 236,100 256,110 262,122 L 264,414 C 262,420 257,423 251,423 L 99,423 C 93,423 88,420 86,414 Z" fill="url(#tsb_body)" opacity="0.92"/>
+
+        <!-- BACK COLLAR BAND -->
+        <path d="M 144,96 C 155,94 165,93 175,93 C 185,93 195,94 206,96 L 206,106 C 196,103 186,102 175,102 C 164,102 154,103 144,106 Z" fill="${secondary}" opacity="0.9"/>
+        <rect x="168" y="95" width="14" height="9" rx="1.5" fill="rgba(0,0,0,0.82)"/>
+        <text x="175" y="102.5" font-family="sans-serif" font-size="5" text-anchor="middle" fill="white" font-weight="bold">L</text>
+
+        <!-- ARMHOLE CREASE -->
+        <path d="M 90,125 C 90,150 91,172 92,193" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M 260,125 C 260,150 259,172 258,193" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="2.5" stroke-linecap="round"/>
+
+        <!-- WRINKLES -->
+        <path d="M 175,165 Q 172,218 175,278 Q 178,335 174,382" fill="none" stroke="rgba(0,0,0,0.09)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 115,305 Q 138,322 150,340" fill="none" stroke="rgba(0,0,0,0.07)" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 235,305 Q 212,322 200,340" fill="none" stroke="rgba(0,0,0,0.07)" stroke-width="2" stroke-linecap="round"/>
+
+        <!-- CENTER SEAM -->
+        <path d="M 175,106 L 175,420" stroke="rgba(0,0,0,0.06)" stroke-width="1.5"/>
+
+        <!-- HEM FOLD -->
+        <path d="M 86,412 C 138,418 212,418 264,412 L 264,423 C 212,423 138,423 86,423 Z" fill="rgba(0,0,0,0.13)"/>
+        <path d="M 87,417 C 138,421 212,421 263,417" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="1.2" stroke-dasharray="3,3"/>
+
+        <g id="svg-logo-container">${logoMarkup}</g>
       </svg>
     `
   },
   hoodie: {
     front: (primary, secondary, logoMarkup) => `
-      <svg viewBox="0 0 350 350" xmlns="http://www.w3.org/2000/svg">
-        <!-- Shadow -->
-        <path d="M 60,140 L 110,80 L 240,80 L 290,140 L 245,320 L 105,320 Z" fill="rgba(0,0,0,0.15)"/>
-        <!-- Main Body -->
-        <path d="M 110,110 L 240,110 L 240,310 L 110,310 Z" fill="${primary}"/>
-        <!-- Sleeves -->
-        <path d="M 110,110 L 60,140 L 80,260 L 110,230 Z" fill="${primary}"/>
-        <path d="M 240,110 L 290,140 L 270,260 L 240,230 Z" fill="${primary}"/>
-        <!-- Kangaroo Pocket (Secondary Accent) -->
-        <path d="M 130,240 L 220,240 L 235,295 L 115,295 Z" fill="${secondary}" opacity="0.95"/>
-        <path d="M 130,240 L 115,295 M 220,240 L 235,295" stroke="rgba(0,0,0,0.2)" stroke-width="3"/>
-        <!-- Ribbed Hem & Cuffs (Secondary Accent) -->
-        <path d="M 110,310 L 240,310 L 240,325 L 110,325 Z" fill="${secondary}"/>
-        <path d="M 80,260 L 70,270 L 85,275 L 90,265 Z" fill="${secondary}" transform="rotate(-15, 80, 260)"/>
-        <path d="M 270,260 L 280,270 L 265,275 L 260,265 Z" fill="${secondary}" transform="rotate(15, 270, 260)"/>
-        <!-- Hood Overlay (Primary) -->
-        <path d="M 120,95 Q 175,30 230,95 Q 210,115 175,110 Q 140,115 120,95 Z" fill="${primary}"/>
-        <!-- Hood Inner (Secondary) -->
-        <path d="M 140,95 Q 175,60 210,95 Q 190,105 175,103 Q 160,105 140,95 Z" fill="${secondary}"/>
+      <svg viewBox="0 0 350 480" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="hod_body" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.36)"/>
+            <stop offset="18%"  stop-color="rgba(0,0,0,0.09)"/>
+            <stop offset="50%"  stop-color="rgba(255,255,255,0.05)"/>
+            <stop offset="82%"  stop-color="rgba(0,0,0,0.09)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.36)"/>
+          </linearGradient>
+          <linearGradient id="hod_sL" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.48)"/>
+            <stop offset="60%"  stop-color="rgba(0,0,0,0.14)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.0)"/>
+          </linearGradient>
+          <linearGradient id="hod_sR" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.0)"/>
+            <stop offset="40%"  stop-color="rgba(0,0,0,0.14)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.48)"/>
+          </linearGradient>
+          <linearGradient id="hod_hood" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.3)"/>
+            <stop offset="50%"  stop-color="rgba(255,255,255,0.04)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.3)"/>
+          </linearGradient>
+        </defs>
+
+        <ellipse cx="175" cy="472" rx="120" ry="8" fill="rgba(0,0,0,0.3)"/>
+
+        <!-- LEFT SLEEVE -->
+        <path d="M 72,140 C 52,145 28,166 10,192 C 2,207 -2,226 0,248 C 2,283 6,318 10,344 C 13,357 19,366 30,368 C 40,370 53,366 60,355 L 62,248 C 62,226 68,204 76,188 C 80,172 82,155 84,232 C 83,210 81,168 72,140 Z" fill="${primary}"/>
+        <path d="M 72,140 C 52,145 28,166 10,192 C 2,207 -2,226 0,248 C 2,283 6,318 10,344 C 13,357 19,366 30,368 C 40,370 53,366 60,355 L 62,248 C 62,226 68,204 76,188 C 80,172 82,155 84,232 C 83,210 81,168 72,140 Z" fill="url(#hod_sL)" opacity="0.88"/>
+        <!-- Left cuff -->
+        <path d="M 0,308 C 2,324 6,338 12,346 C 16,354 24,362 34,364 C 44,366 54,362 60,352 L 56,342 C 50,350 42,354 32,352 C 24,350 18,342 15,332 C 12,322 11,310 10,298 Z" fill="${secondary}" opacity="0.88"/>
+        <path d="M 1,314 C 6,324 14,333 22,337" fill="none" stroke="rgba(0,0,0,0.14)" stroke-width="1" stroke-dasharray="2,2"/>
+        <path d="M 2,320 C 8,330 16,339 24,343" fill="none" stroke="rgba(0,0,0,0.14)" stroke-width="1" stroke-dasharray="2,2"/>
+
+        <!-- RIGHT SLEEVE -->
+        <path d="M 278,140 C 298,145 322,166 340,192 C 348,207 352,226 350,248 C 348,283 344,318 340,344 C 337,357 331,366 320,368 C 310,370 297,366 290,355 L 288,248 C 288,226 282,204 274,188 C 270,172 268,155 266,232 C 267,210 269,168 278,140 Z" fill="${primary}"/>
+        <path d="M 278,140 C 298,145 322,166 340,192 C 348,207 352,226 350,248 C 348,283 344,318 340,344 C 337,357 331,366 320,368 C 310,370 297,366 290,355 L 288,248 C 288,226 282,204 274,188 C 270,172 268,155 266,232 C 267,210 269,168 278,140 Z" fill="url(#hod_sR)" opacity="0.88"/>
+        <!-- Right cuff -->
+        <path d="M 350,308 C 348,324 344,338 338,346 C 334,354 326,362 316,364 C 306,366 296,362 290,352 L 294,342 C 300,350 308,354 318,352 C 326,350 332,342 335,332 C 338,322 339,310 340,298 Z" fill="${secondary}" opacity="0.88"/>
+        <path d="M 349,314 C 344,324 336,333 328,337" fill="none" stroke="rgba(0,0,0,0.14)" stroke-width="1" stroke-dasharray="2,2"/>
+
+        <!-- MAIN BODY -->
+        <path d="M 72,140 C 82,112 112,92 144,85 C 156,82 166,80 175,80 C 184,80 194,82 206,85 C 238,92 268,112 278,140 C 279,178 279,220 278,244 C 277,300 275,380 273,454 C 273,462 263,467 248,469 C 226,472 200,474 175,474 C 150,474 124,472 102,469 C 87,467 77,462 77,454 C 75,380 73,300 72,244 C 71,220 71,178 72,140 Z" fill="${primary}"/>
+        <path d="M 72,140 C 82,112 112,92 144,85 C 156,82 166,80 175,80 C 184,80 194,82 206,85 C 238,92 268,112 278,140 C 279,178 279,220 278,244 C 277,300 275,380 273,454 C 273,462 263,467 248,469 C 226,472 200,474 175,474 C 150,474 124,472 102,469 C 87,467 77,462 77,454 C 75,380 73,300 72,244 C 71,220 71,178 72,140 Z" fill="url(#hod_body)" opacity="0.9"/>
+
+        <!-- HOOD (drawn over body) -->
+        <path d="M 116,130 C 108,112 104,88 108,62 C 113,36 130,14 150,6 C 158,3 165,2 175,2 C 185,2 192,3 200,6 C 220,14 237,36 242,62 C 246,88 242,112 234,130 C 220,142 198,150 175,152 C 152,150 130,142 116,130 Z" fill="${primary}"/>
+        <path d="M 116,130 C 108,112 104,88 108,62 C 113,36 130,14 150,6 C 158,3 165,2 175,2 C 185,2 192,3 200,6 C 220,14 237,36 242,62 C 246,88 242,112 234,130 C 220,142 198,150 175,152 C 152,150 130,142 116,130 Z" fill="url(#hod_hood)" opacity="0.88"/>
+        <!-- Hood face opening (secondary = inner lining) -->
+        <path d="M 138,128 C 132,112 130,90 134,68 C 139,48 150,34 164,26 C 168,23 172,22 175,22 C 178,22 182,23 186,26 C 200,34 211,48 216,68 C 220,90 218,112 212,128 C 202,140 190,147 175,149 C 160,147 148,140 138,128 Z" fill="${secondary}" opacity="0.9"/>
+        <!-- Hood depth shadow -->
+        <ellipse cx="175" cy="92" rx="32" ry="40" fill="rgba(0,0,0,0.58)"/>
+        <!-- Hood seam line -->
+        <path d="M 175,2 L 175,24" stroke="rgba(0,0,0,0.18)" stroke-width="1.5"/>
+        <!-- Hood body connection seam -->
+        <path d="M 116,130 C 132,140 152,146 175,148 C 198,146 218,140 234,130" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="2"/>
         <!-- Drawstrings -->
-        <path d="M 160,105 Q 155,140 150,150" fill="none" stroke="#fff" stroke-width="2.5"/>
-        <path d="M 190,105 Q 195,140 200,155" fill="none" stroke="#fff" stroke-width="2.5"/>
-        <!-- Shadows/Stitching -->
-        <path d="M 110,310 L 240,310" stroke="rgba(0,0,0,0.2)" stroke-width="2"/>
-        <g id="svg-logo-container">
-          ${logoMarkup}
-        </g>
+        <path d="M 150,128 C 148,150 146,172 144,192" fill="none" stroke="rgba(220,220,220,0.7)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M 200,128 C 202,150 204,172 206,192" fill="none" stroke="rgba(220,220,220,0.7)" stroke-width="2.5" stroke-linecap="round"/>
+        <rect x="140" y="192" width="8" height="12" rx="2" fill="rgba(180,180,180,0.82)"/>
+        <rect x="202" y="192" width="8" height="12" rx="2" fill="rgba(180,180,180,0.82)"/>
+
+        <!-- ARMHOLE CREASE -->
+        <path d="M 73,144 C 74,170 74,196 75,218" fill="none" stroke="rgba(0,0,0,0.16)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M 277,144 C 276,170 276,196 275,218" fill="none" stroke="rgba(0,0,0,0.16)" stroke-width="2.5" stroke-linecap="round"/>
+
+        <!-- FABRIC WRINKLES -->
+        <path d="M 172,210 Q 168,270 171,340 Q 174,390 171,440" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M 178,210 Q 182,270 179,340 Q 176,390 179,440" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="2" stroke-linecap="round"/>
+
+        <!-- KANGAROO POCKET -->
+        <path d="M 104,358 C 118,354 142,350 175,348 C 208,350 232,354 246,358 L 254,440 C 254,450 246,456 234,458 C 215,462 196,464 175,464 C 154,464 135,462 116,458 C 104,456 96,450 96,440 Z" fill="rgba(0,0,0,0.16)" stroke="rgba(0,0,0,0.2)" stroke-width="1.5"/>
+        <path d="M 104,358 C 118,354 142,350 175,348 C 208,350 232,354 246,358" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="2.2"/>
+        <path d="M 175,348 L 175,464" stroke="rgba(0,0,0,0.1)" stroke-width="1.5" stroke-dasharray="3,2"/>
+        <path d="M 106,362 C 120,358 144,354 175,352 C 206,354 230,358 244,362" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1" stroke-dasharray="3,2"/>
+
+        <!-- HEM RIBBING -->
+        <path d="M 77,454 C 77,462 87,467 102,469 C 124,472 150,474 175,474 C 200,474 226,472 248,469 C 263,467 273,462 273,454 L 273,466 C 273,475 263,480 248,482 C 226,485 200,487 175,487 C 150,487 124,485 102,482 C 87,480 77,475 77,466 Z" fill="${secondary}" opacity="0.88"/>
+        <path d="M 78,458 C 115,463 148,466 175,466 C 202,466 235,463 272,458" fill="none" stroke="rgba(0,0,0,0.11)" stroke-width="1" stroke-dasharray="3,2"/>
+        <path d="M 78,462 C 115,467 148,470 175,470 C 202,470 235,467 272,462" fill="none" stroke="rgba(0,0,0,0.11)" stroke-width="1" stroke-dasharray="3,2"/>
+        <path d="M 78,466 C 115,471 148,474 175,474 C 202,474 235,471 272,466" fill="none" stroke="rgba(0,0,0,0.11)" stroke-width="1" stroke-dasharray="3,2"/>
+
+        <g id="svg-logo-container">${logoMarkup}</g>
       </svg>
     `,
     back: (primary, secondary, logoMarkup) => `
-      <svg viewBox="0 0 350 350" xmlns="http://www.w3.org/2000/svg">
-        <!-- Main Body -->
-        <path d="M 110,110 L 240,110 L 240,310 L 110,310 Z" fill="${primary}"/>
-        <!-- Sleeves -->
-        <path d="M 110,110 L 60,140 L 80,260 L 110,230 Z" fill="${primary}"/>
-        <path d="M 240,110 L 290,140 L 270,260 L 240,230 Z" fill="${primary}"/>
-        <!-- Hem & Cuffs -->
-        <path d="M 110,310 L 240,310 L 240,325 L 110,325 Z" fill="${secondary}"/>
-        <!-- Hood down on back -->
-        <path d="M 115,100 Q 175,130 235,100 Q 175,65 115,100 Z" fill="${primary}" stroke="rgba(0,0,0,0.2)" stroke-width="1"/>
-        <g id="svg-logo-container">
-          ${logoMarkup}
-        </g>
+      <svg viewBox="0 0 350 480" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="hodb_body" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.36)"/>
+            <stop offset="50%"  stop-color="rgba(255,255,255,0.05)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.36)"/>
+          </linearGradient>
+          <linearGradient id="hodb_sL" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.48)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.0)"/>
+          </linearGradient>
+          <linearGradient id="hodb_sR" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.0)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.48)"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="175" cy="472" rx="120" ry="8" fill="rgba(0,0,0,0.3)"/>
+
+        <!-- LEFT SLEEVE -->
+        <path d="M 72,140 C 52,145 28,166 10,192 C 2,207 -2,226 0,248 C 2,283 6,318 10,344 C 13,357 19,366 30,368 C 40,370 53,366 60,355 L 62,248 C 62,226 68,204 76,188 C 80,172 82,155 84,232 C 83,210 81,168 72,140 Z" fill="${primary}"/>
+        <path d="M 72,140 C 52,145 28,166 10,192 C 2,207 -2,226 0,248 C 2,283 6,318 10,344 C 13,357 19,366 30,368 C 40,370 53,366 60,355 L 62,248 C 62,226 68,204 76,188 C 80,172 82,155 84,232 C 83,210 81,168 72,140 Z" fill="url(#hodb_sL)" opacity="0.88"/>
+        <path d="M 0,308 C 2,324 6,338 12,346 C 16,354 24,362 34,364 C 44,366 54,362 60,352 L 56,342 C 50,350 42,354 32,352 C 24,350 18,342 15,332 C 12,322 11,310 10,298 Z" fill="${secondary}" opacity="0.88"/>
+
+        <!-- RIGHT SLEEVE -->
+        <path d="M 278,140 C 298,145 322,166 340,192 C 348,207 352,226 350,248 C 348,283 344,318 340,344 C 337,357 331,366 320,368 C 310,370 297,366 290,355 L 288,248 C 288,226 282,204 274,188 C 270,172 268,155 266,232 C 267,210 269,168 278,140 Z" fill="${primary}"/>
+        <path d="M 278,140 C 298,145 322,166 340,192 C 348,207 352,226 350,248 C 348,283 344,318 340,344 C 337,357 331,366 320,368 C 310,370 297,366 290,355 L 288,248 C 288,226 282,204 274,188 C 270,172 268,155 266,232 C 267,210 269,168 278,140 Z" fill="url(#hodb_sR)" opacity="0.88"/>
+        <path d="M 350,308 C 348,324 344,338 338,346 C 334,354 326,362 316,364 C 306,366 296,362 290,352 L 294,342 C 300,350 308,354 318,352 C 326,350 332,342 335,332 C 338,322 339,310 340,298 Z" fill="${secondary}" opacity="0.88"/>
+
+        <!-- MAIN BODY -->
+        <path d="M 72,140 C 82,112 112,92 144,85 C 156,82 166,80 175,80 C 184,80 194,82 206,85 C 238,92 268,112 278,140 C 279,178 279,220 278,244 C 277,300 275,380 273,454 C 273,462 263,467 248,469 C 226,472 200,474 175,474 C 150,474 124,472 102,469 C 87,467 77,462 77,454 C 75,380 73,300 72,244 C 71,220 71,178 72,140 Z" fill="${primary}"/>
+        <path d="M 72,140 C 82,112 112,92 144,85 C 156,82 166,80 175,80 C 184,80 194,82 206,85 C 238,92 268,112 278,140 C 279,178 279,220 278,244 C 277,300 275,380 273,454 C 273,462 263,467 248,469 C 226,472 200,474 175,474 C 150,474 124,472 102,469 C 87,467 77,462 77,454 C 75,380 73,300 72,244 C 71,220 71,178 72,140 Z" fill="url(#hodb_body)" opacity="0.9"/>
+
+        <!-- HOOD on back (large teardrop resting on shoulders) -->
+        <path d="M 116,142 C 108,122 104,96 108,68 C 114,40 132,16 152,6 C 160,3 167,2 175,2 C 183,2 190,3 198,6 C 218,16 236,40 242,68 C 246,96 242,122 234,142 C 220,155 198,162 175,164 C 152,162 130,155 116,142 Z" fill="${primary}"/>
+        <!-- Hood back seam -->
+        <path d="M 175,2 L 175,164" stroke="rgba(0,0,0,0.16)" stroke-width="2"/>
+        <path d="M 175,2 L 175,162" stroke="rgba(255,255,255,0.06)" stroke-width="0.8" stroke-dasharray="4,3"/>
+        <!-- Hood shadow + cross gradient -->
+        <path d="M 116,142 C 108,122 104,96 108,68 C 114,40 132,16 152,6 C 160,3 167,2 175,2 C 183,2 190,3 198,6 C 218,16 236,40 242,68 C 246,96 242,122 234,142 C 220,155 198,162 175,164 C 152,162 130,155 116,142 Z" fill="url(#hodb_body)" opacity="0.75"/>
+
+        <!-- CENTER BODY SEAM -->
+        <path d="M 175,168 L 175,460" stroke="rgba(0,0,0,0.06)" stroke-width="1.5"/>
+
+        <!-- WRINKLES -->
+        <path d="M 172,210 Q 168,270 171,340 Q 174,390 171,440" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M 178,210 Q 182,270 179,340" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="2" stroke-linecap="round"/>
+
+        <!-- HEM RIBBING -->
+        <path d="M 77,454 C 77,462 87,467 102,469 C 124,472 150,474 175,474 C 200,474 226,472 248,469 C 263,467 273,462 273,454 L 273,466 C 273,475 263,480 248,482 C 226,485 200,487 175,487 C 150,487 124,485 102,482 C 87,480 77,475 77,466 Z" fill="${secondary}" opacity="0.88"/>
+        <path d="M 78,458 C 115,463 148,466 175,466 C 202,466 235,463 272,458" fill="none" stroke="rgba(0,0,0,0.11)" stroke-width="1" stroke-dasharray="3,2"/>
+        <path d="M 78,462 C 115,467 148,470 175,470 C 202,470 235,467 272,462" fill="none" stroke="rgba(0,0,0,0.11)" stroke-width="1" stroke-dasharray="3,2"/>
+
+        <g id="svg-logo-container">${logoMarkup}</g>
       </svg>
     `
   },
   jacket: {
     front: (primary, secondary, logoMarkup) => `
-      <svg viewBox="0 0 350 350" xmlns="http://www.w3.org/2000/svg">
-        <!-- Main Shell Body -->
-        <path d="M 110,100 L 240,100 L 240,320 L 110,320 Z" fill="${primary}"/>
-        <!-- Contrast Shoulder Panels (Secondary Color) -->
-        <path d="M 110,100 L 140,75 L 210,75 L 240,100 L 200,130 L 150,130 Z" fill="${secondary}"/>
-        <!-- Sleeves -->
-        <path d="M 110,110 L 55,135 L 75,270 L 110,250 Z" fill="${primary}"/>
-        <path d="M 240,110 L 295,135 L 275,270 L 240,250 Z" fill="${primary}"/>
-        <!-- Sleeve cuffs (Secondary) -->
-        <path d="M 55,135 L 58,131 L 78,266 L 75,270 Z" fill="${secondary}"/>
-        <path d="M 295,135 L 292,131 L 272,266 L 275,270 Z" fill="${secondary}"/>
-        <!-- Collar Rib (Secondary) -->
-        <path d="M 140,75 L 210,75 L 220,55 L 130,55 Z" fill="${secondary}"/>
-        <!-- Zipper line down center -->
-        <line x1="175" y1="55" x2="175" y2="320" stroke="#555" stroke-width="4"/>
-        <circle cx="175" cy="90" r="5" fill="#aaa"/>
-        <!-- Side Pockets -->
-        <path d="M 125,260 L 150,285" stroke="rgba(0,0,0,0.3)" stroke-width="4" stroke-linecap="round"/>
-        <path d="M 225,260 L 200,285" stroke="rgba(0,0,0,0.3)" stroke-width="4" stroke-linecap="round"/>
-        <!-- Highlights -->
-        <line x1="113" y1="105" x2="113" y2="315" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
-        <g id="svg-logo-container">
-          ${logoMarkup}
-        </g>
+      <svg viewBox="0 0 360 480" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="jkt_h" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.4)"/>
+            <stop offset="14%"  stop-color="rgba(0,0,0,0.1)"/>
+            <stop offset="50%"  stop-color="rgba(255,255,255,0.07)"/>
+            <stop offset="86%"  stop-color="rgba(0,0,0,0.1)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.4)"/>
+          </linearGradient>
+          <linearGradient id="jkt_v" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.24)"/>
+            <stop offset="30%"  stop-color="rgba(0,0,0,0.0)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.3)"/>
+          </linearGradient>
+          <linearGradient id="jkt_sL" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.54)"/>
+            <stop offset="55%"  stop-color="rgba(0,0,0,0.16)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.0)"/>
+          </linearGradient>
+          <linearGradient id="jkt_sR" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.0)"/>
+            <stop offset="45%"  stop-color="rgba(0,0,0,0.16)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.54)"/>
+          </linearGradient>
+          <linearGradient id="jkt_yk" x1="5%" y1="5%" x2="95%" y2="95%">
+            <stop offset="0%"   stop-color="rgba(255,255,255,0.18)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.28)"/>
+          </linearGradient>
+          <linearGradient id="jkt_cl" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%"   stop-color="rgba(255,255,255,0.22)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.38)"/>
+          </linearGradient>
+        </defs>
+
+        <!-- GROUND SHADOW -->
+        <ellipse cx="180" cy="473" rx="128" ry="9" fill="rgba(0,0,0,0.32)"/>
+
+        <!-- LEFT SLEEVE (drawn behind body) -->
+        <path d="M 76,122 C 56,126 34,148 16,174 C 8,188 4,207 6,229 C 7,263 10,298 14,325 C 17,338 23,346 34,348 C 45,350 57,346 63,335 L 64,229 C 64,207 70,185 78,169 C 82,186 84,206 86,220 C 85,196 83,157 76,122 Z" fill="${primary}"/>
+        <path d="M 76,122 C 56,126 34,148 16,174 C 8,188 4,207 6,229 C 7,263 10,298 14,325 C 17,338 23,346 34,348 C 45,350 57,346 63,335 L 64,229 C 64,207 70,185 78,169 C 82,186 84,206 86,220 C 85,196 83,157 76,122 Z" fill="url(#jkt_sL)" opacity="0.9"/>
+        <!-- Left cuff (secondary) -->
+        <path d="M 4,285 C 6,302 10,318 16,328 C 20,338 28,346 38,348 C 48,350 58,346 64,336 L 60,326 C 54,334 45,337 36,335 C 27,333 20,324 17,313 C 14,302 13,290 12,276 Z" fill="${secondary}" opacity="0.88"/>
+        <path d="M 5,291 C 10,302 18,312 26,317" fill="none" stroke="rgba(0,0,0,0.14)" stroke-width="1" stroke-dasharray="2,2"/>
+        <path d="M 6,298 C 12,309 20,319 28,324" fill="none" stroke="rgba(0,0,0,0.14)" stroke-width="1" stroke-dasharray="2,2"/>
+        <!-- Left sleeve wrinkle -->
+        <path d="M 38,210 Q 35,238 38,265" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="2" stroke-linecap="round"/>
+
+        <!-- RIGHT SLEEVE (drawn behind body) -->
+        <path d="M 284,122 C 304,126 326,148 344,174 C 352,188 356,207 354,229 C 353,263 350,298 346,325 C 343,338 337,346 326,348 C 315,350 303,346 297,335 L 296,229 C 296,207 290,185 282,169 C 278,186 276,206 274,220 C 275,196 277,157 284,122 Z" fill="${primary}"/>
+        <path d="M 284,122 C 304,126 326,148 344,174 C 352,188 356,207 354,229 C 353,263 350,298 346,325 C 343,338 337,346 326,348 C 315,350 303,346 297,335 L 296,229 C 296,207 290,185 282,169 C 278,186 276,206 274,220 C 275,196 277,157 284,122 Z" fill="url(#jkt_sR)" opacity="0.9"/>
+        <!-- Right cuff (secondary) -->
+        <path d="M 356,285 C 354,302 350,318 344,328 C 340,338 332,346 322,348 C 312,350 302,346 296,336 L 300,326 C 306,334 315,337 324,335 C 333,333 340,324 343,313 C 346,302 347,290 348,276 Z" fill="${secondary}" opacity="0.88"/>
+        <path d="M 355,291 C 350,302 342,312 334,317" fill="none" stroke="rgba(0,0,0,0.14)" stroke-width="1" stroke-dasharray="2,2"/>
+        <!-- Right sleeve wrinkle -->
+        <path d="M 322,210 Q 325,238 322,265" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="2" stroke-linecap="round"/>
+
+        <!-- MAIN BODY (curved silhouette — NOT a rectangle!) -->
+        <path d="M 76,122 C 88,90 118,70 148,62 C 159,58 168,57 180,57 C 192,57 201,58 212,62 C 242,70 272,90 284,122 C 285,160 285,196 284,218 C 283,272 280,362 278,448 C 278,456 268,462 252,464 C 230,468 205,470 180,470 C 155,470 130,468 108,464 C 92,462 82,456 82,448 C 80,362 77,272 76,218 C 75,196 75,160 76,122 Z" fill="${primary}"/>
+        <path d="M 76,122 C 88,90 118,70 148,62 C 159,58 168,57 180,57 C 192,57 201,58 212,62 C 242,70 272,90 284,122 C 285,160 285,196 284,218 C 283,272 280,362 278,448 C 278,456 268,462 252,464 C 230,468 205,470 180,470 C 155,470 130,468 108,464 C 92,462 82,456 82,448 C 80,362 77,272 76,218 C 75,196 75,160 76,122 Z" fill="url(#jkt_h)" opacity="0.9"/>
+        <path d="M 76,122 C 88,90 118,70 148,62 C 159,58 168,57 180,57 C 192,57 201,58 212,62 C 242,70 272,90 284,122 C 285,160 285,196 284,218 C 283,272 280,362 278,448 C 278,456 268,462 252,464 C 230,468 205,470 180,470 C 155,470 130,468 108,464 C 92,462 82,456 82,448 C 80,362 77,272 76,218 C 75,196 75,160 76,122 Z" fill="url(#jkt_v)" opacity="0.7"/>
+
+        <!-- SHOULDER YOKE PANEL (secondary — curves across upper chest) -->
+        <path d="M 76,122 C 88,90 118,70 148,62 C 159,58 168,57 180,57 C 192,57 201,58 212,62 C 242,70 272,90 284,122 C 272,142 250,158 226,166 C 210,172 196,175 180,176 C 164,175 150,172 134,166 C 110,158 88,142 76,122 Z" fill="${secondary}"/>
+        <path d="M 76,122 C 88,90 118,70 148,62 C 159,58 168,57 180,57 C 192,57 201,58 212,62 C 242,70 272,90 284,122 C 272,142 250,158 226,166 C 210,172 196,175 180,176 C 164,175 150,172 134,166 C 110,158 88,142 76,122 Z" fill="url(#jkt_yk)" opacity="0.85"/>
+        <!-- Yoke bottom seam topstitching -->
+        <path d="M 76,122 C 90,140 112,156 136,164" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <path d="M 284,122 C 270,140 248,156 224,164" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <path d="M 136,164 C 154,172 166,175 180,175 C 194,175 206,172 224,164" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+        <!-- STANDING COLLAR — LEFT PIECE -->
+        <path d="M 180,57 L 180,42 C 173,41 162,43 152,48 C 145,52 140,58 140,66 C 140,73 145,78 152,81 C 160,84 170,84 178,84 L 180,83 Z" fill="${secondary}"/>
+        <path d="M 180,57 L 180,42 C 173,41 162,43 152,48 C 145,52 140,58 140,66 C 140,73 145,78 152,81 C 160,84 170,84 178,84 L 180,83 Z" fill="url(#jkt_cl)" opacity="0.88"/>
+        <!-- STANDING COLLAR — RIGHT PIECE -->
+        <path d="M 180,57 L 180,42 C 187,41 198,43 208,48 C 215,52 220,58 220,66 C 220,73 215,78 208,81 C 200,84 190,84 182,84 L 180,83 Z" fill="${secondary}"/>
+        <path d="M 180,57 L 180,42 C 187,41 198,43 208,48 C 215,52 220,58 220,66 C 220,73 215,78 208,81 C 200,84 190,84 182,84 L 180,83 Z" fill="url(#jkt_cl)" opacity="0.88"/>
+        <!-- Collar top rim (3D depth edge) -->
+        <path d="M 140,66 C 146,58 158,51 170,47 C 174,46 177,45 180,45 C 183,45 186,46 190,47 C 202,51 214,58 220,66 L 220,70 C 214,62 202,55 190,51 C 186,50 183,49 180,49 C 177,49 174,50 170,51 C 158,55 146,62 140,70 Z" fill="rgba(0,0,0,0.24)"/>
+        <!-- Collar chin-guard shadow -->
+        <path d="M 172,84 C 176,85 184,85 188,84" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1.5"/>
+
+        <!-- CENTER ZIPPER -->
+        <rect x="178" y="57" width="4" height="413" rx="1.2" fill="rgba(0,0,0,0.25)"/>
+        <line x1="180" y1="57" x2="180" y2="470" stroke="rgba(255,255,255,0.07)" stroke-width="0.8"/>
+        <!-- Zipper teeth (implied dashes) -->
+        <path d="M 178,82 L 182,82 M 178,94 L 182,94 M 178,106 L 182,106 M 178,118 L 182,118 M 178,130 L 182,130 M 178,142 L 182,142" stroke="rgba(0,0,0,0.28)" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- Zipper pull tab -->
+        <rect x="174" y="152" width="12" height="7" rx="2" fill="rgba(180,180,180,0.88)" stroke="rgba(0,0,0,0.38)" stroke-width="0.5"/>
+        <line x1="178" y1="156" x2="182" y2="156" stroke="rgba(0,0,0,0.4)" stroke-width="1.5"/>
+        <path d="M 180,159 C 180,163 176,165 176,168 L 184,168 C 184,165 180,163 180,159 Z" fill="none" stroke="rgba(155,155,155,0.8)" stroke-width="1.5"/>
+        <ellipse cx="180" cy="169" rx="4" ry="2.5" fill="rgba(155,155,155,0.72)"/>
+
+        <!-- RIGHT CHEST POCKET (with zipper) -->
+        <path d="M 198,235 L 254,235 C 256,235 257,236 257,238 L 257,272 C 257,274 256,275 254,275 L 198,275 C 196,275 195,274 195,272 L 195,238 C 195,236 196,235 198,235 Z" fill="rgba(0,0,0,0.0)" stroke="rgba(0,0,0,0.28)" stroke-width="1.5"/>
+        <line x1="195" y1="235" x2="257" y2="235" stroke="rgba(0,0,0,0.32)" stroke-width="2.2"/>
+        <rect x="220" y="231" width="10" height="6" rx="1.5" fill="rgba(155,155,155,0.85)"/>
+        <path d="M 198,239 L 254,239 L 254,271 L 198,271 Z" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="0.8" stroke-dasharray="3,2"/>
+
+        <!-- SIDE HAND POCKETS (angled welt) -->
+        <path d="M 92,370 L 146,356" stroke="rgba(0,0,0,0.38)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 92,375 L 146,361" stroke="rgba(0,0,0,0.1)" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M 268,370 L 214,356" stroke="rgba(0,0,0,0.38)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 268,375 L 214,361" stroke="rgba(0,0,0,0.1)" stroke-width="1.5" stroke-linecap="round"/>
+
+        <!-- SHOULDER HIGHLIGHT -->
+        <path d="M 84,132 C 98,112 120,97 142,90" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="8" stroke-linecap="round"/>
+        <path d="M 276,132 C 262,112 240,97 218,90" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="8" stroke-linecap="round"/>
+
+        <!-- ARMHOLE CREASE LINES -->
+        <path d="M 77,126 C 78,154 79,180 80,204" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 283,126 C 282,154 281,180 280,204" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="2" stroke-linecap="round"/>
+
+        <!-- FABRIC WRINKLES -->
+        <path d="M 176,198 Q 172,255 175,322 Q 178,375 175,432" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M 184,198 Q 188,255 185,322 Q 182,375 185,432" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 118,300 Q 132,318 126,338" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M 242,300 Q 228,318 234,338" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="1.8" stroke-linecap="round"/>
+
+        <!-- HEM RIBBING -->
+        <path d="M 82,448 C 82,456 92,462 108,464 C 130,468 155,470 180,470 C 205,470 230,468 252,464 C 268,462 278,456 278,448 L 278,460 C 278,469 268,474 252,476 C 230,480 205,482 180,482 C 155,482 130,480 108,476 C 92,474 82,469 82,460 Z" fill="${secondary}" opacity="0.88"/>
+        <path d="M 83,452 C 118,458 152,462 180,462 C 208,462 242,458 277,452" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="1" stroke-dasharray="3,2"/>
+        <path d="M 83,456 C 118,462 152,466 180,466 C 208,466 242,462 277,456" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="1" stroke-dasharray="3,2"/>
+        <path d="M 83,460 C 118,466 152,470 180,470 C 208,470 242,466 277,460" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="1" stroke-dasharray="3,2"/>
+        <path d="M 83,464 C 118,470 152,474 180,474 C 208,474 242,470 277,464" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="1" stroke-dasharray="3,2"/>
+
+        <g id="svg-logo-container">${logoMarkup}</g>
       </svg>
     `,
     back: (primary, secondary, logoMarkup) => `
-      <svg viewBox="0 0 350 350" xmlns="http://www.w3.org/2000/svg">
-        <!-- Main Shell Body -->
-        <path d="M 110,100 L 240,100 L 240,320 L 110,320 Z" fill="${primary}"/>
-        <path d="M 110,100 L 140,75 L 210,75 L 240,100 Z" fill="${secondary}"/>
-        <!-- Sleeves -->
-        <path d="M 110,110 L 55,135 L 75,270 L 110,250 Z" fill="${primary}"/>
-        <path d="M 240,110 L 295,135 L 275,270 L 240,250 Z" fill="${primary}"/>
-        <!-- Collar -->
-        <path d="M 140,75 L 210,75 L 215,60 L 135,60 Z" fill="${secondary}"/>
-        <g id="svg-logo-container">
-          ${logoMarkup}
-        </g>
+      <svg viewBox="0 0 360 480" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="jktb_h" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.4)"/>
+            <stop offset="14%"  stop-color="rgba(0,0,0,0.1)"/>
+            <stop offset="50%"  stop-color="rgba(255,255,255,0.07)"/>
+            <stop offset="86%"  stop-color="rgba(0,0,0,0.1)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.4)"/>
+          </linearGradient>
+          <linearGradient id="jktb_yk" x1="5%" y1="5%" x2="95%" y2="95%">
+            <stop offset="0%"   stop-color="rgba(255,255,255,0.18)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.28)"/>
+          </linearGradient>
+          <linearGradient id="jktb_sL" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.54)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.0)"/>
+          </linearGradient>
+          <linearGradient id="jktb_sR" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.0)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.54)"/>
+          </linearGradient>
+        </defs>
+
+        <ellipse cx="180" cy="473" rx="128" ry="9" fill="rgba(0,0,0,0.32)"/>
+
+        <!-- LEFT SLEEVE -->
+        <path d="M 76,122 C 56,126 34,148 16,174 C 8,188 4,207 6,229 C 7,263 10,298 14,325 C 17,338 23,346 34,348 C 45,350 57,346 63,335 L 64,229 C 64,207 70,185 78,169 C 82,186 84,206 86,220 C 85,196 83,157 76,122 Z" fill="${primary}"/>
+        <path d="M 76,122 C 56,126 34,148 16,174 C 8,188 4,207 6,229 C 7,263 10,298 14,325 C 17,338 23,346 34,348 C 45,350 57,346 63,335 L 64,229 C 64,207 70,185 78,169 C 82,186 84,206 86,220 C 85,196 83,157 76,122 Z" fill="url(#jktb_sL)" opacity="0.9"/>
+        <path d="M 4,285 C 6,302 10,318 16,328 C 20,338 28,346 38,348 C 48,350 58,346 64,336 L 60,326 C 54,334 45,337 36,335 C 27,333 20,324 17,313 C 14,302 13,290 12,276 Z" fill="${secondary}" opacity="0.88"/>
+
+        <!-- RIGHT SLEEVE -->
+        <path d="M 284,122 C 304,126 326,148 344,174 C 352,188 356,207 354,229 C 353,263 350,298 346,325 C 343,338 337,346 326,348 C 315,350 303,346 297,335 L 296,229 C 296,207 290,185 282,169 C 278,186 276,206 274,220 C 275,196 277,157 284,122 Z" fill="${primary}"/>
+        <path d="M 284,122 C 304,126 326,148 344,174 C 352,188 356,207 354,229 C 353,263 350,298 346,325 C 343,338 337,346 326,348 C 315,350 303,346 297,335 L 296,229 C 296,207 290,185 282,169 C 278,186 276,206 274,220 C 275,196 277,157 284,122 Z" fill="url(#jktb_sR)" opacity="0.9"/>
+        <path d="M 356,285 C 354,302 350,318 344,328 C 340,338 332,346 322,348 C 312,350 302,346 296,336 L 300,326 C 306,334 315,337 324,335 C 333,333 340,324 343,313 C 346,302 347,290 348,276 Z" fill="${secondary}" opacity="0.88"/>
+
+        <!-- MAIN BODY (back) -->
+        <path d="M 76,122 C 88,90 118,70 148,62 C 159,58 168,57 180,57 C 192,57 201,58 212,62 C 242,70 272,90 284,122 C 285,160 285,196 284,218 C 283,272 280,362 278,448 C 278,456 268,462 252,464 C 230,468 205,470 180,470 C 155,470 130,468 108,464 C 92,462 82,456 82,448 C 80,362 77,272 76,218 C 75,196 75,160 76,122 Z" fill="${primary}"/>
+        <path d="M 76,122 C 88,90 118,70 148,62 C 159,58 168,57 180,57 C 192,57 201,58 212,62 C 242,70 272,90 284,122 C 285,160 285,196 284,218 C 283,272 280,362 278,448 C 278,456 268,462 252,464 C 230,468 205,470 180,470 C 155,470 130,468 108,464 C 92,462 82,456 82,448 C 80,362 77,272 76,218 C 75,196 75,160 76,122 Z" fill="url(#jktb_h)" opacity="0.9"/>
+
+        <!-- BACK UPPER YOKE (secondary, more visible from back) -->
+        <path d="M 76,122 C 88,90 118,70 148,62 C 159,58 168,57 180,57 C 192,57 201,58 212,62 C 242,70 272,90 284,122 C 272,142 250,158 226,166 C 210,172 196,175 180,176 C 164,175 150,172 134,166 C 110,158 88,142 76,122 Z" fill="${secondary}"/>
+        <path d="M 76,122 C 88,90 118,70 148,62 C 159,58 168,57 180,57 C 192,57 201,58 212,62 C 242,70 272,90 284,122 C 272,142 250,158 226,166 C 210,172 196,175 180,176 C 164,175 150,172 134,166 C 110,158 88,142 76,122 Z" fill="url(#jktb_yk)" opacity="0.85"/>
+        <!-- Yoke seam topstitching -->
+        <path d="M 76,122 C 90,140 112,156 136,164 C 154,172 166,175 180,175 C 194,175 206,172 224,164 C 248,156 270,140 284,122" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+        <!-- BACK COLLAR ROLL (secondary visible from back) -->
+        <path d="M 140,66 C 152,58 165,53 180,52 C 195,53 208,58 220,66 L 220,80 C 208,74 195,70 180,68 C 165,70 152,74 140,80 Z" fill="${secondary}"/>
+        <path d="M 140,66 C 152,58 165,53 180,52 C 195,53 208,58 220,66 L 220,80 C 208,74 195,70 180,68 C 165,70 152,74 140,80 Z" fill="url(#jktb_yk)" opacity="0.8"/>
+
+        <!-- CENTER BACK SEAM -->
+        <path d="M 180,80 L 180,466" stroke="rgba(0,0,0,0.14)" stroke-width="2"/>
+        <path d="M 180,180 L 180,450" stroke="rgba(255,255,255,0.06)" stroke-width="0.8" stroke-dasharray="3,2"/>
+
+        <!-- ARMHOLE CREASE -->
+        <path d="M 77,126 C 78,154 79,180 80,204" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 283,126 C 282,154 281,180 280,204" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="2" stroke-linecap="round"/>
+
+        <!-- FABRIC WRINKLES -->
+        <path d="M 176,198 Q 172,255 175,322 Q 178,375 175,432" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M 184,198 Q 188,255 185,322" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 118,300 Q 132,318 126,338" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M 242,300 Q 228,318 234,338" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="1.8" stroke-linecap="round"/>
+
+        <!-- SHOULDER HIGHLIGHT -->
+        <path d="M 84,132 C 98,112 120,97 142,90" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="8" stroke-linecap="round"/>
+        <path d="M 276,132 C 262,112 240,97 218,90" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="8" stroke-linecap="round"/>
+
+        <!-- HEM RIBBING -->
+        <path d="M 82,448 C 82,456 92,462 108,464 C 130,468 155,470 180,470 C 205,470 230,468 252,464 C 268,462 278,456 278,448 L 278,460 C 278,469 268,474 252,476 C 230,480 205,482 180,482 C 155,482 130,480 108,476 C 92,474 82,469 82,460 Z" fill="${secondary}" opacity="0.88"/>
+        <path d="M 83,452 C 118,458 152,462 180,462 C 208,462 242,458 277,452" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="1" stroke-dasharray="3,2"/>
+        <path d="M 83,456 C 118,462 152,466 180,466 C 208,466 242,462 277,456" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="1" stroke-dasharray="3,2"/>
+        <path d="M 83,460 C 118,466 152,470 180,470 C 208,470 242,466 277,460" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="1" stroke-dasharray="3,2"/>
+
+        <g id="svg-logo-container">${logoMarkup}</g>
       </svg>
     `
   },
   uniform: {
     front: (primary, secondary, logoMarkup) => `
-      <svg viewBox="0 0 350 350" xmlns="http://www.w3.org/2000/svg">
-        <!-- Main Body -->
-        <path d="M 115,100 L 235,100 L 235,320 L 115,320 Z" fill="${primary}"/>
-        <!-- Raglan Contrast Sleeves & Shoulders (Secondary) -->
-        <path d="M 115,100 L 70,120 L 90,160 L 115,135 Z" fill="${secondary}"/>
-        <path d="M 235,100 L 280,120 L 260,160 L 235,135 Z" fill="${secondary}"/>
-        <path d="M 115,100 L 145,75 L 175,100 L 205,75 L 235,100 Z" fill="${secondary}"/>
-        <!-- Sports V-Neck Ribbing (White/Contrast) -->
-        <path d="M 145,75 Q 175,105 205,75 Q 195,75 175,90 Q 155,75 145,75 Z" fill="#ffffff"/>
-        <!-- Sport Side Accent Stripes (Secondary) -->
-        <path d="M 115,180 L 125,180 L 125,320 L 115,320 Z" fill="${secondary}"/>
-        <path d="M 235,180 L 225,180 L 225,320 L 235,320 Z" fill="${secondary}"/>
-        <!-- Performance mesh shadows -->
-        <path d="M 115,315 L 235,315" stroke="rgba(0,0,0,0.2)" stroke-width="3"/>
-        <path d="M 115,100 L 235,100" stroke="rgba(255,255,255,0.1)" stroke-width="1.5" stroke-dasharray="3,3"/>
-        <g id="svg-logo-container">
-          ${logoMarkup}
-        </g>
+      <svg viewBox="0 0 350 420" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="uni_body" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.3)"/>
+            <stop offset="50%"  stop-color="rgba(255,255,255,0.05)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.3)"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="175" cy="415" rx="105" ry="6" fill="rgba(0,0,0,0.28)"/>
+
+        <!-- LEFT RAGLAN SLEEVE (secondary) -->
+        <path d="M 88,118 C 68,124 44,142 26,166 C 18,180 16,200 18,220 L 24,290 C 26,302 32,310 42,312 C 52,314 64,310 70,300 L 72,220 C 72,200 80,180 90,165 C 92,180 94,198 96,210 C 95,188 93,152 88,118 Z" fill="${secondary}"/>
+        <path d="M 88,118 C 68,124 44,142 26,166 C 18,180 16,200 18,220 L 24,290 C 26,302 32,310 42,312 C 52,314 64,310 70,300 L 72,220 C 72,200 80,180 90,165 C 92,180 94,198 96,210 C 95,188 93,152 88,118 Z" fill="rgba(0,0,0,0.22)" opacity="0.6"/>
+
+        <!-- RIGHT RAGLAN SLEEVE (secondary) -->
+        <path d="M 262,118 C 282,124 306,142 324,166 C 332,180 334,200 332,220 L 326,290 C 324,302 318,310 308,312 C 298,314 286,310 280,300 L 278,220 C 278,200 270,180 260,165 C 258,180 256,198 254,210 C 255,188 257,152 262,118 Z" fill="${secondary}"/>
+        <path d="M 262,118 C 282,124 306,142 324,166 C 332,180 334,200 332,220 L 326,290 C 324,302 318,310 308,312 C 298,314 286,310 280,300 L 278,220 C 278,200 270,180 260,165 C 258,180 256,198 254,210 C 255,188 257,152 262,118 Z" fill="rgba(0,0,0,0.22)" opacity="0.6"/>
+
+        <!-- RAGLAN SHOULDER PANELS (secondary) -->
+        <path d="M 88,118 C 100,90 130,72 156,66 C 165,63 170,62 175,62 C 180,62 185,63 194,66 C 220,72 250,90 262,118 C 248,132 226,142 202,148 C 192,151 183,153 175,153 C 167,153 158,151 148,148 C 124,142 102,132 88,118 Z" fill="${secondary}"/>
+        <path d="M 88,118 C 100,90 130,72 156,66 C 165,63 170,62 175,62 C 180,62 185,63 194,66 C 220,72 250,90 262,118 C 248,132 226,142 202,148 C 192,151 183,153 175,153 C 167,153 158,151 148,148 C 124,142 102,132 88,118 Z" fill="rgba(0,0,0,0.18)" opacity="0.7"/>
+
+        <!-- MAIN BODY (primary) -->
+        <path d="M 88,118 C 102,130 125,145 148,151 C 158,154 167,155 175,155 C 183,155 192,154 202,151 C 225,145 248,130 262,118 C 263,158 263,200 262,222 C 261,278 259,360 257,406 L 93,406 C 91,360 89,278 88,222 C 87,200 87,158 88,118 Z" fill="${primary}"/>
+        <path d="M 88,118 C 102,130 125,145 148,151 C 158,154 167,155 175,155 C 183,155 192,154 202,151 C 225,145 248,130 262,118 C 263,158 263,200 262,222 C 261,278 259,360 257,406 L 93,406 C 91,360 89,278 88,222 C 87,200 87,158 88,118 Z" fill="url(#uni_body)" opacity="0.88"/>
+
+        <!-- V-NECK OPENING -->
+        <path d="M 154,66 C 162,74 170,86 175,98 C 180,86 188,74 196,66 C 188,63 182,62 175,62 C 168,62 162,63 154,66 Z" fill="rgba(255,255,255,0.15)"/>
+        <path d="M 154,66 C 162,74 170,86 175,96" fill="none" stroke="${secondary}" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M 196,66 C 188,74 180,86 175,96" fill="none" stroke="${secondary}" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- V-neck depth shadow -->
+        <path d="M 160,68 C 166,76 172,88 175,97" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="2" stroke-linecap="round"/>
+
+        <!-- SIDE ACCENT STRIPES (secondary) -->
+        <path d="M 88,195 L 100,195 L 100,406 L 88,406 C 89,360 89,278 88,222 Z" fill="${secondary}" opacity="0.9"/>
+        <path d="M 262,195 L 250,195 L 250,406 L 262,406 C 261,360 261,278 262,222 Z" fill="${secondary}" opacity="0.9"/>
+
+        <!-- HEM -->
+        <path d="M 93,406 L 257,406 L 257,412 L 93,412 Z" fill="${secondary}" opacity="0.85"/>
+        <path d="M 94,408 L 256,408" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="3,2"/>
+
+        <!-- BODY WRINKLES -->
+        <path d="M 173,180 Q 170,230 172,290 Q 174,340 172,392" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M 177,180 Q 180,230 178,290" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="2" stroke-linecap="round"/>
+        <!-- Raglan seam lines -->
+        <path d="M 88,118 C 102,132 124,146 148,152" fill="none" stroke="rgba(0,0,0,0.16)" stroke-width="1.5"/>
+        <path d="M 262,118 C 248,132 226,146 202,152" fill="none" stroke="rgba(0,0,0,0.16)" stroke-width="1.5"/>
+
+        <g id="svg-logo-container">${logoMarkup}</g>
       </svg>
     `,
     back: (primary, secondary, logoMarkup) => `
-      <svg viewBox="0 0 350 350" xmlns="http://www.w3.org/2000/svg">
-        <!-- Main Body -->
-        <path d="M 115,100 L 235,100 L 235,320 L 115,320 Z" fill="${primary}"/>
-        <!-- Sleeves -->
-        <path d="M 115,100 L 70,120 L 90,160 L 115,135 Z" fill="${secondary}"/>
-        <path d="M 235,100 L 280,120 L 260,160 L 235,135 Z" fill="${secondary}"/>
-        <path d="M 115,100 L 145,75 L 205,75 L 235,100 Z" fill="${secondary}"/>
-        <!-- Side Panels -->
-        <path d="M 115,180 L 125,180 L 125,320 L 115,320 Z" fill="${secondary}"/>
-        <path d="M 235,180 L 225,180 L 225,320 L 235,320 Z" fill="${secondary}"/>
-        <!-- Player Number Mockup on Back -->
-        <text x="175" y="210" font-family="'Outfit', sans-serif" font-weight="900" font-size="70" text-anchor="middle" fill="${secondary}" opacity="0.8">10</text>
-        <g id="svg-logo-container">
-          ${logoMarkup}
-        </g>
+      <svg viewBox="0 0 350 420" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="unib_body" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.3)"/>
+            <stop offset="50%"  stop-color="rgba(255,255,255,0.05)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.3)"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="175" cy="415" rx="105" ry="6" fill="rgba(0,0,0,0.28)"/>
+
+        <!-- LEFT RAGLAN SLEEVE (back) -->
+        <path d="M 88,118 C 68,124 44,142 26,166 C 18,180 16,200 18,220 L 24,290 C 26,302 32,310 42,312 C 52,314 64,310 70,300 L 72,220 C 72,200 80,180 90,165 C 92,180 94,198 96,210 C 95,188 93,152 88,118 Z" fill="${secondary}"/>
+        <path d="M 88,118 C 68,124 44,142 26,166 C 18,180 16,200 18,220 L 24,290 C 26,302 32,310 42,312 C 52,314 64,310 70,300 L 72,220 C 72,200 80,180 90,165 C 92,180 94,198 96,210 C 95,188 93,152 88,118 Z" fill="rgba(0,0,0,0.22)" opacity="0.6"/>
+
+        <!-- RIGHT RAGLAN SLEEVE (back) -->
+        <path d="M 262,118 C 282,124 306,142 324,166 C 332,180 334,200 332,220 L 326,290 C 324,302 318,310 308,312 C 298,314 286,310 280,300 L 278,220 C 278,200 270,180 260,165 C 258,180 256,198 254,210 C 255,188 257,152 262,118 Z" fill="${secondary}"/>
+        <path d="M 262,118 C 282,124 306,142 324,166 C 332,180 334,200 332,220 L 326,290 C 324,302 318,310 308,312 C 298,314 286,310 280,300 L 278,220 C 278,200 270,180 260,165 C 258,180 256,198 254,210 C 255,188 257,152 262,118 Z" fill="rgba(0,0,0,0.22)" opacity="0.6"/>
+
+        <!-- BACK RAGLAN SHOULDERS (secondary) -->
+        <path d="M 88,118 C 100,90 130,72 156,66 C 165,63 170,62 175,62 C 180,62 185,63 194,66 C 220,72 250,90 262,118 C 248,132 226,142 202,148 C 192,151 183,153 175,153 C 167,153 158,151 148,148 C 124,142 102,132 88,118 Z" fill="${secondary}"/>
+        <path d="M 88,118 C 100,90 130,72 156,66 C 165,63 170,62 175,62 C 180,62 185,63 194,66 C 220,72 250,90 262,118 C 248,132 226,142 202,148 C 192,151 183,153 175,153 C 167,153 158,151 148,148 C 124,142 102,132 88,118 Z" fill="rgba(0,0,0,0.18)" opacity="0.7"/>
+
+        <!-- BACK COLLAR (secondary) -->
+        <path d="M 152,68 C 160,65 167,63 175,63 C 183,63 190,65 198,68 L 198,78 C 190,75 183,74 175,74 C 167,74 160,75 152,78 Z" fill="${secondary}"/>
+
+        <!-- MAIN BODY BACK (primary) -->
+        <path d="M 88,118 C 102,130 125,145 148,151 C 158,154 167,155 175,155 C 183,155 192,154 202,151 C 225,145 248,130 262,118 C 263,158 263,200 262,222 C 261,278 259,360 257,406 L 93,406 C 91,360 89,278 88,222 C 87,200 87,158 88,118 Z" fill="${primary}"/>
+        <path d="M 88,118 C 102,130 125,145 148,151 C 158,154 167,155 175,155 C 183,155 192,154 202,151 C 225,145 248,130 262,118 C 263,158 263,200 262,222 C 261,278 259,360 257,406 L 93,406 C 91,360 89,278 88,222 C 87,200 87,158 88,118 Z" fill="url(#unib_body)" opacity="0.88"/>
+
+        <!-- SIDE STRIPES -->
+        <path d="M 88,195 L 100,195 L 100,406 L 88,406 C 89,360 89,278 88,222 Z" fill="${secondary}" opacity="0.9"/>
+        <path d="M 262,195 L 250,195 L 250,406 L 262,406 C 261,360 261,278 262,222 Z" fill="${secondary}" opacity="0.9"/>
+
+        <!-- PLAYER NUMBER -->
+        <text x="175" y="295" font-family="'Outfit', sans-serif" font-weight="900" font-size="78" text-anchor="middle" fill="${secondary}" opacity="0.82">10</text>
+        <text x="175" y="295" font-family="'Outfit', sans-serif" font-weight="900" font-size="78" text-anchor="middle" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="3">10</text>
+
+        <!-- HEM -->
+        <path d="M 93,406 L 257,406 L 257,412 L 93,412 Z" fill="${secondary}" opacity="0.85"/>
+
+        <!-- RAGLAN SEAM LINES (back) -->
+        <path d="M 88,118 C 102,132 124,146 148,152" fill="none" stroke="rgba(0,0,0,0.16)" stroke-width="1.5"/>
+        <path d="M 262,118 C 248,132 226,146 202,152" fill="none" stroke="rgba(0,0,0,0.16)" stroke-width="1.5"/>
+
+        <!-- BODY WRINKLES -->
+        <path d="M 173,180 Q 170,230 172,290 Q 174,340 172,392" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="2.5" stroke-linecap="round"/>
+
+        <g id="svg-logo-container">${logoMarkup}</g>
       </svg>
     `
   }
@@ -460,20 +859,27 @@ function renderCustomizerPreview() {
   if (view === 'front') {
     if (placement === 'chest') {
       shouldRenderLogo = true;
-      coords = (type === 'hoodie') ? { x: 155, y: 150, w: 40, h: 40 } :
-               (type === 'jacket') ? { x: 125, y: 140, w: 30, h: 30 } : // left-aligned for zip jacket
-               { x: 155, y: 135, w: 40, h: 40 };
+      coords = (type === 'hoodie') ? { x: 150, y: 218, w: 42, h: 42 } :
+               (type === 'jacket') ? { x: 100, y: 248, w: 30, h: 30 } :
+               (type === 'uniform') ? { x: 152, y: 195, w: 40, h: 40 } :
+               { x: 155, y: 165, w: 40, h: 40 };
     } else if (placement === 'left_sleeve') {
       shouldRenderLogo = true;
-      coords = { x: 80, y: 128, w: 22, h: 22 };
+      coords = (type === 'jacket') ? { x: 24, y: 218, w: 20, h: 20 } :
+               (type === 'hoodie') ? { x: 10, y: 228, w: 20, h: 20 } :
+               { x: 48, y: 160, w: 22, h: 22 };
     } else if (placement === 'right_sleeve') {
       shouldRenderLogo = true;
-      coords = { x: 248, y: 128, w: 22, h: 22 };
+      coords = (type === 'jacket') ? { x: 316, y: 218, w: 20, h: 20 } :
+               (type === 'hoodie') ? { x: 320, y: 228, w: 20, h: 20 } :
+               { x: 280, y: 160, w: 22, h: 22 };
     }
   } else if (view === 'back') {
     if (placement === 'back') {
       shouldRenderLogo = true;
-      coords = { x: 135, y: 130, w: 80, h: 80 };
+      coords = (type === 'jacket') ? { x: 128, y: 240, w: 104, h: 104 } :
+               (type === 'hoodie') ? { x: 120, y: 255, w: 95, h: 95 } :
+               { x: 135, y: 165, w: 80, h: 80 };
     }
   }
   
