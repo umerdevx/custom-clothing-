@@ -1,4 +1,5 @@
 import datetime
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -18,6 +19,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login-form")
+optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login-form", auto_error=False)
 
 # Helper functions
 def hash_password(password: str) -> str:
@@ -52,6 +54,20 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     if user is None:
         raise credentials_exception
     return user
+
+async def get_optional_user(token: str = Depends(optional_oauth2_scheme), db: AsyncSession = Depends(get_db)) -> Optional[User]:
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        user_id: int = payload.get("user_id")
+        if email is None or user_id is None:
+            return None
+    except JWTError:
+        return None
+    result = await db.execute(select(User).where(User.user_id == user_id))
+    return result.scalars().first()
 
 async def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
     if current_user.role != "admin":

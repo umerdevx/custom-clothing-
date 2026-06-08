@@ -3,9 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database.database import get_db
 from models.models import Product, FabricOption, Faq, Order, ChatLog, User
-from schemas.schemas import ChatRequest, ChatResponse
-from routers.auth import get_current_user
-from typing import Optional
+from schemas.schemas import ChatRequest, ChatResponse, ChatLogOut
+from routers.auth import get_current_user, get_optional_user, get_current_admin
+from typing import Optional, List
 import httpx
 import os
 
@@ -17,7 +17,7 @@ N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL", "")
 async def chat(
     chat_req: ChatRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_optional_user)
 ):
     query = chat_req.message
     clean_query = query.lower()
@@ -127,5 +127,16 @@ async def chat(
     )
     db.add(chat_log)
     await db.commit()
-    
+
     return ChatResponse(reply=ai_reply, retrieved_context=retrieved_context)
+
+
+@router.get("/logs", response_model=List[ChatLogOut])
+async def get_chat_logs(
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_admin)
+):
+    result = await db.execute(
+        select(ChatLog).order_by(ChatLog.created_at.desc()).limit(200)
+    )
+    return result.scalars().all()

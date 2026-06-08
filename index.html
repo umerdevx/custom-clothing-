@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-fontawesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Core Stylesheet -->
   <link rel="stylesheet" href="style.css">
 </head>
@@ -34,9 +34,12 @@
           <i class="fa-solid fa-bag-shopping"></i>
           <span class="cart-badge" id="cart-count">0</span>
         </button>
+        <button class="btn btn-sm btn-outline" id="auth-btn" onclick="openAuthModal()">
+          <i class="fa-solid fa-right-to-bracket"></i> <span id="auth-btn-label">Login</span>
+        </button>
         <div class="user-profile">
-          <i class="fa-solid fa-user-circle"></i>
-          <span class="user-name">Umer Javed</span>
+          <i class="fa-solid fa-user-circle" id="user-avatar-icon"></i>
+          <span class="user-name" id="header-username">Guest</span>
         </div>
       </div>
     </div>
@@ -416,136 +419,195 @@
     <!-- VIEW 4: ADMIN PANEL -->
     <section id="view-admin" class="view-section">
       <div class="admin-dashboard-container">
-        
+
         <!-- Sidebar Navigation -->
         <div class="admin-sidebar glass">
           <div class="admin-profile">
             <i class="fa-solid fa-user-shield"></i>
             <div>
               <h3>Admin Console</h3>
-              <span>Project Demo Mode</span>
+              <span id="admin-sidebar-username">Administrator</span>
             </div>
           </div>
           <ul class="admin-nav">
-            <li class="active" onclick="switchAdminTab('overview', this)"><i class="fa-solid fa-chart-line"></i> Overview Stats</li>
-            <li onclick="switchAdminTab('orders', this)"><i class="fa-solid fa-dolly"></i> Manage Orders</li>
-            <li onclick="switchAdminTab('inventory', this)"><i class="fa-solid fa-warehouse"></i> Inventory Stock</li>
-            <li onclick="switchAdminTab('logs', this)"><i class="fa-solid fa-comments"></i> RAG Chat Logs</li>
+            <li class="active" onclick="switchAdminTab('overview', this)"><i class="fa-solid fa-chart-line"></i> Overview</li>
+            <li onclick="switchAdminTab('products', this)"><i class="fa-solid fa-shirt"></i> Products</li>
+            <li onclick="switchAdminTab('orders', this)"><i class="fa-solid fa-boxes-stacked"></i> Orders</li>
+            <li onclick="switchAdminTab('users', this)"><i class="fa-solid fa-users"></i> Users</li>
+            <li onclick="switchAdminTab('inventory', this)"><i class="fa-solid fa-warehouse"></i> Inventory</li>
+            <li onclick="switchAdminTab('logs', this)"><i class="fa-solid fa-robot"></i> AI Chat Logs</li>
           </ul>
         </div>
 
         <!-- Dashboard Body Content -->
         <div class="admin-body glass">
-          
+
           <!-- TAB: Overview -->
           <div class="admin-tab-content active" id="admin-tab-overview">
-            <h2 class="tab-title">System Overview</h2>
+            <h2 class="tab-title"><i class="fa-solid fa-chart-line"></i> System Overview</h2>
             <div class="stats-grid">
               <div class="stat-card">
-                <span class="label">Total Revenue</span>
+                <span class="label"><i class="fa-solid fa-sack-dollar"></i> Total Revenue</span>
                 <span class="value" id="admin-revenue">PKR 0</span>
-                <div class="trend positive"><i class="fa-solid fa-arrow-up"></i> Demo Uptime</div>
+                <div class="trend positive"><i class="fa-solid fa-arrow-trend-up"></i> Live from DB</div>
               </div>
               <div class="stat-card">
-                <span class="label">Total Orders</span>
+                <span class="label"><i class="fa-solid fa-bag-shopping"></i> Total Orders</span>
                 <span class="value" id="admin-orders-count">0</span>
-                <div class="trend positive"><i class="fa-solid fa-arrow-up"></i> Real-time updates</div>
+                <div class="trend positive"><i class="fa-solid fa-circle-check"></i> Real-time</div>
               </div>
               <div class="stat-card">
-                <span class="label">Active Users</span>
-                <span class="value">2</span>
-                <div class="trend">Umer Javed, Admin</div>
+                <span class="label"><i class="fa-solid fa-users"></i> Registered Users</span>
+                <span class="value" id="admin-users-count">—</span>
+                <div class="trend"><i class="fa-solid fa-user-check"></i> All accounts</div>
               </div>
               <div class="stat-card">
-                <span class="label">Low-Stock Warnings</span>
+                <span class="label"><i class="fa-solid fa-triangle-exclamation"></i> Low-Stock Alerts</span>
                 <span class="value text-warning" id="admin-stock-warnings">0</span>
-                <div class="trend text-warning"><i class="fa-solid fa-triangle-exclamation"></i> Action required</div>
+                <div class="trend text-warning"><i class="fa-solid fa-bell"></i> Action required</div>
               </div>
             </div>
-
             <div class="recent-activities">
-              <h3>System Health & Operations</h3>
+              <h3><i class="fa-solid fa-circle-info"></i> System Health</h3>
               <div class="log-list">
-                <div class="log-item">
-                  <span class="log-time">Just Now</span>
-                  <span class="log-msg"><strong class="text-info">Database</strong> Simulated MySQL running locally in browser storage.</span>
-                </div>
-                <div class="log-item">
-                  <span class="log-time">5 mins ago</span>
-                  <span class="log-msg"><strong class="text-info">RAG Pipeline</strong> n8n server status simulation is online.</span>
-                </div>
-                <div class="log-item">
-                  <span class="log-time">10 mins ago</span>
-                  <span class="log-msg"><strong class="text-info">System</strong> Loaded core tables (users, products, fabric_options, faqs)</span>
-                </div>
+                <div class="log-item"><span class="log-time">Live</span><span class="log-msg"><strong class="text-info"><i class="fa-solid fa-database"></i> Database</strong> SQLite connected via SQLAlchemy async engine.</span></div>
+                <div class="log-item"><span class="log-time">Live</span><span class="log-msg"><strong class="text-info"><i class="fa-solid fa-robot"></i> RAG Engine</strong> Chat endpoint active — n8n webhook or local fallback.</span></div>
+                <div class="log-item"><span class="log-time">Live</span><span class="log-msg"><strong class="text-info"><i class="fa-solid fa-lock"></i> Auth</strong> JWT authentication enabled.</span></div>
               </div>
             </div>
           </div>
 
-          <!-- TAB: Manage Orders -->
+          <!-- TAB: Products -->
+          <div class="admin-tab-content" id="admin-tab-products">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+              <h2 class="tab-title" style="margin:0"><i class="fa-solid fa-shirt"></i> Product Catalog</h2>
+              <button class="btn btn-primary btn-sm" onclick="toggleAddProductForm()">
+                <i class="fa-solid fa-circle-plus"></i> Add Product
+              </button>
+            </div>
+
+            <!-- Add Product Form -->
+            <div id="add-product-form-container" style="display:none;background:rgba(255,255,255,0.03);border:1px solid var(--border-color);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;">
+              <h3 style="margin:0 0 1rem;color:var(--teal-neon);font-size:1rem;"><i class="fa-solid fa-circle-plus"></i> New Product</h3>
+              <form id="add-product-form" onsubmit="handleAddProduct(event)">
+                <div class="form-grid">
+                  <div class="form-group col-6"><label>Product ID <small style="color:var(--text-muted)">(lowercase, no spaces)</small></label><input type="text" id="np-id" placeholder="e.g. joggers" pattern="[a-z0-9_-]+" required></div>
+                  <div class="form-group col-6"><label>Product Name</label><input type="text" id="np-name" placeholder="Aura Premium Joggers" required></div>
+                  <div class="form-group col-6">
+                    <label>Category</label>
+                    <select id="np-category" class="select-input">
+                      <option>T-Shirt</option><option>Hoodie</option><option>Jacket</option><option>Sports Uniform</option><option>Joggers</option><option>Other</option>
+                    </select>
+                  </div>
+                  <div class="form-group col-6"><label>Base Price (PKR)</label><input type="number" id="np-price" min="100" placeholder="2000" required></div>
+                  <div class="form-group col-12"><label>Description</label><textarea id="np-desc" rows="2" placeholder="Short product description..." required></textarea></div>
+                  <div class="form-group col-12"><label>Image URL <small style="color:var(--text-muted)">(Unsplash or any CDN link)</small></label><input type="url" id="np-img" placeholder="https://images.unsplash.com/..."></div>
+                </div>
+                <div style="display:flex;gap:0.8rem;margin-top:1rem;">
+                  <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-floppy-disk"></i> Save Product</button>
+                  <button type="button" class="btn btn-outline btn-sm" onclick="toggleAddProductForm()"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                </div>
+              </form>
+            </div>
+
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Base Price</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="admin-products-list"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB: Orders -->
           <div class="admin-tab-content" id="admin-tab-orders">
-            <h2 class="tab-title">Order Processing Flow</h2>
-            <p class="hint-text">Simulate manufacturing workflow. Move orders through pipeline to trigger client-side notifications and status emails.</p>
-            
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
+              <h2 class="tab-title" style="margin:0;"><i class="fa-solid fa-boxes-stacked"></i> Order Management</h2>
+              <button class="btn btn-primary" onclick="toggleManualOrderForm()" id="toggle-manual-order-btn">
+                <i class="fa-solid fa-plus"></i> Add Manual Order
+              </button>
+            </div>
+            <p class="hint-text"><i class="fa-solid fa-circle-info"></i> Update order status to trigger pipeline stages. Use Add Manual Order for walk-in or phone orders.</p>
+
+            <!-- Manual Order Form -->
+            <div id="manual-order-form-container" style="display:none; background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:12px; padding:1.5rem; margin-bottom:1.5rem;">
+              <h3 style="margin-bottom:1rem; font-size:1rem; color:var(--teal-neon);"><i class="fa-solid fa-pen-to-square"></i> Create Manual Order</h3>
+              <form id="manual-order-form" onsubmit="handleAddManualOrder(event)" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                <div class="form-group">
+                  <label>Customer Name</label>
+                  <input id="mo-customer-name" type="text" placeholder="Walk-in Customer" value="Walk-in Customer" required style="width:100%;"/>
+                </div>
+                <div class="form-group">
+                  <label>Product</label>
+                  <select id="mo-product-id" required style="width:100%; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; padding:0.6rem; border-radius:6px;">
+                    <option value="">— Select Product —</option>
+                    <option value="tshirt">T-Shirt</option>
+                    <option value="hoodie">Hoodie</option>
+                    <option value="jacket">Jacket</option>
+                    <option value="jersey">Jersey</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Quantity</label>
+                  <input id="mo-quantity" type="number" min="1" value="1" required style="width:100%;"/>
+                </div>
+                <div class="form-group">
+                  <label>Payment Method</label>
+                  <select id="mo-payment" style="width:100%; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; padding:0.6rem; border-radius:6px;">
+                    <option value="COD">Cash on Delivery</option>
+                    <option value="Card">Card</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                  </select>
+                </div>
+                <div class="form-group" style="grid-column:1/-1;">
+                  <label>Notes (optional)</label>
+                  <input id="mo-notes" type="text" placeholder="Any special instructions..." style="width:100%;"/>
+                </div>
+                <div style="grid-column:1/-1; display:flex; gap:1rem;">
+                  <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Create Order</button>
+                  <button type="button" class="btn btn-secondary" onclick="toggleManualOrderForm()">Cancel</button>
+                </div>
+              </form>
+            </div>
+
             <div class="table-responsive">
               <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Apparel Details</th>
-                    <th>Total Price</th>
-                    <th>Payment</th>
-                    <th>Order Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="admin-orders-list">
-                  <!-- Injected dynamically -->
-                </tbody>
+                <thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Update Status</th><th>Delete</th></tr></thead>
+                <tbody id="admin-orders-list"></tbody>
               </table>
             </div>
           </div>
 
-          <!-- TAB: Inventory Stock -->
+          <!-- TAB: Users -->
+          <div class="admin-tab-content" id="admin-tab-users">
+            <h2 class="tab-title"><i class="fa-solid fa-users"></i> User Management</h2>
+            <p class="hint-text"><i class="fa-solid fa-circle-info"></i> Manage user roles and account status. You cannot deactivate your own account.</p>
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="admin-users-list"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB: Inventory -->
           <div class="admin-tab-content" id="admin-tab-inventory">
-            <h2 class="tab-title">Material Inventory levels</h2>
+            <h2 class="tab-title"><i class="fa-solid fa-warehouse"></i> Material Inventory</h2>
             <div class="table-responsive">
               <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Material Type</th>
-                    <th>Material Name</th>
-                    <th>Stock Level</th>
-                    <th>Reorder Thresholds</th>
-                    <th>Multiplier / Cost</th>
-                    <th>Status Alert</th>
-                  </tr>
-                </thead>
-                <tbody id="admin-inventory-list">
-                  <!-- Injected dynamically -->
-                </tbody>
+                <thead><tr><th>Type</th><th>Material</th><th>Stock</th><th>Reorder Level</th><th>Cost/Unit</th><th>Status</th></tr></thead>
+                <tbody id="admin-inventory-list"></tbody>
               </table>
             </div>
           </div>
 
-          <!-- TAB: RAG Chat Logs -->
+          <!-- TAB: Chat Logs -->
           <div class="admin-tab-content" id="admin-tab-logs">
-            <h2 class="tab-title">AI Chat Logs (n8n RAG Auditing)</h2>
-            <p class="hint-text">Review real-time prompt context retrieved from MySQL tables during supervisor interactions with AURA-AI.</p>
+            <h2 class="tab-title"><i class="fa-solid fa-robot"></i> AI RAG Chat Logs</h2>
+            <p class="hint-text"><i class="fa-solid fa-circle-info"></i> Real-time prompt context retrieved from database during AURA-AI interactions.</p>
             <div class="table-responsive">
               <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Timestamp</th>
-                    <th>User Query</th>
-                    <th>Retrieved Context (MySQL RAG)</th>
-                    <th>AI Response (GPT-4o-mini)</th>
-                  </tr>
-                </thead>
-                <tbody id="admin-chat-logs-list">
-                  <!-- Injected dynamically -->
-                </tbody>
+                <thead><tr><th>Time</th><th>User Query</th><th>Retrieved Context (RAG)</th><th>AI Response</th></tr></thead>
+                <tbody id="admin-chat-logs-list"></tbody>
               </table>
             </div>
           </div>
@@ -560,8 +622,13 @@
   <div class="cart-overlay" id="cart-drawer">
     <div class="cart-drawer-container glass">
       <div class="cart-drawer-header">
-        <h2>Your Shopping Bag</h2>
-        <button class="close-btn" onclick="toggleCartDrawer()"><i class="fa-solid fa-xmark"></i></button>
+        <h2><i class="fa-solid fa-bag-shopping"></i> Your Shopping Bag</h2>
+        <div style="display:flex;gap:0.5rem;align-items:center;">
+          <button class="btn btn-sm" style="background:rgba(255,50,50,0.15);border:1px solid rgba(255,50,50,0.3);color:#ff6b6b;font-size:0.75rem;padding:0.3rem 0.7rem;border-radius:6px;" onclick="clearCart()" title="Clear entire cart">
+            <i class="fa-solid fa-trash-can"></i> Clear
+          </button>
+          <button class="close-btn" onclick="toggleCartDrawer()" title="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
       </div>
 
       <div class="cart-items-list" id="cart-items-container">
@@ -759,6 +826,71 @@
       <div class="chatbot-input-bar">
         <input type="text" id="chat-input-field" placeholder="Ask AURA-AI about fabric, options..." onkeydown="if(event.key === 'Enter') sendChatMessage()">
         <button class="send-btn" onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTH MODAL -->
+  <div class="modal-overlay" id="auth-modal">
+    <div class="modal-content glass" style="max-width: 420px;">
+      <div class="modal-header">
+        <h2 id="auth-modal-title">Account Access</h2>
+        <button class="close-btn" onclick="closeAuthModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div style="display:flex; gap:0; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+        <button class="tab-btn active" id="auth-tab-login" onclick="switchAuthTab('login')" style="flex:1; border-radius:0;">
+          <i class="fa-solid fa-right-to-bracket"></i> Sign In
+        </button>
+        <button class="tab-btn" id="auth-tab-register" onclick="switchAuthTab('register')" style="flex:1; border-radius:0;">
+          <i class="fa-solid fa-user-plus"></i> Register
+        </button>
+      </div>
+      <div class="modal-body" style="padding-top:0;">
+
+        <!-- LOGIN FORM -->
+        <form id="login-form" onsubmit="handleLogin(event)" style="display:block;">
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label for="login-email">Email Address</label>
+            <input type="email" id="login-email" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group" style="margin-bottom:1.5rem;">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">
+            <i class="fa-solid fa-right-to-bracket"></i> Sign In
+          </button>
+          <p style="text-align:center; margin-top:1rem; color:var(--text-secondary); font-size:0.85rem;">
+            No account? <a href="#" onclick="switchAuthTab('register'); return false;" style="color:var(--teal-neon);">Register here</a>
+          </p>
+        </form>
+
+        <!-- REGISTER FORM -->
+        <form id="register-form" onsubmit="handleRegister(event)" style="display:none;">
+          <div class="form-group" style="margin-bottom:0.8rem;">
+            <label for="reg-name">Full Name</label>
+            <input type="text" id="reg-name" placeholder="Your Name" required minlength="2">
+          </div>
+          <div class="form-group" style="margin-bottom:0.8rem;">
+            <label for="reg-email">Email Address</label>
+            <input type="email" id="reg-email" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group" style="margin-bottom:0.8rem;">
+            <label for="reg-password">Password</label>
+            <input type="password" id="reg-password" placeholder="Min. 8 characters" required minlength="8">
+          </div>
+          <div class="form-group" style="margin-bottom:1.5rem;">
+            <label for="reg-phone">Phone <span style="color:var(--text-muted)">(Optional)</span></label>
+            <input type="tel" id="reg-phone" placeholder="+92 300 1234567">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">
+            <i class="fa-solid fa-user-plus"></i> Create Account
+          </button>
+          <p style="text-align:center; margin-top:1rem; color:var(--text-secondary); font-size:0.85rem;">
+            Already registered? <a href="#" onclick="switchAuthTab('login'); return false;" style="color:var(--teal-neon);">Sign in here</a>
+          </p>
+        </form>
+
       </div>
     </div>
   </div>

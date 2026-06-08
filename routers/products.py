@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database.database import get_db
-from models.models import Product, FabricOption, StitchStyle, PrintMethod
-from schemas.schemas import ProductOut
+from models.models import Product, FabricOption, StitchStyle, PrintMethod, User
+from schemas.schemas import ProductOut, ProductCreate, ProductUpdate
+from routers.auth import get_current_admin
 from typing import List, Dict
 
 router = APIRouter(prefix="/api/products", tags=["Product Catalog"])
@@ -23,6 +24,70 @@ async def get_product(product_id: str, db: AsyncSession = Depends(get_db)):
             detail=f"Product with ID '{product_id}' not found"
         )
     return product
+
+@router.get("/admin/all", response_model=List[ProductOut])
+async def get_all_products_admin(
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_admin)
+):
+    """Return all products including inactive ones (admin only)."""
+    result = await db.execute(select(Product))
+    return result.scalars().all()
+
+
+@router.post("", response_model=ProductOut, status_code=status.HTTP_201_CREATED)
+async def create_product(
+    product_data: ProductCreate,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_admin)
+):
+    existing = await db.execute(select(Product).where(Product.product_id == product_data.product_id))
+    if existing.scalars().first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Product ID '{product_data.product_id}' already exists"
+        )
+    new_product = Product(**product_data.model_dump())
+    db.add(new_product)
+    await db.commit()
+    await db.refresh(new_product)
+    return new_product
+
+
+@router.patch("/{product_id}", response_model=ProductOut)
+async def update_product(
+    product_id: str,
+    update_data: ProductUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_admin)
+):
+    result = await db.execute(select(Product).where(Product.product_id == product_id))
+    product = result.scalars().first()
+    if not product:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Product '{product_id}' not found")
+    for field, value in update_data.model_dump(exclude_none=True).items():
+        setattr(product, field, value)
+    await db.commit()
+    await db.refresh(product)
+    return product
+
+
+@router.delete("/{product_id}/toggle", response_model=ProductOut)
+async def toggle_product_status(
+    product_id: str,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_admin)
+):
+    """Toggle a product's active/inactive status (soft delete)."""
+    result = await db.execute(select(Product).where(Product.product_id == product_id))
+    product = result.scalars().first()
+    if not product:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Product '{product_id}' not found")
+    product.is_active = not product.is_active
+    await db.commit()
+    await db.refresh(product)
+    return product
+
 
 @router.get("/customization/options")
 async def get_customization_options(db: AsyncSession = Depends(get_db)):

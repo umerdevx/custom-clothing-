@@ -2,9 +2,10 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from database.database import Base, engine
 from database.seed import seed_data
-from routers import auth, products, orders, chat
+from routers import auth, products, orders, chat, inventory, users
 
 app = FastAPI(
     title="AURA-WEAR Backend API",
@@ -30,6 +31,8 @@ app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(orders.router)
 app.include_router(chat.router)
+app.include_router(inventory.router)
+app.include_router(users.router)
 
 # Automatically create tables and seed default products/FAQs on startup
 @app.on_event("startup")
@@ -42,9 +45,13 @@ async def startup_event():
     print("[STARTUP] Database setup and seeding complete.")
 
 @app.get("/")
-async def root():
-    return {
-        "project": "AI-Integrated Custom Clothing Website",
-        "api_docs": "/docs",
-        "status": "Online"
-    }
+async def serve_frontend():
+    return FileResponse("index.html")
+
+@app.get("/style.css")
+async def serve_css():
+    return FileResponse("style.css", media_type="text/css")
+
+@app.get("/app.js")
+async def serve_js():
+    return FileResponse("app.js", media_type="application/javascript")

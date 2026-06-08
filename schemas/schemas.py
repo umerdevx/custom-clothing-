@@ -123,3 +123,56 @@ class InventoryOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+# --- Admin Product Schemas ---
+class ProductCreate(BaseModel):
+    product_id: str = Field(..., min_length=2, max_length=50, pattern="^[a-z0-9_-]+$")
+    name: str = Field(..., min_length=2)
+    category: str
+    base_price: float = Field(..., gt=0)
+    description: str
+    image_url: str = ""
+
+class ProductUpdate(BaseModel):
+    name: Optional[str] = None
+    category: Optional[str] = None
+    base_price: Optional[float] = Field(None, gt=0)
+    description: Optional[str] = None
+    image_url: Optional[str] = None
+
+# --- Admin User Schemas ---
+class UserAdminOut(BaseModel):
+    user_id: int
+    name: str
+    email: str
+    role: str
+    is_active: bool
+    created_at: datetime.datetime
+
+    class Config:
+        from_attributes = True
+
+class UserRoleUpdate(BaseModel):
+    role: str = Field(..., pattern="^(admin|customer)$")
+
+class ManualOrderCreate(BaseModel):
+    customer_name: str = Field(default="Walk-in Customer", min_length=2)
+    product_id: str
+    primary_color: str = "#000000"
+    secondary_color: str = "#ffffff"
+    quantity: int = Field(default=1, ge=1, le=9999)
+    payment_method: str = Field(default="COD", pattern="^(COD|Card|Bank Transfer)$")
+    notes: str = ""
+
+# --- Chat Log Schemas ---
+class ChatLogOut(BaseModel):
+    log_id: int
+    user_id: Optional[int]
+    session_id: str
+    user_message: str
+    ai_response: str
+    retrieved_context: Optional[str]
+    created_at: datetime.datetime
+
+    class Config:
+        from_attributes = True
