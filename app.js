@@ -702,11 +702,19 @@ localStorage.setItem('aura_session', state.chatSessionId);
 // --- Central API Helper ---
 async function api(endpoint, method = 'GET', body = null) {
   const headers = { 'Content-Type': 'application/json' };
-  if (state.authToken) headers['Authorization'] = `Bearer ${state.authToken}`;
+  const hadToken = !!state.authToken;
+  if (hadToken) headers['Authorization'] = `Bearer ${state.authToken}`;
   const opts = { method, headers };
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(API_BASE + endpoint, opts);
-  if (res.status === 401) { handleLogout(); return null; }
+  if (res.status === 401) {
+    if (hadToken) {
+      // Genuine session expiry — clear silently, no toast
+      _clearAuthState();
+      return null;
+    }
+    // No token → login/register failure; let it fall through to throw
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: 'Request failed' }));
     throw new Error(err.detail || 'Request failed');
@@ -751,55 +759,58 @@ function showToast(title, msg, type = 'info') {
       <h4>${title}</h4>
       <p>${msg}</p>
     </div>
+    <button class="toast-close" aria-label="Dismiss">&#x2715;</button>
   `;
-  
+
   container.appendChild(toast);
-  
-  // Remove toast after 5s
-  setTimeout(() => {
+
+  const dismiss = () => {
     toast.style.animation = 'fadeOut 0.4s ease forwards';
     setTimeout(() => toast.remove(), 400);
-  }, 5000);
+  };
+  const timer = setTimeout(dismiss, 5000);
+  toast.querySelector('.toast-close').addEventListener('click', () => {
+    clearTimeout(timer);
+    dismiss();
+  });
 }
 
 // --- View Router Controller ---
 function switchView(viewName) {
-  // Hide active sections
-  document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-  
-  // Show target section
-  const targetSection = document.getElementById(`view-landing`);
-  state.activeView = viewName;
-  
-  let selector = `view-${viewName}`;
-  const section = document.getElementById(selector);
-  if (section) {
-    section.classList.add('active');
-  }
-  
-  // Set nav active
-  const navLink = document.getElementById(`nav-${viewName}`);
-  if (navLink) {
-    navLink.classList.add('active');
-  }
-  
-  // Scroll to top
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-  
-  // Specific logic on view enters
+  // ── Auth guards — checked BEFORE any DOM changes ──────────────────────────
   if (viewName === 'admin') {
-    if (!state.authToken || state.currentUser?.role !== 'admin') {
+    const role = state.currentUser?.role;
+    if (!state.authToken || role !== 'admin') {
       showToast('Access Denied', 'Admin login required.', 'danger');
       openAuthModal();
-      switchView('landing');
-      return;
+      return;           // abort — never touch the DOM
     }
-    renderAdminDashboard();
   }
   if (viewName === 'orders') {
-    loadMyOrders();
+    if (!state.authToken) {
+      showToast('Login Required', 'Please sign in to view your orders.', 'warning');
+      openAuthModal();
+      return;           // abort — never touch the DOM
+    }
   }
+
+  // ── Reveal the requested view ─────────────────────────────────────────────
+  document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+
+  state.activeView = viewName;
+
+  const section = document.getElementById(`view-${viewName}`);
+  if (section) section.classList.add('active');
+
+  const navLink = document.getElementById(`nav-${viewName}`);
+  if (navLink) navLink.classList.add('active');
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // ── Post-render hooks ─────────────────────────────────────────────────────
+  if (viewName === 'admin')  renderAdminDashboard();
+  if (viewName === 'orders') loadMyOrders();
 }
 
 // --- Catalog Rendering & Filters ---
@@ -1483,12 +1494,16 @@ async function handleRegister(event) {
   }
 }
 
-function handleLogout() {
-  state.authToken  = null;
+function _clearAuthState() {
+  state.authToken   = null;
   state.currentUser = null;
   localStorage.removeItem('aura_token');
   localStorage.removeItem('aura_user');
   updateAuthUI();
+}
+
+function handleLogout() {
+  _clearAuthState();
   showToast('Signed out', 'See you soon!', 'info');
   switchView('landing');
 }
@@ -1516,10 +1531,7 @@ function updateAuthUI() {
 
 // --- Order History View (My Orders) ---
 async function loadMyOrders() {
-  if (!state.authToken) {
-    showToast('Login Required', 'Please sign in to view your orders.', 'warning');
-    openAuthModal(); return;
-  }
+  if (!state.authToken) return;
   try {
     const orders = await api('/api/orders/my-orders');
     renderMyOrders(orders || []);
@@ -1622,29 +1634,28 @@ async function submitChatMessage(queryText) {
 
   const messagesContainer = document.getElementById('chat-messages-container');
   const typingIndicator = document.createElement('div');
-  typingIndicator.className = 'typing-indicator';
+  typingIndicator.className = 'chat-message bot';
   typingIndicator.id = 'chat-typing-bubble';
-  typingIndicator.innerHTML = `<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>`;
+  typingIndicator.innerHTML = `
+    <div class="msg-text typing-indicator">
+      <span class="typing-label">AURA is thinking</span>
+      <span class="typing-dots">
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+      </span>
+    </div>`;
   messagesContainer.appendChild(typingIndicator);
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-  try {
-    const data = await api('/api/chat', 'POST', {
-      message: queryText,
-      session_id: state.chatSessionId
-    });
-    const bubble = document.getElementById('chat-typing-bubble');
-    if (bubble) bubble.remove();
-    if (data) {
-      renderMessageBubble(data.reply, 'bot');
-    }
-  } catch(e) {
-    const bubble = document.getElementById('chat-typing-bubble');
-    if (bubble) bubble.remove();
-    // Fall back to local RAG simulation if backend unavailable
-    const ragResults = executeMySQLRetrievalNode(queryText);
-    renderMessageBubble(ragResults.reply, 'bot');
-  }
+  // TODO: replace this block with the real API call once AI is integrated:
+  //   const data = await api('/api/chat', 'POST', { message: queryText, session_id: state.chatSessionId });
+  //   document.getElementById('chat-typing-bubble')?.remove();
+  //   if (data) renderMessageBubble(data.reply, 'bot');
+  await new Promise(r => setTimeout(r, 2000 + Math.random() * 3000)); // 2–5 s simulated think
+  document.getElementById('chat-typing-bubble')?.remove();
+  const ragResults = executeMySQLRetrievalNode(queryText);
+  renderMessageBubble(ragResults.reply, 'bot');
 }
 
 function renderMessageBubble(text, sender) {
