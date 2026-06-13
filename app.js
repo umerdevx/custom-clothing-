@@ -61,63 +61,74 @@ const APPAREL_SVGS = {
     front: (primary, secondary, logoMarkup) => `
       <svg viewBox="0 0 350 430" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="ts_body" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%"   stop-color="rgba(0,0,0,0.32)"/>
-            <stop offset="18%"  stop-color="rgba(0,0,0,0.08)"/>
-            <stop offset="50%"  stop-color="rgba(255,255,255,0.05)"/>
-            <stop offset="82%"  stop-color="rgba(0,0,0,0.08)"/>
-            <stop offset="100%" stop-color="rgba(0,0,0,0.32)"/>
+          <linearGradient id="ts_vol" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.34)"/>
+            <stop offset="14%"  stop-color="rgba(0,0,0,0.06)"/>
+            <stop offset="50%"  stop-color="rgba(255,255,255,0.08)"/>
+            <stop offset="86%"  stop-color="rgba(0,0,0,0.06)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.34)"/>
           </linearGradient>
-          <linearGradient id="ts_sL" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%"   stop-color="rgba(0,0,0,0.38)"/>
+          <linearGradient id="ts_vert" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%"   stop-color="rgba(255,255,255,0.10)"/>
+            <stop offset="24%"  stop-color="rgba(255,255,255,0.0)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.15)"/>
+          </linearGradient>
+          <linearGradient id="ts_slL" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.40)"/>
             <stop offset="100%" stop-color="rgba(0,0,0,0.0)"/>
           </linearGradient>
-          <linearGradient id="ts_sR" x1="0%" y1="0%" x2="100%" y2="0%">
+          <linearGradient id="ts_slR" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%"   stop-color="rgba(0,0,0,0.0)"/>
-            <stop offset="100%" stop-color="rgba(0,0,0,0.38)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.40)"/>
           </linearGradient>
+          <radialGradient id="ts_chest" cx="50%" cy="30%" r="48%">
+            <stop offset="0%"   stop-color="rgba(255,255,255,0.11)"/>
+            <stop offset="100%" stop-color="rgba(255,255,255,0.0)"/>
+          </radialGradient>
         </defs>
 
-        <ellipse cx="175" cy="423" rx="110" ry="7" fill="rgba(0,0,0,0.28)"/>
+        <ellipse cx="175" cy="421" rx="118" ry="8" fill="rgba(0,0,0,0.26)"/>
 
         <!-- LEFT SLEEVE -->
-        <path d="M 88,122 C 78,127 50,140 32,164 L 38,210 C 43,218 56,220 66,214 L 76,180 C 82,158 86,140 90,128 Z" fill="${primary}"/>
-        <path d="M 88,122 C 78,127 50,140 32,164 L 38,210 C 43,218 56,220 66,214 L 76,180 C 82,158 86,140 90,128 Z" fill="url(#ts_sL)" opacity="0.85"/>
-        <path d="M 33,202 C 40,215 54,219 66,213 L 66,221 C 53,227 38,222 31,209 Z" fill="${secondary}" opacity="0.88"/>
+        <path d="M 92,110 C 67,116 42,133 29,160 C 36,181 53,193 75,192 C 84,180 90,169 94,160 C 95,143 95,126 94,110 Z" fill="${primary}"/>
+        <path d="M 92,110 C 67,116 42,133 29,160 C 36,181 53,193 75,192 C 84,180 90,169 94,160 C 95,143 95,126 94,110 Z" fill="url(#ts_slL)" opacity="0.9"/>
+        <path d="M 29,160 C 36,181 53,193 75,192 L 71,184 C 53,185 39,173 34,155 Z" fill="${secondary}" opacity="0.85"/>
+        <path d="M 32,162 C 39,179 54,189 73,189" fill="none" stroke="rgba(0,0,0,0.16)" stroke-width="1" stroke-dasharray="2.5,2.5"/>
 
         <!-- RIGHT SLEEVE -->
-        <path d="M 262,122 C 272,127 300,140 318,164 L 312,210 C 307,218 294,220 284,214 L 274,180 C 268,158 264,140 260,128 Z" fill="${primary}"/>
-        <path d="M 262,122 C 272,127 300,140 318,164 L 312,210 C 307,218 294,220 284,214 L 274,180 C 268,158 264,140 260,128 Z" fill="url(#ts_sR)" opacity="0.85"/>
-        <path d="M 317,202 C 310,215 296,219 284,213 L 284,221 C 297,227 312,222 319,209 Z" fill="${secondary}" opacity="0.88"/>
+        <path d="M 258,110 C 283,116 308,133 321,160 C 314,181 297,193 275,192 C 266,180 260,169 256,160 C 255,143 255,126 256,110 Z" fill="${primary}"/>
+        <path d="M 258,110 C 283,116 308,133 321,160 C 314,181 297,193 275,192 C 266,180 260,169 256,160 C 255,143 255,126 256,110 Z" fill="url(#ts_slR)" opacity="0.9"/>
+        <path d="M 321,160 C 314,181 297,193 275,192 L 279,184 C 297,185 311,173 316,155 Z" fill="${secondary}" opacity="0.85"/>
+        <path d="M 318,162 C 311,179 296,189 277,189" fill="none" stroke="rgba(0,0,0,0.16)" stroke-width="1" stroke-dasharray="2.5,2.5"/>
 
         <!-- MAIN BODY -->
-        <path d="M 88,122 C 94,110 114,100 144,96 C 155,94 165,93 175,93 C 185,93 195,94 206,96 C 236,100 256,110 262,122 L 264,414 C 262,420 257,423 251,423 L 99,423 C 93,423 88,420 86,414 Z" fill="${primary}"/>
-        <path d="M 88,122 C 94,110 114,100 144,96 C 155,94 165,93 175,93 C 185,93 195,94 206,96 C 236,100 256,110 262,122 L 264,414 C 262,420 257,423 251,423 L 99,423 C 93,423 88,420 86,414 Z" fill="url(#ts_body)" opacity="0.92"/>
+        <path d="M 92,110 C 113,101 132,99 150,101 C 159,113 167,119 175,119 C 183,119 191,113 200,101 C 218,99 237,101 258,110 C 264,135 267,152 268,165 C 271,251 269,339 263,410 C 232,418 200,420 175,420 C 150,420 118,418 87,410 C 81,339 79,251 82,165 C 83,152 86,135 92,110 Z" fill="${primary}"/>
+        <path d="M 92,110 C 113,101 132,99 150,101 C 159,113 167,119 175,119 C 183,119 191,113 200,101 C 218,99 237,101 258,110 C 264,135 267,152 268,165 C 271,251 269,339 263,410 C 232,418 200,420 175,420 C 150,420 118,418 87,410 C 81,339 79,251 82,165 C 83,152 86,135 92,110 Z" fill="url(#ts_vol)"/>
+        <path d="M 92,110 C 113,101 132,99 150,101 C 159,113 167,119 175,119 C 183,119 191,113 200,101 C 218,99 237,101 258,110 C 264,135 267,152 268,165 C 271,251 269,339 263,410 C 232,418 200,420 175,420 C 150,420 118,418 87,410 C 81,339 79,251 82,165 C 83,152 86,135 92,110 Z" fill="url(#ts_vert)"/>
+        <path d="M 92,110 C 113,101 132,99 150,101 C 159,113 167,119 175,119 C 183,119 191,113 200,101 C 218,99 237,101 258,110 C 264,135 267,152 268,165 C 271,251 269,339 263,410 C 232,418 200,420 175,420 C 150,420 118,418 87,410 C 81,339 79,251 82,165 C 83,152 86,135 92,110 Z" fill="url(#ts_chest)"/>
 
-        <!-- COLLAR BAND -->
-        <path d="M 144,96 C 155,94 165,93 175,93 C 185,93 195,94 206,96 C 203,79 192,72 180,70 C 177,69 175,69 175,69 C 172,69 170,70 170,70 C 158,72 147,79 144,96 Z" fill="${secondary}" opacity="0.92"/>
-        <path d="M 151,94 C 161,91 168,90 175,91 C 182,90 189,91 199,94 C 196,81 188,75 180,73 C 178,72 175,72 175,72 C 172,72 170,73 170,73 C 162,75 154,81 151,94 Z" fill="rgba(0,0,0,0.52)"/>
-        <path d="M 154,93 C 161,90 168,89 174,90" fill="none" stroke="rgba(0,0,0,0.22)" stroke-width="1.3"/>
-        <path d="M 196,93 C 189,90 182,89 176,90" fill="none" stroke="rgba(0,0,0,0.22)" stroke-width="1.3"/>
+        <!-- SHOULDER SEAMS -->
+        <path d="M 150,102 C 131,102 116,104 100,110" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M 200,102 C 219,102 234,104 250,110" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M 151,100 C 133,100 119,102 105,107" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M 199,100 C 217,100 231,102 245,107" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="3.5" stroke-linecap="round"/>
 
-        <!-- ARMHOLE CREASE LINES -->
-        <path d="M 90,125 C 90,150 91,172 92,193" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M 260,125 C 260,150 259,172 258,193" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- RIBBED CREW COLLAR -->
+        <path d="M 150,101 C 159,113 167,119 175,119 C 183,119 191,113 200,101 L 195,99 C 188,111 182,115 175,115 C 168,115 162,111 155,99 Z" fill="${secondary}"/>
+        <path d="M 155,99 C 162,111 168,115 175,115 C 182,115 188,111 195,99" fill="none" stroke="rgba(0,0,0,0.32)" stroke-width="1.2"/>
+        <path d="M 157,102 L 155,106 M 163,110 L 161,114 M 170,115 L 169,119 M 180,115 L 181,119 M 187,110 L 189,114 M 193,102 L 195,106" stroke="rgba(0,0,0,0.18)" stroke-width="0.9" stroke-linecap="round"/>
 
-        <!-- FABRIC WRINKLES -->
-        <path d="M 175,165 Q 172,218 175,278 Q 178,335 174,382" fill="none" stroke="rgba(0,0,0,0.09)" stroke-width="3" stroke-linecap="round"/>
-        <path d="M 115,305 Q 138,322 150,340" fill="none" stroke="rgba(0,0,0,0.07)" stroke-width="2" stroke-linecap="round"/>
-        <path d="M 235,305 Q 212,322 200,340" fill="none" stroke="rgba(0,0,0,0.07)" stroke-width="2" stroke-linecap="round"/>
-        <path d="M 118,205 Q 128,220 116,235" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="1.8" stroke-linecap="round"/>
-        <path d="M 232,205 Q 222,220 234,235" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="1.8" stroke-linecap="round"/>
+        <!-- SIDE & DRAPE FOLDS -->
+        <path d="M 175,145 Q 173,250 175,330 Q 177,388 174,408" fill="none" stroke="rgba(0,0,0,0.07)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 105,250 Q 116,300 103,360" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M 245,250 Q 234,300 247,360" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M 128,332 Q 148,350 162,362" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M 222,332 Q 202,350 188,362" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="1.8" stroke-linecap="round"/>
 
-        <!-- SHOULDER HIGHLIGHT -->
-        <path d="M 96,130 C 108,112 126,102 146,97" fill="none" stroke="rgba(255,255,255,0.13)" stroke-width="7" stroke-linecap="round"/>
-        <path d="M 254,130 C 242,112 224,102 204,97" fill="none" stroke="rgba(255,255,255,0.13)" stroke-width="7" stroke-linecap="round"/>
-
-        <!-- HEM FOLD -->
-        <path d="M 86,412 C 138,418 212,418 264,412 L 264,423 C 212,423 138,423 86,423 Z" fill="rgba(0,0,0,0.13)"/>
-        <path d="M 87,417 C 138,421 212,421 263,417" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="1.2" stroke-dasharray="3,3"/>
+        <!-- HEM (double-needle) -->
+        <path d="M 87,402 C 130,410 220,410 263,402 L 264,411 C 220,419 130,419 86,411 Z" fill="rgba(0,0,0,0.12)"/>
+        <path d="M 88,404 C 130,411 220,411 262,404" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1" stroke-dasharray="3,2.5"/>
+        <path d="M 88,409 C 130,416 220,416 262,409" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1" stroke-dasharray="3,2.5"/>
 
         <g id="svg-logo-container">${logoMarkup}</g>
       </svg>
@@ -125,59 +136,68 @@ const APPAREL_SVGS = {
     back: (primary, secondary, logoMarkup) => `
       <svg viewBox="0 0 350 430" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="tsb_body" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%"   stop-color="rgba(0,0,0,0.32)"/>
-            <stop offset="18%"  stop-color="rgba(0,0,0,0.08)"/>
-            <stop offset="50%"  stop-color="rgba(255,255,255,0.05)"/>
-            <stop offset="82%"  stop-color="rgba(0,0,0,0.08)"/>
-            <stop offset="100%" stop-color="rgba(0,0,0,0.32)"/>
+          <linearGradient id="tsb_vol" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.34)"/>
+            <stop offset="14%"  stop-color="rgba(0,0,0,0.06)"/>
+            <stop offset="50%"  stop-color="rgba(255,255,255,0.08)"/>
+            <stop offset="86%"  stop-color="rgba(0,0,0,0.06)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.34)"/>
           </linearGradient>
-          <linearGradient id="tsb_sL" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%"   stop-color="rgba(0,0,0,0.38)"/>
+          <linearGradient id="tsb_vert" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%"   stop-color="rgba(255,255,255,0.09)"/>
+            <stop offset="24%"  stop-color="rgba(255,255,255,0.0)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.15)"/>
+          </linearGradient>
+          <linearGradient id="tsb_slL" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.40)"/>
             <stop offset="100%" stop-color="rgba(0,0,0,0.0)"/>
           </linearGradient>
-          <linearGradient id="tsb_sR" x1="0%" y1="0%" x2="100%" y2="0%">
+          <linearGradient id="tsb_slR" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%"   stop-color="rgba(0,0,0,0.0)"/>
-            <stop offset="100%" stop-color="rgba(0,0,0,0.38)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.40)"/>
           </linearGradient>
         </defs>
 
-        <ellipse cx="175" cy="423" rx="110" ry="7" fill="rgba(0,0,0,0.28)"/>
+        <ellipse cx="175" cy="421" rx="118" ry="8" fill="rgba(0,0,0,0.26)"/>
 
         <!-- LEFT SLEEVE -->
-        <path d="M 88,122 C 78,127 50,140 32,164 L 38,210 C 43,218 56,220 66,214 L 76,180 C 82,158 86,140 90,128 Z" fill="${primary}"/>
-        <path d="M 88,122 C 78,127 50,140 32,164 L 38,210 C 43,218 56,220 66,214 L 76,180 C 82,158 86,140 90,128 Z" fill="url(#tsb_sL)" opacity="0.85"/>
-        <path d="M 33,202 C 40,215 54,219 66,213 L 66,221 C 53,227 38,222 31,209 Z" fill="${secondary}" opacity="0.88"/>
+        <path d="M 92,110 C 67,116 42,133 29,160 C 36,181 53,193 75,192 C 84,180 90,169 94,160 C 95,143 95,126 94,110 Z" fill="${primary}"/>
+        <path d="M 92,110 C 67,116 42,133 29,160 C 36,181 53,193 75,192 C 84,180 90,169 94,160 C 95,143 95,126 94,110 Z" fill="url(#tsb_slL)" opacity="0.9"/>
+        <path d="M 29,160 C 36,181 53,193 75,192 L 71,184 C 53,185 39,173 34,155 Z" fill="${secondary}" opacity="0.85"/>
+        <path d="M 32,162 C 39,179 54,189 73,189" fill="none" stroke="rgba(0,0,0,0.16)" stroke-width="1" stroke-dasharray="2.5,2.5"/>
 
         <!-- RIGHT SLEEVE -->
-        <path d="M 262,122 C 272,127 300,140 318,164 L 312,210 C 307,218 294,220 284,214 L 274,180 C 268,158 264,140 260,128 Z" fill="${primary}"/>
-        <path d="M 262,122 C 272,127 300,140 318,164 L 312,210 C 307,218 294,220 284,214 L 274,180 C 268,158 264,140 260,128 Z" fill="url(#tsb_sR)" opacity="0.85"/>
-        <path d="M 317,202 C 310,215 296,219 284,213 L 284,221 C 297,227 312,222 319,209 Z" fill="${secondary}" opacity="0.88"/>
+        <path d="M 258,110 C 283,116 308,133 321,160 C 314,181 297,193 275,192 C 266,180 260,169 256,160 C 255,143 255,126 256,110 Z" fill="${primary}"/>
+        <path d="M 258,110 C 283,116 308,133 321,160 C 314,181 297,193 275,192 C 266,180 260,169 256,160 C 255,143 255,126 256,110 Z" fill="url(#tsb_slR)" opacity="0.9"/>
+        <path d="M 321,160 C 314,181 297,193 275,192 L 279,184 C 297,185 311,173 316,155 Z" fill="${secondary}" opacity="0.85"/>
+        <path d="M 318,162 C 311,179 296,189 277,189" fill="none" stroke="rgba(0,0,0,0.16)" stroke-width="1" stroke-dasharray="2.5,2.5"/>
 
         <!-- MAIN BODY -->
-        <path d="M 88,122 C 94,110 114,100 144,96 C 155,94 165,93 175,93 C 185,93 195,94 206,96 C 236,100 256,110 262,122 L 264,414 C 262,420 257,423 251,423 L 99,423 C 93,423 88,420 86,414 Z" fill="${primary}"/>
-        <path d="M 88,122 C 94,110 114,100 144,96 C 155,94 165,93 175,93 C 185,93 195,94 206,96 C 236,100 256,110 262,122 L 264,414 C 262,420 257,423 251,423 L 99,423 C 93,423 88,420 86,414 Z" fill="url(#tsb_body)" opacity="0.92"/>
+        <path d="M 92,110 C 113,101 132,99 150,101 C 159,108 167,111 175,111 C 183,111 191,108 200,101 C 218,99 237,101 258,110 C 264,135 267,152 268,165 C 271,251 269,339 263,410 C 232,418 200,420 175,420 C 150,420 118,418 87,410 C 81,339 79,251 82,165 C 83,152 86,135 92,110 Z" fill="${primary}"/>
+        <path d="M 92,110 C 113,101 132,99 150,101 C 159,108 167,111 175,111 C 183,111 191,108 200,101 C 218,99 237,101 258,110 C 264,135 267,152 268,165 C 271,251 269,339 263,410 C 232,418 200,420 175,420 C 150,420 118,418 87,410 C 81,339 79,251 82,165 C 83,152 86,135 92,110 Z" fill="url(#tsb_vol)"/>
+        <path d="M 92,110 C 113,101 132,99 150,101 C 159,108 167,111 175,111 C 183,111 191,108 200,101 C 218,99 237,101 258,110 C 264,135 267,152 268,165 C 271,251 269,339 263,410 C 232,418 200,420 175,420 C 150,420 118,418 87,410 C 81,339 79,251 82,165 C 83,152 86,135 92,110 Z" fill="url(#tsb_vert)"/>
 
-        <!-- BACK COLLAR BAND -->
-        <path d="M 144,96 C 155,94 165,93 175,93 C 185,93 195,94 206,96 L 206,106 C 196,103 186,102 175,102 C 164,102 154,103 144,106 Z" fill="${secondary}" opacity="0.9"/>
-        <rect x="168" y="95" width="14" height="9" rx="1.5" fill="rgba(0,0,0,0.82)"/>
-        <text x="175" y="102.5" font-family="sans-serif" font-size="5" text-anchor="middle" fill="white" font-weight="bold">L</text>
+        <!-- SHOULDER SEAMS -->
+        <path d="M 150,102 C 131,102 116,104 100,110" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M 200,102 C 219,102 234,104 250,110" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1.6" stroke-linecap="round"/>
 
-        <!-- ARMHOLE CREASE -->
-        <path d="M 90,125 C 90,150 91,172 92,193" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M 260,125 C 260,150 259,172 258,193" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- BACK CREW COLLAR + RIB -->
+        <path d="M 150,101 C 159,108 167,111 175,111 C 183,111 191,108 200,101 L 198,108 C 191,114 183,117 175,117 C 167,117 159,114 152,108 Z" fill="${secondary}"/>
+        <path d="M 152,104 C 159,110 167,113 175,113 C 183,113 191,110 198,104" fill="none" stroke="rgba(0,0,0,0.28)" stroke-width="1"/>
 
-        <!-- WRINKLES -->
-        <path d="M 175,165 Q 172,218 175,278 Q 178,335 174,382" fill="none" stroke="rgba(0,0,0,0.09)" stroke-width="3" stroke-linecap="round"/>
-        <path d="M 115,305 Q 138,322 150,340" fill="none" stroke="rgba(0,0,0,0.07)" stroke-width="2" stroke-linecap="round"/>
-        <path d="M 235,305 Q 212,322 200,340" fill="none" stroke="rgba(0,0,0,0.07)" stroke-width="2" stroke-linecap="round"/>
+        <!-- SIZE TAG -->
+        <rect x="167" y="120" width="16" height="10" rx="1.5" fill="rgba(255,255,255,0.9)"/>
+        <text x="175" y="127.5" font-family="sans-serif" font-size="6" text-anchor="middle" fill="rgba(0,0,0,0.7)" font-weight="bold">L</text>
 
-        <!-- CENTER SEAM -->
-        <path d="M 175,106 L 175,420" stroke="rgba(0,0,0,0.06)" stroke-width="1.5"/>
+        <!-- CENTER & DRAPE FOLDS -->
+        <path d="M 175,130 Q 173,250 175,330 Q 177,388 174,408" fill="none" stroke="rgba(0,0,0,0.07)" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M 105,250 Q 116,300 103,360" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M 245,250 Q 234,300 247,360" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="2.4" stroke-linecap="round"/>
 
-        <!-- HEM FOLD -->
-        <path d="M 86,412 C 138,418 212,418 264,412 L 264,423 C 212,423 138,423 86,423 Z" fill="rgba(0,0,0,0.13)"/>
-        <path d="M 87,417 C 138,421 212,421 263,417" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="1.2" stroke-dasharray="3,3"/>
+        <!-- HEM (double-needle) -->
+        <path d="M 87,402 C 130,410 220,410 263,402 L 264,411 C 220,419 130,419 86,411 Z" fill="rgba(0,0,0,0.12)"/>
+        <path d="M 88,404 C 130,411 220,411 262,404" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1" stroke-dasharray="3,2.5"/>
+        <path d="M 88,409 C 130,416 220,416 262,409" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1" stroke-dasharray="3,2.5"/>
 
         <g id="svg-logo-container">${logoMarkup}</g>
       </svg>
