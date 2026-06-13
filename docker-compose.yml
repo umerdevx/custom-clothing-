@@ -1,27 +1,26 @@
 services:
 
-  # ─── MySQL Database ────────────────────────────────────────────────────────
+  # ─── PostgreSQL Database ───────────────────────────────────────────────────
   db:
-    image: mysql:8.0
+    image: postgres:16-alpine
     container_name: aura_db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-aurawear}
-      MYSQL_USER: ${MYSQL_USER:-aura}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-aurapassword}
+      POSTGRES_DB:       ${POSTGRES_DB:-aurawear}
+      POSTGRES_USER:     ${POSTGRES_USER:-aura}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aurapassword}
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - db_data:/var/lib/mysql
+      - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aura} -d ${POSTGRES_DB:-aurawear}"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 20s
 
-  # ─── FastAPI Backend ───────────────────────────────────────────────────────
+  # ─── FastAPI Backend + Frontend ────────────────────────────────────────────
   backend:
     build:
       context: .
@@ -30,16 +29,21 @@ services:
     restart: unless-stopped
     ports:
       - "8001:8001"
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: mysql+aiomysql://${MYSQL_USER:-aura}:${MYSQL_PASSWORD:-aurapassword}@db:3306/${MYSQL_DATABASE:-aurawear}
-      SECRET_KEY: ${SECRET_KEY:-change-this-in-production-super-secret-key}
-      ALGORITHM: HS256
-      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-aura}:${POSTGRES_PASSWORD:-aurapassword}@db:5432/${POSTGRES_DB:-aurawear}
     volumes:
       - uploads_data:/app/uploads
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8001/docs')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
 
 volumes:
   db_data:

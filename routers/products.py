@@ -5,7 +5,7 @@ from database.database import get_db
 from models.models import Product, FabricOption, StitchStyle, PrintMethod, User
 from schemas.schemas import ProductOut, ProductCreate, ProductUpdate
 from routers.auth import get_current_admin
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 router = APIRouter(prefix="/api/products", tags=["Product Catalog"])
 
@@ -87,6 +87,18 @@ async def toggle_product_status(
     await db.commit()
     await db.refresh(product)
     return product
+
+
+@router.get("/{product_id}/related", response_model=List[ProductOut])
+async def get_related_products(product_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Product).where(Product.product_id == product_id))
+    product = result.scalars().first()
+    if not product:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Product '{product_id}' not found")
+    related_res = await db.execute(
+        select(Product).where(Product.category == product.category, Product.product_id != product_id, Product.is_active == True).limit(4)
+    )
+    return related_res.scalars().all()
 
 
 @router.get("/customization/options")

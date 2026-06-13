@@ -7,8 +7,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database.database import get_db
 from models.models import Order, OrderItem, Product, FabricOption, StitchStyle, PrintMethod, Inventory, User
-from schemas.schemas import OrderCreate, OrderOut, OrderStatusUpdate, ManualOrderCreate
+from schemas.schemas import OrderCreate, OrderOut, OrderStatusUpdate, ManualOrderCreate, PaymentConfirmRequest
 from routers.auth import get_current_user, get_current_admin
+from utils.email import send_order_confirmation, send_order_status_update, send_new_order_admin_notification
 from typing import List
 
 router = APIRouter(prefix="/api/orders", tags=["Order Management"])
@@ -171,7 +172,14 @@ async def create_order(
     result = await db.execute(
         select(Order).where(Order.order_id == order_id).options(selectinload(Order.items))
     )
-    return result.scalars().first()
+    created_order = result.scalars().first()
+
+    # FR-54: Order confirmation email to customer
+    send_order_confirmation(current_user.email, order_id, grand_total_with_tax)
+    # FR-56: New order notification to admin
+    send_new_order_admin_notification(order_id, current_user.name, grand_total_with_tax)
+
+    return created_order
 
 # Admin Manual Order Creation
 @router.post("/manual", response_model=OrderOut, status_code=status.HTTP_201_CREATED)
@@ -278,7 +286,13 @@ async def update_order_status(
         select(Order).where(Order.order_id == order_id).options(selectinload(Order.items))
     )
     updated = result2.scalars().first()
-    print(f"[NOTIFICATION] Simulated status email sent: Order {order_id} is now {status_data.status}")
+
+    # FR-55: Notify customer of status change
+    user_res = await db.execute(select(User).where(User.user_id == updated.user_id))
+    customer = user_res.scalars().first()
+    if customer:
+        send_order_status_update(customer.email, order_id, status_data.status)
+
     return updated
 
 
@@ -305,6 +319,35 @@ async def cancel_order(
     order.status = "Cancelled"
     order.updated_at = datetime.datetime.utcnow()
     await db.commit()
+    result2 = await db.execute(
+        select(Order).where(Order.order_id == order_id).options(selectinload(Order.items))
+    )
+    return result2.scalars().first()
+
+
+@router.post("/{order_id}/confirm-payment", response_model=OrderOut)
+async def confirm_payment(
+    order_id: str,
+    data: PaymentConfirmRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    from sqlalchemy.orm import selectinload
+    result = await db.execute(
+        select(Order).where(Order.order_id == order_id).options(selectinload(Order.items))
+    )
+    order = result.scalars().first()
+    if not order:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Order '{order_id}' not found")
+    if order.user_id != current_user.user_id and current_user.role != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your order")
+    if order.payment_status == "Paid":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Order already paid")
+
+    order.payment_status = "Paid"
+    order.updated_at = datetime.datetime.utcnow()
+    await db.commit()
+
     result2 = await db.execute(
         select(Order).where(Order.order_id == order_id).options(selectinload(Order.items))
     )

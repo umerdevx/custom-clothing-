@@ -1,4 +1,6 @@
 import datetime
+import random
+import string
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -7,8 +9,9 @@ from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database.database import get_db
-from models.models import User
-from schemas.schemas import UserRegister, UserLogin, Token, UserOut, ProfileUpdate
+from models.models import User, PasswordReset
+from schemas.schemas import UserRegister, UserLogin, Token, UserOut, ProfileUpdate, ForgotPasswordRequest, OTPVerifyRequest, ResetPasswordRequest
+from utils.email import send_otp_email
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -154,3 +157,57 @@ async def update_profile(
     await db.commit()
     await db.refresh(current_user)
     return current_user
+
+
+@router.post("/forgot-password", status_code=status.HTTP_200_OK)
+async def forgot_password(data: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User).where(User.email == data.email))
+    user = result.scalars().first()
+    # Always return success to prevent email enumeration
+    if not user:
+        return {"message": "If this email is registered, an OTP will be sent."}
+
+    otp = ''.join(random.choices(string.digits, k=6))
+    expires_at = datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
+
+    reset = PasswordReset(email=data.email, otp=otp, expires_at=expires_at, used=False)
+    db.add(reset)
+    await db.commit()
+
+    send_otp_email(data.email, otp)
+    return {"message": "If this email is registered, an OTP will be sent.", "debug_otp": otp}
+
+
+@router.post("/verify-otp", status_code=status.HTTP_200_OK)
+async def verify_otp(data: OTPVerifyRequest, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(PasswordReset)
+        .where(PasswordReset.email == data.email, PasswordReset.otp == data.otp, PasswordReset.used == False)
+        .order_by(PasswordReset.expires_at.desc())
+    )
+    reset = result.scalars().first()
+    if not reset or reset.expires_at < datetime.datetime.utcnow():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired OTP")
+    return {"message": "OTP verified. You may now reset your password."}
+
+
+@router.post("/reset-password", status_code=status.HTTP_200_OK)
+async def reset_password(data: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(PasswordReset)
+        .where(PasswordReset.email == data.email, PasswordReset.otp == data.otp, PasswordReset.used == False)
+        .order_by(PasswordReset.expires_at.desc())
+    )
+    reset = result.scalars().first()
+    if not reset or reset.expires_at < datetime.datetime.utcnow():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired OTP")
+
+    user_res = await db.execute(select(User).where(User.email == data.email))
+    user = user_res.scalars().first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    user.password_hash = hash_password(data.new_password)
+    reset.used = True
+    await db.commit()
+    return {"message": "Password reset successfully. You can now log in."}

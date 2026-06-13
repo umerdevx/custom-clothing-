@@ -135,11 +135,22 @@
             <option value="Jacket">Jackets</option>
             <option value="Sports Uniform">Sports Uniforms</option>
           </select>
+          <div class="price-range-filter">
+            <input type="number" id="price-min" placeholder="Min PKR" min="0" oninput="filterCatalog()" style="width:90px">
+            <span style="color:var(--text-muted)">—</span>
+            <input type="number" id="price-max" placeholder="Max PKR" min="0" oninput="filterCatalog()" style="width:90px">
+          </div>
         </div>
       </div>
 
       <div class="products-grid" id="catalog-grid">
         <!-- Dynmically loaded products -->
+      </div>
+
+      <!-- FR-14: Related Products -->
+      <div id="related-products-section" style="display:none;margin-top:2.5rem;">
+        <h3 style="margin-bottom:1rem;">You Might Also Like</h3>
+        <div class="products-grid" id="related-products-grid"></div>
       </div>
     </section>
 
@@ -764,8 +775,8 @@
             <div class="payment-sub-fields" id="pay-fields-wallet">
               <div class="form-group col-12">
                 <label>Mobile Account Number</label>
-                <input type="text" placeholder="03xx xxxxxxx" value="03001234567">
-                <span class="hint-text">Simulated OTP request will be sent to this number</span>
+                <input type="text" id="wallet-mobile-number" placeholder="03xx xxxxxxx" value="03001234567">
+                <span class="hint-text">A simulated OTP will be sent to this number after order placement</span>
               </div>
             </div>
 
@@ -895,7 +906,10 @@
           <button type="submit" class="btn btn-primary btn-block">
             <i class="fa-solid fa-right-to-bracket"></i> Sign In
           </button>
-          <p style="text-align:center; margin-top:1rem; color:var(--text-secondary); font-size:0.85rem;">
+          <p style="text-align:center; margin-top:0.75rem; color:var(--text-secondary); font-size:0.85rem;">
+            <a href="#" onclick="openForgotPasswordModal(); return false;" style="color:var(--text-muted);">Forgot password?</a>
+          </p>
+          <p style="text-align:center; margin-top:0.5rem; color:var(--text-secondary); font-size:0.85rem;">
             No account? <a href="#" onclick="switchAuthTab('register'); return false;" style="color:var(--teal-neon);">Register here</a>
           </p>
         </form>
@@ -926,6 +940,74 @@
           </p>
         </form>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- FR-06: Forgot Password Modal -->
+  <div class="modal-overlay" id="forgot-password-modal">
+    <div class="modal-content glass" style="max-width:420px;">
+      <div class="modal-header">
+        <h2>Reset Password</h2>
+        <button class="close-btn" onclick="closeForgotPasswordModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Step 1: Enter email -->
+        <div id="fp-step-1">
+          <p style="color:var(--text-secondary);margin-bottom:1rem;">Enter your registered email and we'll send a 6-digit OTP.</p>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label>Email Address</label>
+            <input type="email" id="fp-email" placeholder="you@example.com">
+          </div>
+          <button class="btn btn-primary btn-block" onclick="handleForgotPasswordRequest()">
+            <i class="fa-solid fa-paper-plane"></i> Send OTP
+          </button>
+        </div>
+
+        <!-- Step 2: Enter OTP + new password -->
+        <div id="fp-step-2" style="display:none;">
+          <p style="color:var(--text-secondary);margin-bottom:1rem;">Enter the 6-digit OTP sent to your email and your new password.</p>
+          <div class="form-group" style="margin-bottom:0.8rem;">
+            <label>OTP Code</label>
+            <input type="text" id="fp-otp" placeholder="123456" maxlength="6">
+          </div>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label>New Password</label>
+            <input type="password" id="fp-new-password" placeholder="Min. 8 characters" minlength="8">
+          </div>
+          <button class="btn btn-primary btn-block" onclick="handlePasswordReset()">
+            <i class="fa-solid fa-key"></i> Reset Password
+          </button>
+          <p style="text-align:center;margin-top:0.75rem;font-size:0.85rem;">
+            <a href="#" onclick="showForgotStep(1); return false;" style="color:var(--text-muted);">← Re-send OTP</a>
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- FR-41/42: Wallet OTP Confirmation Modal -->
+  <div class="modal-overlay" id="wallet-otp-modal">
+    <div class="modal-content glass" style="max-width:380px;">
+      <div class="modal-header">
+        <h2><i class="fa-solid fa-mobile-screen"></i> Confirm Payment</h2>
+        <button class="close-btn" onclick="closeWalletOtpModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="color:var(--text-secondary);margin-bottom:1rem;">A simulated OTP has been sent to your wallet number. Enter it below to confirm payment.</p>
+        <div style="background:var(--bg-card);border-radius:8px;padding:12px;margin-bottom:1rem;text-align:center;">
+          <p style="font-size:0.85rem;color:var(--text-muted)">Simulated OTP (dev mode)</p>
+          <p id="wallet-sim-otp" style="font-size:2rem;font-weight:bold;letter-spacing:6px;color:var(--primary-purple)">------</p>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label>Enter OTP</label>
+          <input type="text" id="wallet-otp-input" placeholder="6-digit OTP" maxlength="6">
+        </div>
+        <button class="btn btn-primary btn-block" onclick="handleWalletOtpConfirm()">
+          <i class="fa-solid fa-check"></i> Confirm Payment
+        </button>
       </div>
     </div>
   </div>

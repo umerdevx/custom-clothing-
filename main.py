@@ -1,8 +1,9 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from database.database import Base, engine
 from database.seed import seed_data
 from routers import auth, products, orders, chat, inventory, users, analytics, faqs
@@ -12,6 +13,10 @@ app = FastAPI(
     description="Asynchronous full-stack API supporting AI Custom Clothing customization and RAG Chatbot queries",
     version="1.0.0"
 )
+
+# FR-45: HTTPS enforcement in production only
+if os.getenv("ENFORCE_HTTPS", "false").lower() == "true":
+    app.add_middleware(HTTPSRedirectMiddleware)
 
 # Enable Cross-Origin Resource Sharing (CORS) for development integration
 app.add_middleware(

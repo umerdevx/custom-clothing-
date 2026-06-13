@@ -202,6 +202,23 @@ class AnalyticsOut(BaseModel):
     low_stock_count: int
     chatbot_interactions: int
 
+# --- Password Reset Schemas ---
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class OTPVerifyRequest(BaseModel):
+    email: EmailStr
+    otp: str = Field(..., min_length=6, max_length=6)
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    otp: str = Field(..., min_length=6, max_length=6)
+    new_password: str = Field(..., min_length=8)
+
+# --- Payment Confirm Schema ---
+class PaymentConfirmRequest(BaseModel):
+    wallet_number: Optional[str] = None
+
 # --- Chat Log Schemas ---
 class ChatLogOut(BaseModel):
     log_id: int

@@ -847,7 +847,7 @@ function _renderProductCards(products) {
         <p>${p.desc}</p>
         <div class="product-card-footer">
           <span class="price">PKR ${p.basePrice.toLocaleString()}</span>
-          <button class="btn btn-sm btn-primary" onclick="loadProductIntoCustomizer('${p.id}')">
+          <button class="btn btn-sm btn-primary" onclick="loadProductIntoCustomizer('${p.id}'); loadRelatedProducts('${p.id}');">
             <i class="fa-solid fa-wand-magic-sparkles"></i> Customize
           </button>
         </div>
@@ -858,12 +858,16 @@ function _renderProductCards(products) {
 }
 
 function filterCatalog() {
-  const query = document.getElementById('catalog-search').value.toLowerCase();
+  const query    = document.getElementById('catalog-search').value.toLowerCase();
   const category = document.getElementById('catalog-category-filter').value;
+  const minPrice = parseFloat(document.getElementById('price-min')?.value) || 0;
+  const maxPrice = parseFloat(document.getElementById('price-max')?.value) || Infinity;
   const filtered = _products.filter(p => {
     const matchQuery = p.name.toLowerCase().includes(query) || p.desc.toLowerCase().includes(query);
-    const matchCat = category === 'all' || p.category === category;
-    return matchQuery && matchCat;
+    const matchCat   = category === 'all' || p.category === category;
+    const price      = p.basePrice ?? p.base_price ?? 0;
+    const matchPrice = price >= minPrice && price <= maxPrice;
+    return matchQuery && matchCat && matchPrice;
   });
   _renderProductCards(filtered);
 }
@@ -1307,6 +1311,9 @@ function togglePaymentSection(type) {
 }
 
 // --- Placing Order → Real Backend ---
+// Stored so the wallet OTP modal can confirm payment after order is created
+let _pendingWalletOrderId = null;
+
 async function handlePlaceOrder(event) {
   event.preventDefault();
 
@@ -1348,16 +1355,55 @@ async function handlePlaceOrder(event) {
     renderCart();
     closeCheckoutModal();
 
-    document.getElementById('success-order-id').innerText = order.order_id;
-    document.getElementById('success-order-total').innerText = `PKR ${order.total_price.toLocaleString()}`;
-    document.getElementById('success-modal').classList.add('active');
+    // FR-41/42: For wallet payments, show OTP confirmation flow
+    if (payMethod === 'JazzCash' || payMethod === 'Easypaisa') {
+      _pendingWalletOrderId = order.order_id;
+      const simOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      document.getElementById('wallet-sim-otp').textContent = simOtp;
+      document.getElementById('wallet-otp-input').value = '';
+      document.getElementById('wallet-sim-otp').dataset.otp = simOtp;
+      document.getElementById('wallet-otp-modal').classList.add('active');
+      showToast('OTP Sent', `Simulated OTP dispatched for ${payMethod}`, 'info');
+      return;
+    }
 
-    showToast('Order Placed!', `${order.order_id} confirmed. Check order history for tracking.`, 'success');
+    _showOrderSuccess(order);
   } catch(e) {
     showToast('Order Failed', e.message, 'danger');
   } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check"></i> Place Order'; }
   }
+}
+
+function closeWalletOtpModal() {
+  document.getElementById('wallet-otp-modal').classList.remove('active');
+}
+
+// FR-44: Wallet OTP confirm → auto-update payment_status to Paid
+async function handleWalletOtpConfirm() {
+  const enteredOtp = document.getElementById('wallet-otp-input').value.trim();
+  const expectedOtp = document.getElementById('wallet-sim-otp').dataset.otp;
+  if (enteredOtp !== expectedOtp) {
+    showToast('Invalid OTP', 'The OTP you entered is incorrect.', 'danger');
+    return;
+  }
+  if (!_pendingWalletOrderId) return;
+  try {
+    const order = await api(`/api/orders/${_pendingWalletOrderId}/confirm-payment`, 'POST', {});
+    closeWalletOtpModal();
+    _pendingWalletOrderId = null;
+    _showOrderSuccess(order);
+    showToast('Payment Confirmed!', 'Your wallet payment was verified successfully.', 'success');
+  } catch(e) {
+    showToast('Payment Failed', e.message, 'danger');
+  }
+}
+
+function _showOrderSuccess(order) {
+  document.getElementById('success-order-id').innerText = order.order_id;
+  document.getElementById('success-order-total').innerText = `PKR ${order.total_price.toLocaleString()}`;
+  document.getElementById('success-modal').classList.add('active');
+  showToast('Order Placed!', `${order.order_id} confirmed. Check order history for tracking.`, 'success');
 }
 
 function closeSuccessModalAndGoHome() {
@@ -2035,4 +2081,85 @@ function clearCart() {
   updateCartBadge();
   renderCart();
   showToast('Cart Cleared', 'All items removed.', 'info');
+}
+
+// ==========================================================================
+// FR-06: FORGOT PASSWORD FLOW
+// ==========================================================================
+function openForgotPasswordModal() {
+  closeAuthModal();
+  showForgotStep(1);
+  document.getElementById('forgot-password-modal').classList.add('active');
+}
+
+function closeForgotPasswordModal() {
+  document.getElementById('forgot-password-modal').classList.remove('active');
+}
+
+function showForgotStep(step) {
+  document.getElementById('fp-step-1').style.display = step === 1 ? 'block' : 'none';
+  document.getElementById('fp-step-2').style.display = step === 2 ? 'block' : 'none';
+}
+
+async function handleForgotPasswordRequest() {
+  const email = document.getElementById('fp-email').value.trim();
+  if (!email) { showToast('Email Required', 'Please enter your email address.', 'warning'); return; }
+  try {
+    const res = await api('/api/auth/forgot-password', 'POST', { email });
+    if (res && res.debug_otp) {
+      showToast('OTP Sent', `Dev mode — OTP: ${res.debug_otp}`, 'info');
+    } else {
+      showToast('OTP Sent', 'Check your email for the OTP.', 'success');
+    }
+    document.getElementById('fp-step-2') && showForgotStep(2);
+  } catch(e) {
+    showToast('Error', e.message, 'danger');
+  }
+}
+
+async function handlePasswordReset() {
+  const email    = document.getElementById('fp-email').value.trim();
+  const otp      = document.getElementById('fp-otp').value.trim();
+  const password = document.getElementById('fp-new-password').value;
+  if (!otp || !password) { showToast('Missing Fields', 'Enter OTP and new password.', 'warning'); return; }
+  try {
+    await api('/api/auth/reset-password', 'POST', { email, otp, new_password: password });
+    showToast('Password Reset!', 'Your password has been updated. Please log in.', 'success');
+    closeForgotPasswordModal();
+    openAuthModal();
+  } catch(e) {
+    showToast('Reset Failed', e.message, 'danger');
+  }
+}
+
+// ==========================================================================
+// FR-14: RELATED PRODUCTS
+// ==========================================================================
+async function loadRelatedProducts(productId) {
+  try {
+    const related = await api(`/api/products/${productId}/related`);
+    const section = document.getElementById('related-products-section');
+    const grid    = document.getElementById('related-products-grid');
+    if (!related || related.length === 0) { section.style.display = 'none'; return; }
+    grid.innerHTML = '';
+    related.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'product-card glass';
+      card.innerHTML = `
+        <div class="product-card-img" style="background:var(--bg-card);display:flex;align-items:center;justify-content:center;min-height:120px;">
+          <i class="fa-solid fa-shirt" style="font-size:2.5rem;color:var(--primary-purple);opacity:0.5;"></i>
+        </div>
+        <div class="product-card-body">
+          <h4>${p.name}</h4>
+          <p class="price">From PKR ${(p.base_price || p.basePrice || 0).toLocaleString()}</p>
+          <button class="btn btn-sm btn-primary" onclick="loadProductIntoCustomizer('${p.product_id}'); switchView('customizer');">
+            <i class="fa-solid fa-pen-nib"></i> Customize
+          </button>
+        </div>`;
+      grid.appendChild(card);
+    });
+    section.style.display = 'block';
+  } catch(e) {
+    document.getElementById('related-products-section').style.display = 'none';
+  }
 }
