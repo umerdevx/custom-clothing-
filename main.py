@@ -45,11 +45,15 @@ app.include_router(faqs.router)
 @app.on_event("startup")
 async def startup_event():
     print("[STARTUP] Initializing database tables...")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    print("[STARTUP] Seeding initial configurations...")
-    await seed_data()
-    print("[STARTUP] Database setup and seeding complete.")
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        print("[STARTUP] Seeding initial configurations...")
+        await seed_data()
+        print("[STARTUP] Database setup and seeding complete.")
+    except Exception as e:
+        # Tables already exist (race on multi-worker start) — safe to continue
+        print(f"[STARTUP] Skipped (already initialized): {e.__class__.__name__}")
 
 @app.get("/")
 async def serve_frontend():
