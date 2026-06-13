@@ -663,6 +663,9 @@ const APPAREL_SVGS = {
   }
 };
 
+// --- API Base (served by FastAPI on same origin) ---
+const API_BASE = '';
+
 // --- Application Core State ---
 let state = {
   activeView: 'landing',
@@ -674,8 +677,8 @@ let state = {
     secondaryColor: '#00f0ff',
     stitchingStyle: 'flatlock',
     logoPlacement: 'chest',
-    logoPreset: '', // 'cyberpunk', 'streetwear', 'athletic'
-    logoDataUrl: '', // Base64 uploaded image
+    logoPreset: '',
+    logoDataUrl: '',
     printMethod: 'dtg',
     washFinish: 'standard',
     quantity: 1,
@@ -683,54 +686,53 @@ let state = {
     unitPrice: 1200,
     totalPrice: 1200
   },
-  previewMode: 'front', // 'front' or 'back'
+  previewMode: 'front',
   cart: [],
   orders: [],
   chatLogs: [],
   chatMessages: [],
-  inventory: []
+  inventory: [],
+  // Auth state
+  authToken: localStorage.getItem('aura_token') || null,
+  currentUser: JSON.parse(localStorage.getItem('aura_user') || 'null'),
+  chatSessionId: localStorage.getItem('aura_session') || ('sess-' + Math.random().toString(36).slice(2)),
 };
+localStorage.setItem('aura_session', state.chatSessionId);
+
+// --- Central API Helper ---
+async function api(endpoint, method = 'GET', body = null) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (state.authToken) headers['Authorization'] = `Bearer ${state.authToken}`;
+  const opts = { method, headers };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API_BASE + endpoint, opts);
+  if (res.status === 401) { handleLogout(); return null; }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Request failed' }));
+    throw new Error(err.detail || 'Request failed');
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
 
 // --- Initialize Application ---
-window.onload = function() {
-  initLocalStorage();
-  loadStateFromStorage();
-  renderCatalog();
-  renderCustomizerPreview();
-  renderCart();
-  renderAdminDashboard();
-  
-  // Set primary customization values
-  updatePrice();
-  
-  // Display initial status toast
-  showToast('Welcome!', 'FastAPI & n8n simulation is online and ready.', 'success');
-};
-
-function initLocalStorage() {
-  if (!localStorage.getItem('aura_initialized')) {
-    localStorage.setItem('aura_cart', JSON.stringify([]));
-    localStorage.setItem('aura_orders', JSON.stringify([]));
-    localStorage.setItem('aura_chat_logs', JSON.stringify([]));
-    localStorage.setItem('aura_inventory', JSON.stringify(INITIAL_INVENTORY));
-    localStorage.setItem('aura_initialized', 'true');
-  }
-}
-
-function loadStateFromStorage() {
-  state.cart = JSON.parse(localStorage.getItem('aura_cart')) || [];
-  state.orders = JSON.parse(localStorage.getItem('aura_orders')) || [];
-  state.chatLogs = JSON.parse(localStorage.getItem('aura_chat_logs')) || [];
-  state.inventory = JSON.parse(localStorage.getItem('aura_inventory')) || INITIAL_INVENTORY;
+window.onload = async function() {
+  state.cart = JSON.parse(localStorage.getItem('aura_cart') || '[]');
   updateCartBadge();
-}
+  renderCart();
+  updateAuthUI();
+  renderCustomizerPreview();
+  updatePrice();
 
-function saveStateToStorage() {
-  localStorage.setItem('aura_cart', JSON.stringify(state.cart));
-  localStorage.setItem('aura_orders', JSON.stringify(state.orders));
-  localStorage.setItem('aura_chat_logs', JSON.stringify(state.chatLogs));
-  localStorage.setItem('aura_inventory', JSON.stringify(state.inventory));
-}
+  // Load products from real API, fall back to hardcoded if backend unavailable
+  try {
+    await renderCatalog();
+  } catch(e) {
+    renderCatalogFallback();
+  }
+
+  showToast('Welcome to AURA-WEAR!', 'Design your custom apparel.', 'success');
+};
 
 // --- Toast Alert Notifications System ---
 function showToast(title, msg, type = 'info') {
@@ -787,18 +789,52 @@ function switchView(viewName) {
   
   // Specific logic on view enters
   if (viewName === 'admin') {
+    if (!state.authToken || state.currentUser?.role !== 'admin') {
+      showToast('Access Denied', 'Admin login required.', 'danger');
+      openAuthModal();
+      switchView('landing');
+      return;
+    }
     renderAdminDashboard();
   }
-  
-  showToast('View Routed', `Entered: ${viewName.toUpperCase()} section`, 'info');
+  if (viewName === 'orders') {
+    loadMyOrders();
+  }
 }
 
 // --- Catalog Rendering & Filters ---
-function renderCatalog() {
+// Cached products from API
+let _products = [];
+
+async function renderCatalog() {
+  const grid = document.getElementById('catalog-grid');
+  grid.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted)"><i class="fa-solid fa-spinner fa-spin"></i> Loading products…</div>';
+  const data = await api('/api/products');
+  if (!data) { renderCatalogFallback(); return; }
+  _products = data.map(p => ({
+    id: p.product_id,
+    name: p.name,
+    category: p.category,
+    basePrice: p.base_price,
+    desc: p.description,
+    img: p.image_url
+  }));
+  _renderProductCards(_products);
+}
+
+function renderCatalogFallback() {
+  _products = INITIAL_PRODUCTS;
+  _renderProductCards(_products);
+}
+
+function _renderProductCards(products) {
   const grid = document.getElementById('catalog-grid');
   grid.innerHTML = '';
-  
-  INITIAL_PRODUCTS.forEach(p => {
+  if (!products.length) {
+    grid.innerHTML = '<p style="text-align:center;color:var(--text-muted)">No products found.</p>';
+    return;
+  }
+  products.forEach(p => {
     const card = document.createElement('div');
     card.className = 'product-card glass';
     card.innerHTML = `
@@ -824,19 +860,12 @@ function renderCatalog() {
 function filterCatalog() {
   const query = document.getElementById('catalog-search').value.toLowerCase();
   const category = document.getElementById('catalog-category-filter').value;
-  
-  const cards = document.querySelectorAll('#catalog-grid .product-card');
-  cards.forEach((card, index) => {
-    const product = INITIAL_PRODUCTS[index];
-    const matchesQuery = product.name.toLowerCase().includes(query) || product.desc.toLowerCase().includes(query);
-    const matchesCat = category === 'all' || product.category === category;
-    
-    if (matchesQuery && matchesCat) {
-      card.style.display = 'block';
-    } else {
-      card.style.display = 'none';
-    }
+  const filtered = _products.filter(p => {
+    const matchQuery = p.name.toLowerCase().includes(query) || p.desc.toLowerCase().includes(query);
+    const matchCat = category === 'all' || p.category === category;
+    return matchQuery && matchCat;
   });
+  _renderProductCards(filtered);
 }
 
 function loadProductIntoCustomizer(productId) {
@@ -1161,11 +1190,11 @@ function addToCartFromCustomizer() {
   cartItem.fabricName = FABRICS_INFO[cartItem.fabricType].name;
   
   state.cart.push(cartItem);
-  saveStateToStorage();
+  localStorage.setItem('aura_cart', JSON.stringify(state.cart));
   renderCart();
   updateCartBadge();
   toggleCartDrawer();
-  
+
   showToast('Item Added', 'Your customized clothing was added to bag.', 'success');
 }
 
@@ -1239,7 +1268,7 @@ function renderCart() {
 
 function removeCartItem(index) {
   state.cart.splice(index, 1);
-  saveStateToStorage();
+  localStorage.setItem('aura_cart', JSON.stringify(state.cart));
   renderCart();
   updateCartBadge();
   showToast('Removed', 'Apparel design removed from bag.', 'warning');
@@ -1277,73 +1306,58 @@ function togglePaymentSection(type) {
   if (type === 'cod') document.getElementById('pay-fields-cod').classList.add('active');
 }
 
-// --- Placing Order & localStorage Database Insert ---
-function handlePlaceOrder(event) {
+// --- Placing Order → Real Backend ---
+async function handlePlaceOrder(event) {
   event.preventDefault();
-  
-  // Compile checkout data
+
+  if (!state.authToken) {
+    showToast('Login Required', 'Please sign in to place an order.', 'warning');
+    openAuthModal();
+    return;
+  }
+
   const name = document.getElementById('c-name').value;
   const phone = document.getElementById('c-phone').value;
   const address = document.getElementById('c-address').value;
   const payMethod = document.querySelector('input[name="payment-method"]:checked').value;
-  
-  const subtotal = state.cart.reduce((sum, item) => sum + item.totalPrice, 0);
-  const total = Math.round(subtotal * 1.05);
-  
-  // Generate random order ID
-  const orderId = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
-  
-  // Construct New Order Record
-  const newOrder = {
-    orderId: orderId,
-    customer: { name, phone, address },
-    items: JSON.parse(JSON.stringify(state.cart)),
-    paymentMethod: payMethod,
-    paymentStatus: payMethod === 'COD' ? 'Pending (COD)' : 'Paid',
-    totalPrice: total,
-    status: 'Pending',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
-  
-  // Push to local DB
-  state.orders.push(newOrder);
-  
-  // Decrement matching material inventory (Simulate manufacturing resource depletion)
-  newOrder.items.forEach(item => {
-    // Deduct fabric stock
-    const matchingFabric = state.inventory.find(i => i.type === 'Fabric' && i.name.toLowerCase().includes(item.fabricType));
-    if (matchingFabric) {
-      matchingFabric.stock = Math.max(0, matchingFabric.stock - item.quantity * 2); // 2 meters/meters square per garment
-      if (matchingFabric.stock < matchingFabric.reorder) {
-        matchingFabric.status = 'Low Stock';
-      }
-    }
-    // Deduct inks/dyes
-    const matchingInk = state.inventory.find(i => i.name.toLowerCase().includes(item.printMethod) || i.type === 'Print Ink');
-    if (matchingInk) {
-      matchingInk.stock = Math.max(0, matchingInk.stock - Math.round(item.quantity * 0.1));
-      if (matchingInk.stock < matchingInk.reorder) {
-        matchingInk.status = 'Low Stock';
-      }
-    }
-  });
-  
-  // Clear cart and update State
-  state.cart = [];
-  saveStateToStorage();
-  updateCartBadge();
-  
-  // Close Checkout
-  closeCheckoutModal();
-  
-  // Display Success receipt Modal
-  document.getElementById('success-order-id').innerText = orderId;
-  document.getElementById('success-order-total').innerText = `PKR ${total.toLocaleString()}`;
-  document.getElementById('success-modal').classList.add('active');
-  
-  // Trigger order confirmation notification
-  showToast('Order Placed', `Order ${orderId} was recorded in MySQL tables. Email dispatched.`, 'success');
+
+  const btn = event.target.querySelector('button[type="submit"]') || event.submitter;
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Placing…'; }
+
+  const items = state.cart.map(item => ({
+    product_id: item.apparelType,
+    fabric_type: item.fabricType,
+    fabric_grade: item.fabricGrade,
+    primary_color: item.primaryColor,
+    secondary_color: item.secondaryColor,
+    stitching_style: item.stitchingStyle,
+    print_method: item.printMethod,
+    wash_finish: item.washFinish,
+    quantity: item.quantity,
+    logo_base64: item.logoDataUrl || null,
+    notes: null
+  }));
+
+  try {
+    const order = await api('/api/orders', 'POST', { items, payment_method: payMethod, name, phone, address });
+    if (!order) return;
+
+    state.cart = [];
+    localStorage.setItem('aura_cart', JSON.stringify([]));
+    updateCartBadge();
+    renderCart();
+    closeCheckoutModal();
+
+    document.getElementById('success-order-id').innerText = order.order_id;
+    document.getElementById('success-order-total').innerText = `PKR ${order.total_price.toLocaleString()}`;
+    document.getElementById('success-modal').classList.add('active');
+
+    showToast('Order Placed!', `${order.order_id} confirmed. Check order history for tracking.`, 'success');
+  } catch(e) {
+    showToast('Order Failed', e.message, 'danger');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check"></i> Place Order'; }
+  }
 }
 
 function closeSuccessModalAndGoHome() {
@@ -1351,14 +1365,188 @@ function closeSuccessModalAndGoHome() {
   switchView('landing');
 }
 
-function triggerAIChatbotStatusQuery() {
+async function triggerAIChatbotStatusQuery() {
   document.getElementById('success-modal').classList.remove('active');
-  const latestOrder = state.orders[state.orders.length - 1];
-  
-  if (latestOrder) {
-    toggleChatbot();
-    submitChatMessage(`Where is my order ${latestOrder.orderId}?`);
+  toggleChatbot();
+  // Ask the bot about the most recent order — works even without local state
+  submitChatMessage('Where is my latest order?');
+}
+
+// ==========================================================================
+// AUTHENTICATION — wired to /api/auth/*
+// ==========================================================================
+function openAuthModal() {
+  document.getElementById('auth-modal').classList.add('active');
+}
+function closeAuthModal() {
+  document.getElementById('auth-modal').classList.remove('active');
+}
+function switchAuthTab(tab) {
+  document.getElementById('login-form').style.display    = tab === 'login'    ? 'block' : 'none';
+  document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('auth-tab-login').classList.toggle('active',    tab === 'login');
+  document.getElementById('auth-tab-register').classList.toggle('active', tab === 'register');
+}
+
+async function handleLogin(event) {
+  event.preventDefault();
+  const email    = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+  const btn = event.target.querySelector('button[type="submit"]');
+  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Signing in…';
+  try {
+    const data = await api('/api/auth/login', 'POST', { email, password });
+    if (!data) return;
+    state.authToken = data.access_token;
+    localStorage.setItem('aura_token', data.access_token);
+    const me = await api('/api/auth/me');
+    if (me) {
+      state.currentUser = me;
+      localStorage.setItem('aura_user', JSON.stringify(me));
+    }
+    updateAuthUI();
+    closeAuthModal();
+    showToast('Signed in', `Welcome back${me ? ', ' + me.name : ''}!`, 'success');
+    if (state.currentUser?.role === 'admin') {
+      document.getElementById('nav-admin').style.display = '';
+    }
+  } catch(e) {
+    showToast('Login Failed', e.message, 'danger');
+  } finally {
+    btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Sign In';
   }
+}
+
+async function handleRegister(event) {
+  event.preventDefault();
+  const name     = document.getElementById('reg-name').value;
+  const email    = document.getElementById('reg-email').value;
+  const password = document.getElementById('reg-password').value;
+  const phone    = document.getElementById('reg-phone').value || null;
+  const btn = event.target.querySelector('button[type="submit"]');
+  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating…';
+  try {
+    await api('/api/auth/register', 'POST', { name, email, password, phone });
+    showToast('Account Created!', 'You can now sign in.', 'success');
+    switchAuthTab('login');
+    document.getElementById('login-email').value = email;
+  } catch(e) {
+    showToast('Registration Failed', e.message, 'danger');
+  } finally {
+    btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Create Account';
+  }
+}
+
+function handleLogout() {
+  state.authToken  = null;
+  state.currentUser = null;
+  localStorage.removeItem('aura_token');
+  localStorage.removeItem('aura_user');
+  updateAuthUI();
+  showToast('Signed out', 'See you soon!', 'info');
+  switchView('landing');
+}
+
+function updateAuthUI() {
+  const user = state.currentUser;
+  const label     = document.getElementById('auth-btn-label');
+  const username  = document.getElementById('header-username');
+  const btn       = document.getElementById('auth-btn');
+  const adminLink = document.getElementById('nav-admin');
+  if (user) {
+    label.innerText    = 'Logout';
+    username.innerText = user.name;
+    btn.onclick        = handleLogout;
+    btn.innerHTML      = '<i class="fa-solid fa-right-from-bracket"></i> <span id="auth-btn-label">Logout</span>';
+    // Show admin link only for admins
+    if (adminLink) adminLink.style.display = user.role === 'admin' ? '' : 'none';
+  } else {
+    btn.onclick   = openAuthModal;
+    btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> <span id="auth-btn-label">Login</span>';
+    username.innerText = 'Guest';
+    if (adminLink) adminLink.style.display = 'none';
+  }
+}
+
+// --- Order History View (My Orders) ---
+async function loadMyOrders() {
+  if (!state.authToken) {
+    showToast('Login Required', 'Please sign in to view your orders.', 'warning');
+    openAuthModal(); return;
+  }
+  try {
+    const orders = await api('/api/orders/my-orders');
+    renderMyOrders(orders || []);
+  } catch(e) {
+    showToast('Error', e.message, 'danger');
+  }
+}
+
+function renderMyOrders(orders) {
+  const container = document.getElementById('my-orders-container');
+  if (!container) return;
+  if (!orders.length) {
+    container.innerHTML = `<p style="text-align:center;color:var(--text-muted);padding:2rem">No orders yet. Design something!</p>`;
+    return;
+  }
+  container.innerHTML = orders.map(o => `
+    <div class="order-card glass" style="padding:1rem;margin-bottom:1rem;border-radius:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
+        <strong>${o.order_id}</strong>
+        <span class="badge badge-${o.status.toLowerCase().replace(/ /g,'')} ">${o.status}</span>
+      </div>
+      <div style="margin-top:0.5rem;color:var(--text-secondary);font-size:0.85rem">
+        ${o.items.length} item(s) &mdash; PKR ${o.total_price.toLocaleString()} &mdash; ${new Date(o.created_at).toLocaleDateString()}
+      </div>
+      <div style="margin-top:0.6rem;display:flex;gap:0.5rem;flex-wrap:wrap">
+        <button class="btn btn-sm btn-outline" onclick="submitChatMessage('Track order ${o.order_id}');toggleChatbot()">
+          <i class="fa-solid fa-location-dot"></i> Track
+        </button>
+        ${o.status === 'Pending' ? `<button class="btn btn-sm" style="background:rgba(255,50,50,0.15);border:1px solid rgba(255,50,50,0.3);color:#ff6b6b" onclick="cancelOrder('${o.order_id}')"><i class="fa-solid fa-ban"></i> Cancel</button>` : ''}
+        <button class="btn btn-sm btn-outline" onclick="reorder('${o.order_id}', ${JSON.stringify(o.items).replace(/"/g,'&quot;')})">
+          <i class="fa-solid fa-rotate-right"></i> Reorder
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function cancelOrder(orderId) {
+  if (!confirm(`Cancel order ${orderId}?`)) return;
+  try {
+    await api(`/api/orders/${orderId}/cancel`, 'PATCH');
+    showToast('Order Cancelled', `${orderId} has been cancelled.`, 'info');
+    loadMyOrders();
+  } catch(e) {
+    showToast('Cannot Cancel', e.message, 'danger');
+  }
+}
+
+function reorder(orderId, items) {
+  const parsed = typeof items === 'string' ? JSON.parse(items) : items;
+  parsed.forEach(item => {
+    state.cart.push({
+      apparelType: item.product_id,
+      fabricType: item.fabric_type,
+      fabricGrade: item.fabric_grade,
+      primaryColor: item.primary_color,
+      secondaryColor: item.secondary_color,
+      stitchingStyle: item.stitching_style,
+      printMethod: item.print_method,
+      washFinish: item.wash_finish,
+      quantity: item.quantity,
+      logoDataUrl: '',
+      logoPreset: '',
+      logoPlacement: 'chest',
+      unitPrice: item.unit_price,
+      totalPrice: item.unit_price * item.quantity
+    });
+  });
+  localStorage.setItem('aura_cart', JSON.stringify(state.cart));
+  updateCartBadge();
+  renderCart();
+  toggleCartDrawer();
+  showToast('Added to Cart', `Items from ${orderId} added to your bag.`, 'success');
 }
 
 // ==========================================================================
@@ -1383,45 +1571,34 @@ function sendChatMessage() {
   submitChatMessage(query);
 }
 
-function submitChatMessage(queryText) {
-  // 1. Render User Message Bubble
+async function submitChatMessage(queryText) {
   renderMessageBubble(queryText, 'user');
-  
-  // 2. Render Typing indicator bubble
+
   const messagesContainer = document.getElementById('chat-messages-container');
   const typingIndicator = document.createElement('div');
   typingIndicator.className = 'typing-indicator';
   typingIndicator.id = 'chat-typing-bubble';
-  typingIndicator.innerHTML = `
-    <div class="typing-dot"></div>
-    <div class="typing-dot"></div>
-    <div class="typing-dot"></div>
-  `;
+  typingIndicator.innerHTML = `<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>`;
   messagesContainer.appendChild(typingIndicator);
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  
-  // 3. Process RAG retrieval (n8n node simulation)
-  setTimeout(() => {
-    // Remove typing bubble
+
+  try {
+    const data = await api('/api/chat', 'POST', {
+      message: queryText,
+      session_id: state.chatSessionId
+    });
     const bubble = document.getElementById('chat-typing-bubble');
     if (bubble) bubble.remove();
-    
-    // Execute search matching mock DB
+    if (data) {
+      renderMessageBubble(data.reply, 'bot');
+    }
+  } catch(e) {
+    const bubble = document.getElementById('chat-typing-bubble');
+    if (bubble) bubble.remove();
+    // Fall back to local RAG simulation if backend unavailable
     const ragResults = executeMySQLRetrievalNode(queryText);
-    
-    // Save query to RAG auditing logs (so admin can review prompt construction)
-    const logRecord = {
-      timestamp: new Date().toLocaleTimeString(),
-      query: queryText,
-      context: ragResults.context,
-      response: ragResults.reply
-    };
-    state.chatLogs.unshift(logRecord);
-    saveStateToStorage();
-    
-    // Render AI Reply bubble
     renderMessageBubble(ragResults.reply, 'bot');
-  }, 1200);
+  }
 }
 
 function renderMessageBubble(text, sender) {
@@ -1535,121 +1712,327 @@ function switchAdminTab(tabName, elem) {
   document.getElementById(`admin-tab-${tabName}`).classList.add('active');
 }
 
-function renderAdminDashboard() {
-  // 1. Calculate statistics
-  let totalRevenue = state.orders.reduce((sum, o) => sum + o.totalPrice, 0);
-  let totalOrders = state.orders.length;
-  let lowStockCount = state.inventory.filter(i => i.status === 'Low Stock').length;
-  
-  document.getElementById('admin-revenue').innerText = `PKR ${totalRevenue.toLocaleString()}`;
-  document.getElementById('admin-orders-count').innerText = totalOrders;
-  document.getElementById('admin-stock-warnings').innerText = lowStockCount;
-  
-  // 2. Render Orders Table
-  renderAdminOrdersTable();
-  
-  // 3. Render Inventory Table
-  renderAdminInventoryTable();
-  
-  // 4. Render RAG Chat logs
-  renderAdminRAGLogsTable();
+async function renderAdminDashboard() {
+  if (!state.authToken || state.currentUser?.role !== 'admin') return;
+  try {
+    const stats = await api('/api/analytics');
+    if (stats) {
+      document.getElementById('admin-revenue').innerText      = `PKR ${stats.total_revenue.toLocaleString()}`;
+      document.getElementById('admin-orders-count').innerText = stats.total_orders;
+      document.getElementById('admin-users-count').innerText  = stats.total_users;
+      document.getElementById('admin-stock-warnings').innerText = stats.low_stock_count;
+    }
+  } catch(e) { /* non-fatal */ }
+
+  await renderAdminOrdersTable();
+  await renderAdminInventoryTable();
+  await renderAdminRAGLogsTable();
+  await renderAdminProductsTable();
+  await renderAdminUsersTable();
+  await renderAdminFaqsTable();
 }
 
-function renderAdminOrdersTable() {
+async function renderAdminOrdersTable() {
   const container = document.getElementById('admin-orders-list');
-  container.innerHTML = '';
-  
-  if (state.orders.length === 0) {
-    container.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--text-muted);">No orders recorded in local DB. Checkout customized apparel to generate rows.</td></tr>`;
-    return;
+  container.innerHTML = `<tr><td colspan="7" style="text-align:center"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
+  try {
+    const orders = await api('/api/orders') || [];
+    container.innerHTML = '';
+    if (!orders.length) {
+      container.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No orders yet.</td></tr>`;
+      return;
+    }
+    orders.forEach(order => {
+      const itemsText = order.items.map(i => `${i.quantity}× ${i.product_id.toUpperCase()}`).join('<br>');
+      const statusSlug = order.status.toLowerCase().replace(/ /g, '');
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><strong>${order.order_id}</strong><br><small style="color:var(--text-muted)">${new Date(order.created_at).toLocaleDateString()}</small></td>
+        <td>User #${order.user_id}</td>
+        <td>${itemsText}</td>
+        <td>PKR ${order.total_price.toLocaleString()}</td>
+        <td><span class="badge ${order.payment_status.includes('Paid') ? 'badge-delivered' : 'badge-pending'}">${order.payment_status}</span></td>
+        <td><span class="badge badge-${statusSlug}" id="badge-status-${order.order_id}">${order.status}</span></td>
+        <td>
+          <select class="admin-action-select" onchange="updateOrderStatus('${order.order_id}', this.value)">
+            <option value="Pending"        ${order.status==='Pending'?'selected':''}>Pending</option>
+            <option value="In Production"  ${order.status==='In Production'?'selected':''}>In Production</option>
+            <option value="Quality Check"  ${order.status==='Quality Check'?'selected':''}>Quality Check</option>
+            <option value="Shipped"        ${order.status==='Shipped'?'selected':''}>Shipped</option>
+            <option value="Delivered"      ${order.status==='Delivered'?'selected':''}>Delivered</option>
+            <option value="Cancelled"      ${order.status==='Cancelled'?'selected':''}>Cancelled</option>
+          </select>
+        </td>`;
+      container.appendChild(row);
+    });
+  } catch(e) {
+    container.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#ff6b6b">${e.message}</td></tr>`;
   }
-  
-  state.orders.forEach(order => {
-    // Generate text overview of items
-    const itemsText = order.items.map(i => `${i.quantity}x ${i.apparelType.toUpperCase()} (${FABRICS_INFO[i.fabricType].name})`).join('<br>');
-    
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td><strong>${order.orderId}</strong></td>
-      <td>
-        <div>${order.customer.name}</div>
-        <small style="color:var(--text-secondary);">${order.customer.phone}</small>
-      </td>
-      <td>${itemsText}</td>
-      <td>PKR ${order.totalPrice.toLocaleString()}</td>
-      <td><span class="badge ${order.paymentStatus.includes('Paid') ? 'badge-delivered' : 'badge-pending'}">${order.paymentStatus}</span></td>
-      <td><span class="badge badge-${order.status.toLowerCase().replace(' ', '')}" id="badge-status-${order.orderId}">${order.status}</span></td>
-      <td>
-        <select class="admin-action-select" onchange="updateOrderStatus('${order.orderId}', this.value)">
-          <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
-          <option value="In Production" ${order.status === 'In Production' ? 'selected' : ''}>In Production</option>
-          <option value="Quality Check" ${order.status === 'Quality Check' ? 'selected' : ''}>Quality Check</option>
-          <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
-          <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
-        </select>
-      </td>
-    `;
-    container.appendChild(row);
-  });
 }
 
-function updateOrderStatus(orderId, newStatus) {
-  const order = state.orders.find(o => o.orderId === orderId);
-  if (order) {
-    order.status = newStatus;
-    order.updatedAt = new Date().toISOString();
-    saveStateToStorage();
-    
-    // Live update UI status badge
+async function updateOrderStatus(orderId, newStatus) {
+  try {
+    await api(`/api/orders/${orderId}/status`, 'PATCH', { status: newStatus });
     const badge = document.getElementById(`badge-status-${orderId}`);
     if (badge) {
       badge.innerText = newStatus;
-      badge.className = `badge badge-${newStatus.toLowerCase().replace(' ', '')}`;
+      badge.className = `badge badge-${newStatus.toLowerCase().replace(/ /g,'')}`;
     }
-    
-    // Trigger simulated customer email/toast notification
-    showToast('Status Updated', `Order ${orderId} shifted to: ${newStatus.toUpperCase()}. Notification email sent to client.`, 'info');
-    
-    // Refresh stats
+    showToast('Status Updated', `Order ${orderId} → ${newStatus}`, 'info');
     renderAdminDashboard();
+  } catch(e) {
+    showToast('Update Failed', e.message, 'danger');
   }
 }
 
-function renderAdminInventoryTable() {
+async function renderAdminInventoryTable() {
   const container = document.getElementById('admin-inventory-list');
-  container.innerHTML = '';
-  
-  state.inventory.forEach(item => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${item.type}</td>
-      <td><strong>${item.name}</strong></td>
-      <td>${item.stock} units</td>
-      <td>Threshold: ${item.reorder}</td>
-      <td>${item.cost}</td>
-      <td><span class="badge ${item.status === 'Healthy' ? 'badge-delivered' : 'badge-danger'}">${item.status}</span></td>
-    `;
-    container.appendChild(row);
-  });
+  container.innerHTML = `<tr><td colspan="6" style="text-align:center"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
+  try {
+    const items = await api('/api/inventory') || [];
+    container.innerHTML = '';
+    items.forEach(item => {
+      const low = item.qty_available < item.reorder_level;
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${item.item_type}</td>
+        <td><strong>${item.item_name}</strong></td>
+        <td>${item.qty_available} units</td>
+        <td>Threshold: ${item.reorder_level}</td>
+        <td>${new Date(item.last_updated).toLocaleDateString()}</td>
+        <td><span class="badge ${low ? 'badge-danger' : 'badge-delivered'}">${low ? 'Low Stock' : 'Healthy'}</span></td>`;
+      container.appendChild(row);
+    });
+  } catch(e) {
+    container.innerHTML = `<tr><td colspan="6" style="color:#ff6b6b">${e.message}</td></tr>`;
+  }
 }
 
-function renderAdminRAGLogsTable() {
+async function renderAdminRAGLogsTable() {
   const container = document.getElementById('admin-chat-logs-list');
-  container.innerHTML = '';
-  
-  if (state.chatLogs.length === 0) {
-    container.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted);">No interactions recorded. Chat with AURA AI to populate RAG logs.</td></tr>`;
-    return;
+  container.innerHTML = `<tr><td colspan="4" style="text-align:center"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
+  try {
+    const logs = await api('/api/chat/logs') || [];
+    container.innerHTML = '';
+    if (!logs.length) {
+      container.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No chat interactions yet.</td></tr>`;
+      return;
+    }
+    logs.forEach(log => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td style="white-space:nowrap">${new Date(log.created_at).toLocaleString()}</td>
+        <td style="max-width:180px"><em>"${log.user_message}"</em></td>
+        <td><pre style="font-family:monospace;font-size:0.75rem;background:#0f0f15;padding:0.5rem;border:1px solid var(--border-color);white-space:pre-wrap;color:#39ff14;max-height:80px;overflow:auto">${log.retrieved_context || '—'}</pre></td>
+        <td style="max-width:240px;font-size:0.8rem">${log.ai_response}</td>`;
+      container.appendChild(row);
+    });
+  } catch(e) {
+    container.innerHTML = `<tr><td colspan="4" style="color:#ff6b6b">${e.message}</td></tr>`;
   }
-  
-  state.chatLogs.forEach(log => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${log.timestamp}</td>
-      <td style="max-width:180px;"><em>"${log.query}"</em></td>
-      <td><pre style="font-family: monospace; font-size:0.75rem; background: #0f0f15; padding: 0.5rem; border: 1px solid var(--border-color); white-space: pre-wrap; color:#39ff14;">${log.context}</pre></td>
-      <td style="max-width:240px; font-size:0.8rem;">${log.response}</td>
-    `;
-    container.appendChild(row);
-  });
+}
+
+async function renderAdminProductsTable() {
+  const container = document.getElementById('admin-products-list');
+  if (!container) return;
+  container.innerHTML = `<tr><td colspan="6" style="text-align:center"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
+  try {
+    const products = await api('/api/products/admin/all') || [];
+    container.innerHTML = '';
+    products.forEach(p => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><code>${p.product_id}</code></td>
+        <td><strong>${p.name}</strong></td>
+        <td>${p.category}</td>
+        <td>PKR ${p.base_price.toLocaleString()}</td>
+        <td><span class="badge ${p.is_active ? 'badge-delivered' : 'badge-danger'}">${p.is_active ? 'Active' : 'Inactive'}</span></td>
+        <td>
+          <button class="btn btn-sm btn-outline" onclick="toggleProductStatus('${p.product_id}')">
+            ${p.is_active ? '<i class="fa-solid fa-eye-slash"></i> Deactivate' : '<i class="fa-solid fa-eye"></i> Activate'}
+          </button>
+        </td>`;
+      container.appendChild(row);
+    });
+  } catch(e) {
+    container.innerHTML = `<tr><td colspan="6" style="color:#ff6b6b">${e.message}</td></tr>`;
+  }
+}
+
+async function toggleProductStatus(productId) {
+  try {
+    await api(`/api/products/${productId}/toggle`, 'DELETE');
+    showToast('Product Updated', `${productId} status toggled.`, 'info');
+    renderAdminProductsTable();
+  } catch(e) {
+    showToast('Error', e.message, 'danger');
+  }
+}
+
+async function renderAdminUsersTable() {
+  const container = document.getElementById('admin-users-list');
+  if (!container) return;
+  container.innerHTML = `<tr><td colspan="6" style="text-align:center"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
+  try {
+    const users = await api('/api/users') || [];
+    container.innerHTML = '';
+    users.forEach(u => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${u.user_id}</td>
+        <td><strong>${u.name}</strong></td>
+        <td>${u.email}</td>
+        <td><span class="badge ${u.role === 'admin' ? 'badge-inproduction' : 'badge-pending'}">${u.role}</span></td>
+        <td><span class="badge ${u.is_active ? 'badge-delivered' : 'badge-danger'}">${u.is_active ? 'Active' : 'Suspended'}</span></td>
+        <td style="display:flex;gap:0.4rem;flex-wrap:wrap">
+          ${u.user_id !== state.currentUser?.user_id ? `
+          <button class="btn btn-sm btn-outline" onclick="toggleUserActive(${u.user_id})">
+            ${u.is_active ? '<i class="fa-solid fa-user-slash"></i> Suspend' : '<i class="fa-solid fa-user-check"></i> Restore'}
+          </button>
+          <select class="admin-action-select" style="max-width:100px" onchange="changeUserRole(${u.user_id}, this.value)">
+            <option value="customer" ${u.role==='customer'?'selected':''}>Customer</option>
+            <option value="admin"    ${u.role==='admin'?'selected':''}>Admin</option>
+          </select>` : '<em style="color:var(--text-muted);font-size:0.8rem">You</em>'}
+        </td>`;
+      container.appendChild(row);
+    });
+  } catch(e) {
+    container.innerHTML = `<tr><td colspan="6" style="color:#ff6b6b">${e.message}</td></tr>`;
+  }
+}
+
+async function toggleUserActive(userId) {
+  try {
+    await api(`/api/users/${userId}/toggle`, 'PATCH');
+    showToast('User Updated', 'Account status changed.', 'info');
+    renderAdminUsersTable();
+  } catch(e) { showToast('Error', e.message, 'danger'); }
+}
+
+async function changeUserRole(userId, role) {
+  try {
+    await api(`/api/users/${userId}/role`, 'PATCH', { role });
+    showToast('Role Updated', `User #${userId} is now ${role}.`, 'info');
+    renderAdminUsersTable();
+  } catch(e) { showToast('Error', e.message, 'danger'); }
+}
+
+async function renderAdminFaqsTable() {
+  const container = document.getElementById('admin-faqs-list');
+  if (!container) return;
+  container.innerHTML = `<tr><td colspan="4" style="text-align:center"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
+  try {
+    const faqs = await api('/api/faqs/admin/all') || [];
+    container.innerHTML = '';
+    faqs.forEach(f => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${f.faq_id}</td>
+        <td>${f.question}</td>
+        <td style="max-width:300px;font-size:0.85rem">${f.answer}</td>
+        <td style="display:flex;gap:0.4rem;flex-wrap:wrap">
+          <button class="btn btn-sm btn-outline" onclick="toggleFaqActive(${f.faq_id},${!f.is_active})">
+            ${f.is_active ? '<i class="fa-solid fa-eye-slash"></i>' : '<i class="fa-solid fa-eye"></i>'}
+          </button>
+          <button class="btn btn-sm" style="background:rgba(255,50,50,0.15);border:1px solid rgba(255,50,50,0.3);color:#ff6b6b" onclick="deleteFaq(${f.faq_id})">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>`;
+      container.appendChild(row);
+    });
+  } catch(e) {
+    container.innerHTML = `<tr><td colspan="4" style="color:#ff6b6b">${e.message}</td></tr>`;
+  }
+}
+
+async function addFaq() {
+  const q = document.getElementById('faq-question')?.value?.trim();
+  const a = document.getElementById('faq-answer')?.value?.trim();
+  if (!q || !a) { showToast('Validation', 'Question and answer are required.', 'warning'); return; }
+  try {
+    await api('/api/faqs', 'POST', { question: q, answer: a });
+    document.getElementById('faq-question').value = '';
+    document.getElementById('faq-answer').value = '';
+    showToast('FAQ Added', 'New FAQ is live.', 'success');
+    renderAdminFaqsTable();
+  } catch(e) { showToast('Error', e.message, 'danger'); }
+}
+
+async function toggleFaqActive(faqId, isActive) {
+  try {
+    await api(`/api/faqs/${faqId}`, 'PATCH', { is_active: isActive });
+    renderAdminFaqsTable();
+  } catch(e) { showToast('Error', e.message, 'danger'); }
+}
+
+async function deleteFaq(faqId) {
+  if (!confirm('Delete this FAQ?')) return;
+  try {
+    await api(`/api/faqs/${faqId}`, 'DELETE');
+    showToast('FAQ Deleted', '', 'info');
+    renderAdminFaqsTable();
+  } catch(e) { showToast('Error', e.message, 'danger'); }
+}
+
+// --- Admin: Product Form ---
+function toggleAddProductForm() {
+  const c = document.getElementById('add-product-form-container');
+  c.style.display = c.style.display === 'none' ? 'block' : 'none';
+}
+
+async function handleAddProduct(event) {
+  event.preventDefault();
+  const btn = event.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  try {
+    await api('/api/products', 'POST', {
+      product_id: document.getElementById('np-id').value,
+      name:       document.getElementById('np-name').value,
+      category:   document.getElementById('np-category').value,
+      base_price: parseFloat(document.getElementById('np-price').value),
+      description:document.getElementById('np-desc').value,
+      image_url:  document.getElementById('np-img').value || ''
+    });
+    event.target.reset();
+    toggleAddProductForm();
+    showToast('Product Added', 'New product is live in catalog.', 'success');
+    renderAdminProductsTable();
+  } catch(e) { showToast('Error', e.message, 'danger'); }
+  finally { btn.disabled = false; }
+}
+
+// --- Admin: Manual Order Form ---
+function toggleManualOrderForm() {
+  const c = document.getElementById('manual-order-form-container');
+  c.style.display = c.style.display === 'none' ? 'block' : 'none';
+}
+
+async function handleAddManualOrder(event) {
+  event.preventDefault();
+  const btn = event.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  try {
+    await api('/api/orders/manual', 'POST', {
+      customer_name:  document.getElementById('mo-customer-name').value,
+      product_id:     document.getElementById('mo-product-id').value,
+      quantity:       parseInt(document.getElementById('mo-quantity').value),
+      payment_method: document.getElementById('mo-payment').value,
+      notes:          document.getElementById('mo-notes').value || ''
+    });
+    event.target.reset();
+    toggleManualOrderForm();
+    showToast('Manual Order Created', '', 'success');
+    renderAdminOrdersTable();
+    renderAdminDashboard();
+  } catch(e) { showToast('Error', e.message, 'danger'); }
+  finally { btn.disabled = false; }
+}
+
+// --- Cart: Clear All ---
+function clearCart() {
+  state.cart = [];
+  localStorage.setItem('aura_cart', JSON.stringify([]));
+  updateCartBadge();
+  renderCart();
+  showToast('Cart Cleared', 'All items removed.', 'info');
 }

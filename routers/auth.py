@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database.database import get_db
 from models.models import User
-from schemas.schemas import UserRegister, UserLogin, Token, UserOut
+from schemas.schemas import UserRegister, UserLogin, Token, UserOut, ProfileUpdate
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -141,4 +141,16 @@ async def login_form(form_data: OAuth2PasswordRequestForm = Depends(), db: Async
 
 @router.get("/me", response_model=UserOut)
 async def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+@router.patch("/profile", response_model=UserOut)
+async def update_profile(
+    data: ProfileUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    for field, value in data.model_dump(exclude_none=True).items():
+        setattr(current_user, field, value)
+    await db.commit()
+    await db.refresh(current_user)
     return current_user

@@ -27,7 +27,8 @@
         <a href="#" class="nav-link active" id="nav-landing" onclick="switchView('landing')">Home</a>
         <a href="#" class="nav-link" id="nav-catalog" onclick="switchView('catalog')">Shop Catalog</a>
         <a href="#" class="nav-link" id="nav-customizer" onclick="switchView('customizer')">AI Customizer</a>
-        <a href="#" class="nav-link" id="nav-admin" onclick="switchView('admin')">Admin Panel</a>
+        <a href="#" class="nav-link" id="nav-orders" onclick="switchView('orders')">My Orders</a>
+        <a href="#" class="nav-link" id="nav-admin" onclick="switchView('admin')" style="display:none">Admin Panel</a>
       </nav>
       <div class="header-actions">
         <button class="cart-btn" onclick="toggleCartDrawer()">
@@ -417,6 +418,16 @@
     </section>
 
     <!-- VIEW 4: ADMIN PANEL -->
+    <!-- VIEW: MY ORDERS -->
+    <section id="view-orders" class="view-section">
+      <div class="container" style="max-width:800px;margin:0 auto;padding:2rem 1rem">
+        <h2 style="font-family:'Outfit',sans-serif;margin-bottom:1.5rem"><i class="fa-solid fa-bag-shopping"></i> My Orders</h2>
+        <div id="my-orders-container">
+          <p style="text-align:center;color:var(--text-muted);padding:3rem">Loading orders…</p>
+        </div>
+      </div>
+    </section>
+
     <section id="view-admin" class="view-section">
       <div class="admin-dashboard-container">
 
@@ -435,6 +446,7 @@
             <li onclick="switchAdminTab('orders', this)"><i class="fa-solid fa-boxes-stacked"></i> Orders</li>
             <li onclick="switchAdminTab('users', this)"><i class="fa-solid fa-users"></i> Users</li>
             <li onclick="switchAdminTab('inventory', this)"><i class="fa-solid fa-warehouse"></i> Inventory</li>
+            <li onclick="switchAdminTab('faqs', this)"><i class="fa-solid fa-circle-question"></i> FAQs</li>
             <li onclick="switchAdminTab('logs', this)"><i class="fa-solid fa-robot"></i> AI Chat Logs</li>
           </ul>
         </div>
@@ -470,7 +482,7 @@
             <div class="recent-activities">
               <h3><i class="fa-solid fa-circle-info"></i> System Health</h3>
               <div class="log-list">
-                <div class="log-item"><span class="log-time">Live</span><span class="log-msg"><strong class="text-info"><i class="fa-solid fa-database"></i> Database</strong> SQLite connected via SQLAlchemy async engine.</span></div>
+                <div class="log-item"><span class="log-time">Live</span><span class="log-msg"><strong class="text-info"><i class="fa-solid fa-database"></i> Database</strong> PostgreSQL connected via SQLAlchemy asyncpg engine.</span></div>
                 <div class="log-item"><span class="log-time">Live</span><span class="log-msg"><strong class="text-info"><i class="fa-solid fa-robot"></i> RAG Engine</strong> Chat endpoint active — n8n webhook or local fallback.</span></div>
                 <div class="log-item"><span class="log-time">Live</span><span class="log-msg"><strong class="text-info"><i class="fa-solid fa-lock"></i> Auth</strong> JWT authentication enabled.</span></div>
               </div>
@@ -596,6 +608,29 @@
               <table class="admin-table">
                 <thead><tr><th>Type</th><th>Material</th><th>Stock</th><th>Reorder Level</th><th>Cost/Unit</th><th>Status</th></tr></thead>
                 <tbody id="admin-inventory-list"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB: FAQs -->
+          <div class="admin-tab-content" id="admin-tab-faqs">
+            <h2 class="tab-title"><i class="fa-solid fa-circle-question"></i> FAQ Management</h2>
+            <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-color);border-radius:12px;padding:1.2rem;margin-bottom:1.5rem">
+              <h3 style="margin:0 0 1rem;font-size:1rem;color:var(--teal-neon)"><i class="fa-solid fa-plus"></i> Add FAQ</h3>
+              <div class="form-group" style="margin-bottom:0.8rem">
+                <label>Question (keywords for RAG matching)</label>
+                <input type="text" id="faq-question" placeholder="e.g. delivery time shipping cost timeline" style="width:100%">
+              </div>
+              <div class="form-group" style="margin-bottom:1rem">
+                <label>Answer</label>
+                <textarea id="faq-answer" rows="3" placeholder="Full answer visible to customers..." style="width:100%;background:var(--bg-main);border:1px solid var(--border-color);color:#fff;padding:0.6rem;border-radius:6px;resize:vertical"></textarea>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="addFaq()"><i class="fa-solid fa-floppy-disk"></i> Save FAQ</button>
+            </div>
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead><tr><th>ID</th><th>Question / Keywords</th><th>Answer</th><th>Actions</th></tr></thead>
+                <tbody id="admin-faqs-list"></tbody>
               </table>
             </div>
           </div>

@@ -164,6 +164,44 @@ class ManualOrderCreate(BaseModel):
     payment_method: str = Field(default="COD", pattern="^(COD|Card|Bank Transfer)$")
     notes: str = ""
 
+# --- Profile Update ---
+class ProfileUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=2)
+    phone: Optional[str] = None
+    address: Optional[str] = None
+
+# --- FAQ Schemas ---
+class FaqOut(BaseModel):
+    faq_id: int
+    question: str
+    answer: str
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+class FaqCreate(BaseModel):
+    question: str = Field(..., min_length=5)
+    answer: str = Field(..., min_length=5)
+
+class FaqUpdate(BaseModel):
+    question: Optional[str] = None
+    answer: Optional[str] = None
+    is_active: Optional[bool] = None
+
+# --- Analytics ---
+class AnalyticsOut(BaseModel):
+    total_orders: int
+    total_revenue: float
+    pending_orders: int
+    in_production: int
+    shipped_orders: int
+    delivered_orders: int
+    cancelled_orders: int
+    total_users: int
+    low_stock_count: int
+    chatbot_interactions: int
+
 # --- Chat Log Schemas ---
 class ChatLogOut(BaseModel):
     log_id: int

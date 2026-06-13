@@ -6,18 +6,26 @@ from sqlalchemy.orm import sessionmaker, DeclarativeBase
 # Load .env file if it exists
 load_dotenv()
 
-# Read Database Connection String from environment or fallback to SQLite locally
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./clothing.db")
-
-# Create engine
-# If using SQLite, we enable connect_args to support multi-threading for development
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-
-engine = create_async_engine(
-    DATABASE_URL, 
-    echo=False, 
-    connect_args=connect_args
+# Database connection — PostgreSQL preferred, SQLite fallback for local dev
+# Set DATABASE_URL in .env to switch to PostgreSQL:
+#   postgresql+asyncpg://postgres:postgres@localhost:5432/aurawear
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "sqlite+aiosqlite:///./clothing.db"
 )
+
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_async_engine(
+        DATABASE_URL,
+        echo=False,
+        connect_args={"check_same_thread": False}
+    )
+else:
+    engine = create_async_engine(
+        DATABASE_URL,
+        echo=False,
+        pool_pre_ping=True,
+    )
 
 # Async session maker
 AsyncSessionLocal = sessionmaker(

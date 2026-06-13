@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from database.database import Base, engine
 from database.seed import seed_data
-from routers import auth, products, orders, chat, inventory, users
+from routers import auth, products, orders, chat, inventory, users, analytics, faqs
 
 app = FastAPI(
     title="AURA-WEAR Backend API",
@@ -33,6 +33,8 @@ app.include_router(orders.router)
 app.include_router(chat.router)
 app.include_router(inventory.router)
 app.include_router(users.router)
+app.include_router(analytics.router)
+app.include_router(faqs.router)
 
 # Automatically create tables and seed default products/FAQs on startup
 @app.on_event("startup")

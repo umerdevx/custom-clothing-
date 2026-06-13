@@ -282,6 +282,35 @@ async def update_order_status(
     return updated
 
 
+@router.patch("/{order_id}/cancel", response_model=OrderOut)
+async def cancel_order(
+    order_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    from sqlalchemy.orm import selectinload
+    result = await db.execute(
+        select(Order).where(Order.order_id == order_id).options(selectinload(Order.items))
+    )
+    order = result.scalars().first()
+    if not order:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Order '{order_id}' not found")
+    if order.user_id != current_user.user_id and current_user.role != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your order")
+    if order.status not in ("Pending",):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Only Pending orders can be cancelled. Current status: {order.status}"
+        )
+    order.status = "Cancelled"
+    order.updated_at = datetime.datetime.utcnow()
+    await db.commit()
+    result2 = await db.execute(
+        select(Order).where(Order.order_id == order_id).options(selectinload(Order.items))
+    )
+    return result2.scalars().first()
+
+
 @router.delete("/{order_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_order(
     order_id: str,
