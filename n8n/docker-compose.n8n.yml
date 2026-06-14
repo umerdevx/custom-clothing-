@@ -1,0 +1,37 @@
+services:
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: aura_n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      # Webhook base URL — must match what AURA-WEAR sends requests to
+      WEBHOOK_URL: "http://localhost:5678"
+      N8N_HOST: "localhost"
+      N8N_PORT: 5678
+      N8N_PROTOCOL: "http"
+      # Editor URL
+      N8N_EDITOR_BASE_URL: "http://localhost:5678"
+      # Disable telemetry
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      # Log level
+      N8N_LOG_LEVEL: "info"
+      # Generic timezone
+      GENERIC_TIMEZONE: "Asia/Karachi"
+    volumes:
+      # Persist n8n data (credentials, workflows, executions)
+      - n8n_data:/home/node/.n8n
+      # Mount workflow JSON so it can be imported easily
+      - ./aura-wear-workflow.json:/data/aura-wear-workflow.json:ro
+    networks:
+      - aura_network
+
+volumes:
+  n8n_data:
+
+networks:
+  aura_network:
+    driver: bridge
