@@ -857,6 +857,6 @@ custom-clothing-/
 
 This project is developed as a Final Year Project (FYP) for academic purposes.
 
-**Developer:** Sharjeel
+**Developer:** Umer Javed
 **Institution:** FYP 2025–2026
 **Stack:** FastAPI · PostgreSQL · Vanilla JS · Docker · n8n
