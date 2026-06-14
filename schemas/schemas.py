@@ -39,7 +39,9 @@ class ProductOut(BaseModel):
     product_id: str
     name: str
     category: str
+    gender: str = "Unisex"
     base_price: float
+    discount_percent: float = 0.0
     description: str
     image_url: str
     is_active: bool
@@ -67,6 +69,8 @@ class OrderCreate(BaseModel):
     name: str
     phone: str
     address: str
+    shipping_method: Optional[str] = "Standard Post"
+    shipping_cost: float = 150.0
 
 class OrderItemOut(BaseModel):
     item_id: int
@@ -93,6 +97,8 @@ class OrderOut(BaseModel):
     total_price: float
     payment_method: str
     payment_status: str
+    shipping_method: Optional[str] = None
+    shipping_cost: float = 0.0
     created_at: datetime.datetime
     updated_at: datetime.datetime
     items: List[OrderItemOut]
@@ -129,14 +135,18 @@ class ProductCreate(BaseModel):
     product_id: str = Field(..., min_length=2, max_length=50, pattern="^[a-z0-9_-]+$")
     name: str = Field(..., min_length=2)
     category: str
+    gender: str = "Unisex"
     base_price: float = Field(..., gt=0)
+    discount_percent: float = Field(0.0, ge=0, le=100)
     description: str
     image_url: str = ""
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
     category: Optional[str] = None
+    gender: Optional[str] = None
     base_price: Optional[float] = Field(None, gt=0)
+    discount_percent: Optional[float] = Field(None, ge=0, le=100)
     description: Optional[str] = None
     image_url: Optional[str] = None
 
@@ -169,6 +179,18 @@ class ProfileUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=2)
     phone: Optional[str] = None
     address: Optional[str] = None
+
+# --- Inventory CRUD Schemas ---
+class InventoryCreate(BaseModel):
+    item_type: str
+    item_name: str
+    qty_available: float = 0.0
+    reorder_level: float = 10.0
+
+class InventoryUpdate(BaseModel):
+    item_name: Optional[str] = None
+    qty_available: Optional[float] = None
+    reorder_level: Optional[float] = None
 
 # --- FAQ Schemas ---
 class FaqOut(BaseModel):

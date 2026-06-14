@@ -3,11 +3,32 @@
    ========================================================================== */
 
 // --- Default Base Data Structures (Mock Database Tables) ---
+// GSM weight levels (grade index 1-5 → actual GSM value)
+const GSM_MAP = {
+  1: { gsm: 150, label: '150 GSM – Ultra Light' },
+  2: { gsm: 180, label: '180 GSM – Standard'    },
+  3: { gsm: 220, label: '220 GSM – Mid-Heavy'   },
+  4: { gsm: 240, label: '240 GSM – Heavy'        },
+  5: { gsm: 300, label: '300 GSM – Premium'      }
+};
+
+// Shipping options available at checkout
+const SHIPPING_OPTIONS = {
+  'DHL Express':     { cost: 800,  eta: '2–3 days'  },
+  'TCS Overnight':   { cost: 450,  eta: '1–2 days'  },
+  'Leopards Courier':{ cost: 350,  eta: '3–5 days'  },
+  'BlueEx':          { cost: 250,  eta: '5–7 days'  },
+  'Standard Post':   { cost: 150,  eta: '7–10 days' }
+};
+
 const INITIAL_PRODUCTS = [
-  { id: 'tshirt', name: 'Aura Premium Streetwear Tee', category: 'T-Shirt', basePrice: 1200, desc: 'Heavyweight 240GSM cotton t-shirt with drop shoulders and a boxy fit.', img: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500&auto=format&fit=crop&q=60' },
-  { id: 'hoodie', name: 'Aura Signature Oversized Hoodie', category: 'Hoodie', basePrice: 2500, desc: 'Ultra-soft fleece hoodie featuring double-lined hood and kangaroo pocket.', img: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=500&auto=format&fit=crop&q=60' },
-  { id: 'jacket', name: 'Aura Technical Windbreaker', category: 'Jacket', basePrice: 3500, desc: 'Weatherproof ripstop shell jacket with flatlock sealing and mesh insulation.', img: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500&auto=format&fit=crop&q=60' },
-  { id: 'uniform', name: 'Aura V-Neck Athletic Jersey', category: 'Sports Uniform', basePrice: 1800, desc: 'Interlock polyester mesh jersey with anti-bacterial dry fit weave.', img: 'https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=500&auto=format&fit=crop&q=60' }
+  { id: 'tshirt',       name: 'Aura Premium Streetwear Tee',      category: 'T-Shirt',        gender: 'Men',      basePrice: 1200, discountPercent: 0,  desc: 'Heavyweight 240GSM cotton t-shirt with drop shoulders and a boxy fit.',            img: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500&auto=format&fit=crop&q=60' },
+  { id: 'hoodie',       name: 'Aura Signature Oversized Hoodie',   category: 'Hoodie',         gender: 'Unisex',   basePrice: 2500, discountPercent: 10, desc: 'Ultra-soft fleece hoodie featuring double-lined hood and kangaroo pocket.',        img: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=500&auto=format&fit=crop&q=60' },
+  { id: 'jacket',       name: 'Aura Technical Windbreaker',        category: 'Jacket',         gender: 'Men',      basePrice: 3500, discountPercent: 0,  desc: 'Weatherproof ripstop shell jacket with flatlock sealing and mesh insulation.',    img: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500&auto=format&fit=crop&q=60' },
+  { id: 'uniform',      name: 'Aura V-Neck Athletic Jersey',       category: 'Sports Uniform', gender: 'Unisex',   basePrice: 1800, discountPercent: 0,  desc: 'Interlock polyester mesh jersey with anti-bacterial dry fit weave.',              img: 'https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=500&auto=format&fit=crop&q=60' },
+  { id: 'womens_tee',   name: "Aura Fitted Women's Tee",           category: 'T-Shirt',        gender: 'Women',    basePrice: 1100, discountPercent: 15, desc: 'Soft 180GSM fitted cotton tee with flattering cut, perfect for everyday style.', img: 'https://images.unsplash.com/photo-1594938298603-c8148c4b4f41?w=500&auto=format&fit=crop&q=60' },
+  { id: 'kids_tee',     name: 'Aura Kids Graphic Tee',             category: 'T-Shirt',        gender: 'Children', basePrice: 700,  discountPercent: 0,  desc: 'Soft 160GSM kids cotton tee with vibrant screen-print graphics.',               img: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500&auto=format&fit=crop&q=60' },
+  { id: 'womens_hoodie',name: "Aura Cropped Women's Hoodie",       category: 'Hoodie',         gender: 'Women',    basePrice: 2200, discountPercent: 0,  desc: 'Cozy cropped fleece hoodie with ribbed cuffs and relaxed silhouette.',          img: 'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?w=500&auto=format&fit=crop&q=60' },
 ];
 
 const FABRICS_INFO = {
@@ -25,8 +46,8 @@ const FAQS_DB = [
 ];
 
 const INITIAL_INVENTORY = [
-  { type: 'Fabric', name: 'Combed Cotton (Grade 1-3)', stock: 450, reorder: 100, cost: 'Base Multiplier 1.0x', status: 'Healthy' },
-  { type: 'Fabric', name: 'Brushed Fleece (Grade 4-5)', stock: 85, reorder: 120, cost: 'Base Multiplier 1.3x', status: 'Low Stock' },
+  { type: 'Fabric', name: 'Combed Cotton (150–220 GSM)', stock: 450, reorder: 100, cost: 'Base Multiplier 1.0x', status: 'Healthy' },
+  { type: 'Fabric', name: 'Brushed Fleece (240–300 GSM)', stock: 85, reorder: 120, cost: 'Base Multiplier 1.3x', status: 'Low Stock' },
   { type: 'Dye', name: 'Neon Teal Pigment', stock: 12, reorder: 5, cost: 'PKR 150/liter', status: 'Healthy' },
   { type: 'Print Ink', name: 'Direct-to-Garment Ink-set', stock: 3, reorder: 10, cost: 'PKR 1,500/cartridge', status: 'Low Stock' },
   { type: 'Stitch Thread', name: 'High-Tensile Poly-thread', stock: 1200, reorder: 300, cost: 'PKR 80/spool', status: 'Healthy' }
@@ -826,7 +847,9 @@ async function renderCatalog() {
     id: p.product_id,
     name: p.name,
     category: p.category,
+    gender: p.gender || 'Unisex',
     basePrice: p.base_price,
+    discountPercent: p.discount_percent || 0,
     desc: p.description,
     img: p.image_url
   }));
@@ -846,18 +869,28 @@ function _renderProductCards(products) {
     return;
   }
   products.forEach(p => {
+    const discount = p.discountPercent || 0;
+    const discountedPrice = discount > 0 ? Math.round(p.basePrice * (1 - discount / 100)) : null;
+    const saleBadge   = discount > 0 ? `<span class="sale-badge">-${discount}% OFF</span>` : '';
+    const genderTag   = p.gender && p.gender !== 'Unisex' ? `<span class="gender-tag">${p.gender}</span>` : '';
+    const priceHtml   = discountedPrice
+      ? `<span class="price-original">PKR ${p.basePrice.toLocaleString()}</span><span class="price price-sale">PKR ${discountedPrice.toLocaleString()}</span>`
+      : `<span class="price">PKR ${p.basePrice.toLocaleString()}</span>`;
+
     const card = document.createElement('div');
     card.className = 'product-card glass';
     card.innerHTML = `
       <div class="product-visual">
         <span class="product-tag">${p.category}</span>
+        ${genderTag}
+        ${saleBadge}
         <img src="${p.img}" alt="${p.name}">
       </div>
       <div class="product-info">
         <h3>${p.name}</h3>
         <p>${p.desc}</p>
         <div class="product-card-footer">
-          <span class="price">PKR ${p.basePrice.toLocaleString()}</span>
+          <div class="price-group">${priceHtml}</div>
           <button class="btn btn-sm btn-primary" onclick="loadProductIntoCustomizer('${p.id}'); loadRelatedProducts('${p.id}');">
             <i class="fa-solid fa-wand-magic-sparkles"></i> Customize
           </button>
@@ -871,14 +904,16 @@ function _renderProductCards(products) {
 function filterCatalog() {
   const query    = document.getElementById('catalog-search').value.toLowerCase();
   const category = document.getElementById('catalog-category-filter').value;
+  const gender   = document.getElementById('catalog-gender-filter')?.value || 'all';
   const minPrice = parseFloat(document.getElementById('price-min')?.value) || 0;
   const maxPrice = parseFloat(document.getElementById('price-max')?.value) || Infinity;
   const filtered = _products.filter(p => {
-    const matchQuery = p.name.toLowerCase().includes(query) || p.desc.toLowerCase().includes(query);
-    const matchCat   = category === 'all' || p.category === category;
-    const price      = p.basePrice ?? p.base_price ?? 0;
-    const matchPrice = price >= minPrice && price <= maxPrice;
-    return matchQuery && matchCat && matchPrice;
+    const matchQuery  = p.name.toLowerCase().includes(query) || p.desc.toLowerCase().includes(query);
+    const matchCat    = category === 'all' || p.category === category;
+    const matchGender = gender === 'all' || p.gender === gender;
+    const price       = p.basePrice ?? p.base_price ?? 0;
+    const matchPrice  = price >= minPrice && price <= maxPrice;
+    return matchQuery && matchCat && matchGender && matchPrice;
   });
   _renderProductCards(filtered);
 }
@@ -1018,18 +1053,11 @@ function setFabricType(fabric) {
   updatePrice();
 }
 
-function updateFabricGrade(grade) {
+function setFabricGsm(grade) {
   state.currentCustomization.fabricGrade = parseInt(grade);
-  
-  const textMapping = [
-    'Grade 1 (Standard Core)',
-    'Grade 2 (Premium Soft)',
-    'Grade 3 (Double Weave +15%)',
-    'Grade 4 (Heavyweight Luxury +30%)',
-    'Grade 5 (Supreme Pro Fit +45%)'
-  ];
-  document.getElementById('grade-val-display').innerText = textMapping[grade - 1];
-  
+  document.querySelectorAll('.gsm-tile').forEach(t => t.classList.remove('active'));
+  const tile = document.getElementById(`tile-gsm-${grade}`);
+  if (tile) tile.classList.add('active');
   updatePrice();
 }
 
@@ -1259,7 +1287,7 @@ function renderCart() {
       <div class="cart-item-details">
         <h4>${item.apparelType.toUpperCase()} - Design #${100 + index}</h4>
         <div class="cart-item-meta">
-          <span>Material: ${FABRICS_INFO[item.fabricType].name} (Grade ${item.fabricGrade})</span>
+          <span>Material: ${FABRICS_INFO[item.fabricType].name} (${(GSM_MAP[item.fabricGrade] || GSM_MAP[1]).label})</span>
           <span>Print: ${item.printMethod.toUpperCase()} | Stitch: ${item.stitchingStyle}</span>
           <span>Colors: <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${item.primaryColor}"></span> / <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${item.secondaryColor}"></span></span>
         </div>
@@ -1297,12 +1325,26 @@ function openCheckoutModal() {
   }
   toggleCartDrawer();
   
-  // Calculate Grand Total for display
+  // Calculate Grand Total for display (subtotal + 5% GST + shipping)
   let subtotal = state.cart.reduce((sum, item) => sum + item.totalPrice, 0);
-  let grand = Math.round(subtotal * 1.05);
-  
+  state._checkoutShippingCost   = 800; // default DHL
+  state._checkoutShippingMethod = 'DHL Express';
+  let grand = Math.round(subtotal * 1.05) + state._checkoutShippingCost;
+
   document.getElementById('checkout-total-price').innerText = grand.toLocaleString();
   document.getElementById('checkout-modal').classList.add('active');
+}
+
+function selectShipping(labelEl, method, cost) {
+  document.querySelectorAll('.shipping-card-label').forEach(l => l.classList.remove('active'));
+  labelEl.classList.add('active');
+  state._checkoutShippingCost   = cost;
+  state._checkoutShippingMethod = method;
+
+  // Recalculate and update total display
+  const subtotal = state.cart.reduce((sum, item) => sum + item.totalPrice, 0);
+  const grand = Math.round(subtotal * 1.05) + cost;
+  document.getElementById('checkout-total-price').innerText = grand.toLocaleString();
 }
 
 function closeCheckoutModal() {
@@ -1357,7 +1399,15 @@ async function handlePlaceOrder(event) {
   }));
 
   try {
-    const order = await api('/api/orders', 'POST', { items, payment_method: payMethod, name, phone, address });
+    const order = await api('/api/orders', 'POST', {
+      items,
+      payment_method: payMethod,
+      name,
+      phone,
+      address,
+      shipping_method: state._checkoutShippingMethod || 'Standard Post',
+      shipping_cost:   state._checkoutShippingCost   || 150
+    });
     if (!order) return;
 
     state.cart = [];
@@ -1762,11 +1812,23 @@ function executeMySQLRetrievalNode(query) {
    Handles statistics calculations, status updates, and audit logs. */
 // ==========================================================================
 function switchAdminTab(tabName, elem) {
+  if (!state.authToken || state.currentUser?.role !== 'admin') {
+    switchView('landing');
+    return;
+  }
   document.querySelectorAll('.admin-sidebar li').forEach(li => li.classList.remove('active'));
   document.querySelectorAll('.admin-tab-content').forEach(cont => cont.classList.remove('active'));
-  
+
   elem.classList.add('active');
   document.getElementById(`admin-tab-${tabName}`).classList.add('active');
+
+  // Lazy-load tab data
+  if (tabName === 'products') renderAdminProductsTable();
+  if (tabName === 'orders')   renderAdminOrdersTable();
+  if (tabName === 'users')    renderAdminUsersTable();
+  if (tabName === 'inventory')renderAdminInventoryTable();
+  if (tabName === 'faqs')     renderAdminFaqsTable();
+  if (tabName === 'logs')     renderAdminChatLogs();
 }
 
 async function renderAdminDashboard() {
@@ -1791,12 +1853,12 @@ async function renderAdminDashboard() {
 
 async function renderAdminOrdersTable() {
   const container = document.getElementById('admin-orders-list');
-  container.innerHTML = `<tr><td colspan="7" style="text-align:center"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
+  container.innerHTML = `<tr><td colspan="8" style="text-align:center"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
   try {
     const orders = await api('/api/orders') || [];
     container.innerHTML = '';
     if (!orders.length) {
-      container.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No orders yet.</td></tr>`;
+      container.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted)">No orders yet.</td></tr>`;
       return;
     }
     orders.forEach(order => {
@@ -1819,11 +1881,14 @@ async function renderAdminOrdersTable() {
             <option value="Delivered"      ${order.status==='Delivered'?'selected':''}>Delivered</option>
             <option value="Cancelled"      ${order.status==='Cancelled'?'selected':''}>Cancelled</option>
           </select>
+        </td>
+        <td>
+          <button class="btn-admin-del" onclick="deleteOrder('${order.order_id}')"><i class="fa-solid fa-trash"></i></button>
         </td>`;
       container.appendChild(row);
     });
   } catch(e) {
-    container.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#ff6b6b">${e.message}</td></tr>`;
+    container.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#ff6b6b">${e.message}</td></tr>`;
   }
 }
 
@@ -1842,27 +1907,116 @@ async function updateOrderStatus(orderId, newStatus) {
   }
 }
 
+async function deleteOrder(orderId) {
+  if (!confirm(`Permanently delete order ${orderId}? This cannot be undone.`)) return;
+  try {
+    await api(`/api/orders/${orderId}`, 'DELETE');
+    showToast('Order Deleted', `${orderId} removed.`, 'info');
+    renderAdminOrdersTable();
+    renderAdminDashboard();
+  } catch(e) { showToast('Error', e.message, 'danger'); }
+}
+
 async function renderAdminInventoryTable() {
   const container = document.getElementById('admin-inventory-list');
   container.innerHTML = `<tr><td colspan="6" style="text-align:center"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
   try {
     const items = await api('/api/inventory') || [];
     container.innerHTML = '';
+    if (!items.length) {
+      container.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">No inventory items.</td></tr>`;
+      return;
+    }
     items.forEach(item => {
       const low = item.qty_available < item.reorder_level;
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${item.item_type}</td>
         <td><strong>${item.item_name}</strong></td>
-        <td>${item.qty_available} units</td>
-        <td>Threshold: ${item.reorder_level}</td>
-        <td>${new Date(item.last_updated).toLocaleDateString()}</td>
-        <td><span class="badge ${low ? 'badge-danger' : 'badge-delivered'}">${low ? 'Low Stock' : 'Healthy'}</span></td>`;
+        <td id="inv-qty-${item.inv_id}">${item.qty_available}</td>
+        <td id="inv-reorder-${item.inv_id}">${item.reorder_level}</td>
+        <td><span class="badge ${low ? 'badge-danger' : 'badge-delivered'}">${low ? 'Low Stock' : 'Healthy'}</span></td>
+        <td style="display:flex;gap:0.4rem;flex-wrap:wrap">
+          <button class="btn btn-sm btn-outline" onclick="openInvEditModal(${item.inv_id},'${item.item_name}',${item.qty_available},${item.reorder_level})">
+            <i class="fa-solid fa-pen"></i> Edit
+          </button>
+          <button class="btn-admin-del" onclick="deleteInventoryItem(${item.inv_id})"><i class="fa-solid fa-trash"></i></button>
+        </td>`;
       container.appendChild(row);
     });
   } catch(e) {
     container.innerHTML = `<tr><td colspan="6" style="color:#ff6b6b">${e.message}</td></tr>`;
   }
+}
+
+// Inline modal for editing inventory stock / reorder level
+function openInvEditModal(invId, name, qty, reorder) {
+  const html = `
+    <div class="modal-overlay active" id="inv-edit-overlay" onclick="if(event.target===this)closeInvEditModal()">
+      <div class="modal-content glass" style="max-width:380px;">
+        <div class="modal-header">
+          <h2 style="font-size:1rem"><i class="fa-solid fa-pen"></i> Edit: ${name}</h2>
+          <button class="close-btn" onclick="closeInvEditModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group" style="margin-bottom:1rem">
+            <label>Stock Quantity</label>
+            <input type="number" id="inv-edit-qty" value="${qty}" min="0" style="width:100%">
+          </div>
+          <div class="form-group" style="margin-bottom:1.25rem">
+            <label>Reorder Level (alert threshold)</label>
+            <input type="number" id="inv-edit-reorder" value="${reorder}" min="0" style="width:100%">
+          </div>
+          <button class="btn btn-primary btn-block" onclick="saveInvEdit(${invId})">
+            <i class="fa-solid fa-floppy-disk"></i> Save Changes
+          </button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+function closeInvEditModal() {
+  document.getElementById('inv-edit-overlay')?.remove();
+}
+async function saveInvEdit(invId) {
+  const qty     = parseFloat(document.getElementById('inv-edit-qty').value);
+  const reorder = parseFloat(document.getElementById('inv-edit-reorder').value);
+  try {
+    await api(`/api/inventory/${invId}`, 'PATCH', { qty_available: qty, reorder_level: reorder });
+    showToast('Inventory Updated', 'Stock levels saved.', 'success');
+    closeInvEditModal();
+    renderAdminInventoryTable();
+  } catch(e) { showToast('Error', e.message, 'danger'); }
+}
+async function deleteInventoryItem(invId) {
+  if (!confirm('Remove this inventory item permanently?')) return;
+  try {
+    await api(`/api/inventory/${invId}`, 'DELETE');
+    showToast('Item Removed', 'Inventory item deleted.', 'info');
+    renderAdminInventoryTable();
+  } catch(e) { showToast('Error', e.message, 'danger'); }
+}
+function toggleAddInventoryForm() {
+  const c = document.getElementById('add-inventory-form-container');
+  c.style.display = c.style.display === 'none' ? 'block' : 'none';
+}
+async function handleAddInventory(event) {
+  event.preventDefault();
+  const btn = event.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  try {
+    await api('/api/inventory', 'POST', {
+      item_type:     document.getElementById('inv-type').value,
+      item_name:     document.getElementById('inv-name').value,
+      qty_available: parseFloat(document.getElementById('inv-qty').value),
+      reorder_level: parseFloat(document.getElementById('inv-reorder').value)
+    });
+    event.target.reset();
+    toggleAddInventoryForm();
+    showToast('Item Added', 'New inventory item created.', 'success');
+    renderAdminInventoryTable();
+  } catch(e) { showToast('Error', e.message, 'danger'); }
+  finally { btn.disabled = false; }
 }
 
 async function renderAdminRAGLogsTable() {
@@ -1892,28 +2046,100 @@ async function renderAdminRAGLogsTable() {
 async function renderAdminProductsTable() {
   const container = document.getElementById('admin-products-list');
   if (!container) return;
-  container.innerHTML = `<tr><td colspan="6" style="text-align:center"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
+  container.innerHTML = `<tr><td colspan="9" style="text-align:center"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
   try {
     const products = await api('/api/products/admin/all') || [];
     container.innerHTML = '';
     products.forEach(p => {
+      const discTag = (p.discount_percent || 0) > 0
+        ? `<span class="badge badge-inproduction">-${p.discount_percent}%</span>`
+        : '<span style="color:var(--text-muted)">—</span>';
       const row = document.createElement('tr');
       row.innerHTML = `
         <td><code>${p.product_id}</code></td>
         <td><strong>${p.name}</strong></td>
         <td>${p.category}</td>
+        <td><span class="badge badge-pending">${p.gender || 'Unisex'}</span></td>
         <td>PKR ${p.base_price.toLocaleString()}</td>
+        <td>${discTag}</td>
         <td><span class="badge ${p.is_active ? 'badge-delivered' : 'badge-danger'}">${p.is_active ? 'Active' : 'Inactive'}</span></td>
-        <td>
-          <button class="btn btn-sm btn-outline" onclick="toggleProductStatus('${p.product_id}')">
-            ${p.is_active ? '<i class="fa-solid fa-eye-slash"></i> Deactivate' : '<i class="fa-solid fa-eye"></i> Activate'}
+        <td style="display:flex;gap:0.4rem;flex-wrap:wrap">
+          <button class="btn btn-sm btn-outline" onclick="openProductEditModal('${p.product_id}','${p.name.replace(/'/g,"\\'")}','${p.category}','${p.gender||"Unisex"}',${p.base_price},${p.discount_percent||0},'${p.description.replace(/'/g,"\\'")}','${p.image_url}')">
+            <i class="fa-solid fa-pen"></i>
           </button>
+          <button class="btn btn-sm btn-outline" onclick="toggleProductStatus('${p.product_id}')">
+            ${p.is_active ? '<i class="fa-solid fa-eye-slash"></i>' : '<i class="fa-solid fa-eye"></i>'}
+          </button>
+          <button class="btn-admin-del" onclick="deleteProduct('${p.product_id}')"><i class="fa-solid fa-trash"></i></button>
         </td>`;
       container.appendChild(row);
     });
   } catch(e) {
-    container.innerHTML = `<tr><td colspan="6" style="color:#ff6b6b">${e.message}</td></tr>`;
+    container.innerHTML = `<tr><td colspan="9" style="color:#ff6b6b">${e.message}</td></tr>`;
   }
+}
+
+function openProductEditModal(id, name, category, gender, price, discount, desc, img) {
+  const html = `
+    <div class="modal-overlay active" id="product-edit-overlay" onclick="if(event.target===this)closeProductEditModal()">
+      <div class="modal-content glass">
+        <div class="modal-header">
+          <h2 style="font-size:1rem"><i class="fa-solid fa-pen"></i> Edit Product: <code>${id}</code></h2>
+          <button class="close-btn" onclick="closeProductEditModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group col-6"><label>Name</label><input id="pe-name" value="${name}" style="width:100%"></div>
+            <div class="form-group col-6">
+              <label>Category</label>
+              <select id="pe-category" class="select-input" style="width:100%">
+                <option ${category==='T-Shirt'?'selected':''}>T-Shirt</option>
+                <option ${category==='Hoodie'?'selected':''}>Hoodie</option>
+                <option ${category==='Jacket'?'selected':''}>Jacket</option>
+                <option ${category==='Sports Uniform'?'selected':''}>Sports Uniform</option>
+                <option ${category==='Joggers'?'selected':''}>Joggers</option>
+                <option ${category==='Other'?'selected':''}>Other</option>
+              </select>
+            </div>
+            <div class="form-group col-6">
+              <label>Gender</label>
+              <select id="pe-gender" class="select-input" style="width:100%">
+                <option ${gender==='Unisex'?'selected':''} value="Unisex">Unisex</option>
+                <option ${gender==='Men'?'selected':''} value="Men">Men</option>
+                <option ${gender==='Women'?'selected':''} value="Women">Women</option>
+                <option ${gender==='Children'?'selected':''} value="Children">Children</option>
+              </select>
+            </div>
+            <div class="form-group col-3"><label>Base Price (PKR)</label><input id="pe-price" type="number" value="${price}" style="width:100%"></div>
+            <div class="form-group col-3"><label>Discount %</label><input id="pe-discount" type="number" min="0" max="100" value="${discount}" style="width:100%"></div>
+            <div class="form-group col-12"><label>Description</label><textarea id="pe-desc" rows="2" style="width:100%;background:var(--bg-main);border:1px solid var(--border-color);color:#fff;padding:0.6rem;border-radius:6px;resize:vertical">${desc}</textarea></div>
+            <div class="form-group col-12"><label>Image URL</label><input id="pe-img" value="${img}" style="width:100%"></div>
+          </div>
+          <div style="display:flex;gap:0.8rem;margin-top:1rem">
+            <button class="btn btn-primary btn-sm" onclick="saveProductEdit('${id}')"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+            <button class="btn btn-outline btn-sm" onclick="closeProductEditModal()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+function closeProductEditModal() { document.getElementById('product-edit-overlay')?.remove(); }
+async function saveProductEdit(productId) {
+  try {
+    await api(`/api/products/${productId}`, 'PATCH', {
+      name:             document.getElementById('pe-name').value,
+      category:         document.getElementById('pe-category').value,
+      gender:           document.getElementById('pe-gender').value,
+      base_price:       parseFloat(document.getElementById('pe-price').value),
+      discount_percent: parseFloat(document.getElementById('pe-discount').value) || 0,
+      description:      document.getElementById('pe-desc').value,
+      image_url:        document.getElementById('pe-img').value
+    });
+    showToast('Product Updated', `${productId} saved.`, 'success');
+    closeProductEditModal();
+    renderAdminProductsTable();
+  } catch(e) { showToast('Error', e.message, 'danger'); }
 }
 
 async function toggleProductStatus(productId) {
@@ -1924,6 +2150,15 @@ async function toggleProductStatus(productId) {
   } catch(e) {
     showToast('Error', e.message, 'danger');
   }
+}
+
+async function deleteProduct(productId) {
+  if (!confirm(`Permanently delete product "${productId}"? This cannot be undone.`)) return;
+  try {
+    await api(`/api/products/${productId}`, 'DELETE');
+    showToast('Product Deleted', `${productId} removed.`, 'info');
+    renderAdminProductsTable();
+  } catch(e) { showToast('Error', e.message, 'danger'); }
 }
 
 async function renderAdminUsersTable() {
@@ -1949,7 +2184,9 @@ async function renderAdminUsersTable() {
           <select class="admin-action-select" style="max-width:100px" onchange="changeUserRole(${u.user_id}, this.value)">
             <option value="customer" ${u.role==='customer'?'selected':''}>Customer</option>
             <option value="admin"    ${u.role==='admin'?'selected':''}>Admin</option>
-          </select>` : '<em style="color:var(--text-muted);font-size:0.8rem">You</em>'}
+          </select>
+          <button class="btn-admin-del" onclick="deleteUser(${u.user_id})"><i class="fa-solid fa-trash"></i></button>
+          ` : '<em style="color:var(--text-muted);font-size:0.8rem">You</em>'}
         </td>`;
       container.appendChild(row);
     });
@@ -1962,6 +2199,15 @@ async function toggleUserActive(userId) {
   try {
     await api(`/api/users/${userId}/toggle`, 'PATCH');
     showToast('User Updated', 'Account status changed.', 'info');
+    renderAdminUsersTable();
+  } catch(e) { showToast('Error', e.message, 'danger'); }
+}
+
+async function deleteUser(userId) {
+  if (!confirm(`Permanently delete user #${userId}? All their data will be removed.`)) return;
+  try {
+    await api(`/api/users/${userId}`, 'DELETE');
+    showToast('User Deleted', `User #${userId} removed.`, 'info');
     renderAdminUsersTable();
   } catch(e) { showToast('Error', e.message, 'danger'); }
 }
@@ -2043,12 +2289,14 @@ async function handleAddProduct(event) {
   btn.disabled = true;
   try {
     await api('/api/products', 'POST', {
-      product_id: document.getElementById('np-id').value,
-      name:       document.getElementById('np-name').value,
-      category:   document.getElementById('np-category').value,
-      base_price: parseFloat(document.getElementById('np-price').value),
-      description:document.getElementById('np-desc').value,
-      image_url:  document.getElementById('np-img').value || ''
+      product_id:       document.getElementById('np-id').value,
+      name:             document.getElementById('np-name').value,
+      category:         document.getElementById('np-category').value,
+      gender:           document.getElementById('np-gender').value,
+      base_price:       parseFloat(document.getElementById('np-price').value),
+      discount_percent: parseFloat(document.getElementById('np-discount').value) || 0,
+      description:      document.getElementById('np-desc').value,
+      image_url:        document.getElementById('np-img').value || ''
     });
     event.target.reset();
     toggleAddProductForm();
@@ -2110,21 +2358,32 @@ function closeForgotPasswordModal() {
 function showForgotStep(step) {
   document.getElementById('fp-step-1').style.display = step === 1 ? 'block' : 'none';
   document.getElementById('fp-step-2').style.display = step === 2 ? 'block' : 'none';
+  if (step === 1) {
+    const hint = document.getElementById('fp-dev-otp-hint');
+    if (hint) { hint.style.display = 'none'; hint.textContent = ''; }
+  }
 }
 
 async function handleForgotPasswordRequest() {
   const email = document.getElementById('fp-email').value.trim();
   if (!email) { showToast('Email Required', 'Please enter your email address.', 'warning'); return; }
+  const btn = document.querySelector('#fp-step-1 button');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending…'; }
   try {
     const res = await api('/api/auth/forgot-password', 'POST', { email });
     if (res && res.debug_otp) {
-      showToast('OTP Sent', `Dev mode — OTP: ${res.debug_otp}`, 'info');
+      // Dev mode: show OTP prominently in step-2 so user can copy it
+      showToast('Dev Mode OTP', `Your OTP is: ${res.debug_otp}`, 'warning');
+      const otpHint = document.getElementById('fp-dev-otp-hint');
+      if (otpHint) { otpHint.textContent = `(Dev) OTP: ${res.debug_otp}`; otpHint.style.display = 'block'; }
     } else {
-      showToast('OTP Sent', 'Check your email for the OTP.', 'success');
+      showToast('OTP Sent', 'If that email is registered, you will receive an OTP shortly.', 'success');
     }
-    document.getElementById('fp-step-2') && showForgotStep(2);
+    showForgotStep(2);
   } catch(e) {
     showToast('Error', e.message, 'danger');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send OTP'; }
   }
 }
 

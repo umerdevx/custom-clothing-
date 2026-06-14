@@ -1,7 +1,7 @@
 import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from database.database import get_db
 from models.models import User
 from schemas.schemas import UserAdminOut, UserRoleUpdate
@@ -55,3 +55,19 @@ async def toggle_user_active(
     await db.commit()
     await db.refresh(user)
     return user
+
+
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin)
+):
+    if user_id == current_admin.user_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot delete your own account")
+    result = await db.execute(select(User).where(User.user_id == user_id))
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    await db.delete(user)
+    await db.commit()

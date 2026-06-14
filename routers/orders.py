@@ -148,10 +148,11 @@ async def create_order(
         for d in dye_inv:
             d.qty_available = max(0.0, d.qty_available - (item.quantity * 0.05))
 
-    # Add 5% GST
+    # Add 5% GST + shipping cost
     tax = round(grand_total * 0.05)
-    grand_total_with_tax = grand_total + tax
-    
+    shipping_cost = order_data.shipping_cost or 0.0
+    grand_total_with_tax = grand_total + tax + shipping_cost
+
     # Create main Order
     new_order = Order(
         order_id=order_id,
@@ -159,7 +160,9 @@ async def create_order(
         status="Pending",
         total_price=grand_total_with_tax,
         payment_method=order_data.payment_method,
-        payment_status="Paid" if order_data.payment_method != "COD" else "Pending (COD)"
+        payment_status="Paid" if order_data.payment_method != "COD" else "Pending (COD)",
+        shipping_method=order_data.shipping_method,
+        shipping_cost=shipping_cost
     )
     
     new_order.items = db_items

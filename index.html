@@ -114,6 +114,51 @@
           <p>Monitor your apparel from production floor, quality check, shipping, all the way to your door.</p>
         </div>
       </div>
+
+      <!-- Trust & Certifications Section -->
+      <div class="trust-section">
+        <p class="trust-label">TRUSTED BY BUSINESSES & CERTIFIED FOR QUALITY</p>
+        <div class="cert-badges-row">
+          <div class="cert-badge glass">
+            <i class="fa-solid fa-medal" style="color:#ffaa00"></i>
+            <div>
+              <strong>ISO 9001:2015</strong>
+              <span>Quality Management System</span>
+            </div>
+          </div>
+          <div class="cert-badge glass">
+            <i class="fa-solid fa-leaf" style="color:#39ff14"></i>
+            <div>
+              <strong>OEKO-TEX® 100</strong>
+              <span>Tested for Harmful Substances</span>
+            </div>
+          </div>
+          <div class="cert-badge glass">
+            <i class="fa-solid fa-shield-halved" style="color:#00f0ff"></i>
+            <div>
+              <strong>PSQCA Certified</strong>
+              <span>Pakistan Standards Authority</span>
+            </div>
+          </div>
+          <div class="cert-badge glass">
+            <i class="fa-solid fa-recycle" style="color:#8a2be2"></i>
+            <div>
+              <strong>GOTS Certified</strong>
+              <span>Global Organic Textile Standard</span>
+            </div>
+          </div>
+        </div>
+        <div class="shipping-partners-row">
+          <p class="trust-label" style="margin-bottom:0.75rem">DELIVERY PARTNERS</p>
+          <div style="display:flex;gap:1.5rem;flex-wrap:wrap;justify-content:center;align-items:center;">
+            <span class="shipper-tag"><i class="fa-solid fa-plane"></i> DHL Express</span>
+            <span class="shipper-tag"><i class="fa-solid fa-box"></i> TCS Courier</span>
+            <span class="shipper-tag"><i class="fa-solid fa-truck"></i> Leopards</span>
+            <span class="shipper-tag"><i class="fa-solid fa-bolt"></i> BlueEx</span>
+            <span class="shipper-tag"><i class="fa-solid fa-envelope"></i> Standard Post</span>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- VIEW 2: PRODUCT CATALOG -->
@@ -135,10 +180,17 @@
             <option value="Jacket">Jackets</option>
             <option value="Sports Uniform">Sports Uniforms</option>
           </select>
+          <select id="catalog-gender-filter" onchange="filterCatalog()">
+            <option value="all">All — Men, Women, Kids</option>
+            <option value="Men">Men</option>
+            <option value="Women">Women</option>
+            <option value="Children">Children</option>
+            <option value="Unisex">Unisex</option>
+          </select>
           <div class="price-range-filter">
-            <input type="number" id="price-min" placeholder="Min PKR" min="0" oninput="filterCatalog()" style="width:90px">
+            <input type="number" id="price-min" placeholder="Min PKR" min="0" oninput="filterCatalog()">
             <span style="color:var(--text-muted)">—</span>
-            <input type="number" id="price-max" placeholder="Max PKR" min="0" oninput="filterCatalog()" style="width:90px">
+            <input type="number" id="price-max" placeholder="Max PKR" min="0" oninput="filterCatalog()">
           </div>
         </div>
       </div>
@@ -244,19 +296,35 @@
             </div>
 
             <div class="control-group">
-              <div class="label-with-val">
-                <label class="group-title">Fabric Grade</label>
-                <span class="range-val" id="grade-val-display">Grade 1 (Standard)</span>
+              <label class="group-title">Fabric Weight (GSM)</label>
+              <div class="gsm-tile-grid">
+                <div class="tile-card gsm-tile active" onclick="setFabricGsm(1)" id="tile-gsm-1">
+                  <strong>150</strong>
+                  <span>GSM</span>
+                  <small>Ultra Light</small>
+                </div>
+                <div class="tile-card gsm-tile" onclick="setFabricGsm(2)" id="tile-gsm-2">
+                  <strong>180</strong>
+                  <span>GSM</span>
+                  <small>Standard</small>
+                </div>
+                <div class="tile-card gsm-tile" onclick="setFabricGsm(3)" id="tile-gsm-3">
+                  <strong>220</strong>
+                  <span>GSM</span>
+                  <small>Mid-Heavy</small>
+                </div>
+                <div class="tile-card gsm-tile" onclick="setFabricGsm(4)" id="tile-gsm-4">
+                  <strong>240</strong>
+                  <span>GSM</span>
+                  <small>Heavy</small>
+                </div>
+                <div class="tile-card gsm-tile" onclick="setFabricGsm(5)" id="tile-gsm-5">
+                  <strong>300</strong>
+                  <span>GSM</span>
+                  <small>Premium</small>
+                </div>
               </div>
-              <input type="range" class="slider-input" id="fabric-grade" min="1" max="5" value="1" step="1" oninput="updateFabricGrade(this.value)">
-              <div class="slider-labels">
-                <span>Grade 1</span>
-                <span>Grade 2</span>
-                <span>Grade 3</span>
-                <span>Grade 4</span>
-                <span>Grade 5 (Premium)</span>
-              </div>
-              <p class="hint-text"><i class="fa-solid fa-circle-info"></i> Higher fabric grades represent denser thread counts and premium texture (+15% base price per grade).</p>
+              <p class="hint-text" style="margin-top:0.6rem"><i class="fa-solid fa-circle-info"></i> GSM (grams per square metre) measures fabric density. Higher GSM = thicker, warmer, more durable (+15% per step).</p>
             </div>
           </div>
 
@@ -522,7 +590,17 @@
                       <option>T-Shirt</option><option>Hoodie</option><option>Jacket</option><option>Sports Uniform</option><option>Joggers</option><option>Other</option>
                     </select>
                   </div>
+                  <div class="form-group col-6">
+                    <label>Target Gender</label>
+                    <select id="np-gender" class="select-input">
+                      <option value="Unisex">Unisex</option>
+                      <option value="Men">Men</option>
+                      <option value="Women">Women</option>
+                      <option value="Children">Children</option>
+                    </select>
+                  </div>
                   <div class="form-group col-6"><label>Base Price (PKR)</label><input type="number" id="np-price" min="100" placeholder="2000" required></div>
+                  <div class="form-group col-6"><label>Discount % <small style="color:var(--text-muted)">(0 = no sale)</small></label><input type="number" id="np-discount" min="0" max="100" value="0" placeholder="e.g. 15"></div>
                   <div class="form-group col-12"><label>Description</label><textarea id="np-desc" rows="2" placeholder="Short product description..." required></textarea></div>
                   <div class="form-group col-12"><label>Image URL <small style="color:var(--text-muted)">(Unsplash or any CDN link)</small></label><input type="url" id="np-img" placeholder="https://images.unsplash.com/..."></div>
                 </div>
@@ -535,7 +613,7 @@
 
             <div class="table-responsive">
               <table class="admin-table">
-                <thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Base Price</th><th>Status</th><th>Actions</th></tr></thead>
+                <thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Gender</th><th>Price</th><th>Discount</th><th>Status</th><th colspan="3">Actions</th></tr></thead>
                 <tbody id="admin-products-list"></tbody>
               </table>
             </div>
@@ -614,10 +692,36 @@
 
           <!-- TAB: Inventory -->
           <div class="admin-tab-content" id="admin-tab-inventory">
-            <h2 class="tab-title"><i class="fa-solid fa-warehouse"></i> Material Inventory</h2>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+              <h2 class="tab-title" style="margin:0"><i class="fa-solid fa-warehouse"></i> Material Inventory</h2>
+              <button class="btn btn-primary btn-sm" onclick="toggleAddInventoryForm()"><i class="fa-solid fa-circle-plus"></i> Add Item</button>
+            </div>
+
+            <!-- Add Inventory Form -->
+            <div id="add-inventory-form-container" style="display:none;background:rgba(255,255,255,0.03);border:1px solid var(--border-color);border-radius:12px;padding:1.2rem;margin-bottom:1.5rem;">
+              <h3 style="margin:0 0 1rem;color:var(--teal-neon);font-size:1rem;"><i class="fa-solid fa-circle-plus"></i> New Inventory Item</h3>
+              <form id="add-inventory-form" onsubmit="handleAddInventory(event)">
+                <div class="form-grid">
+                  <div class="form-group col-6">
+                    <label>Item Type</label>
+                    <select id="inv-type" class="select-input" style="width:100%">
+                      <option>Fabric</option><option>Dye</option><option>Print Ink</option><option>Stitch Thread</option><option>Accessory</option><option>Other</option>
+                    </select>
+                  </div>
+                  <div class="form-group col-6"><label>Item Name</label><input type="text" id="inv-name" placeholder="e.g. Combed Cotton Roll" required></div>
+                  <div class="form-group col-6"><label>Stock Quantity</label><input type="number" id="inv-qty" min="0" value="100" required></div>
+                  <div class="form-group col-6"><label>Reorder Level (alert threshold)</label><input type="number" id="inv-reorder" min="0" value="20" required></div>
+                </div>
+                <div style="display:flex;gap:0.8rem;margin-top:1rem;">
+                  <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-floppy-disk"></i> Save Item</button>
+                  <button type="button" class="btn btn-outline btn-sm" onclick="toggleAddInventoryForm()"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                </div>
+              </form>
+            </div>
+
             <div class="table-responsive">
               <table class="admin-table">
-                <thead><tr><th>Type</th><th>Material</th><th>Stock</th><th>Reorder Level</th><th>Cost/Unit</th><th>Status</th></tr></thead>
+                <thead><tr><th>Type</th><th>Material</th><th>Stock</th><th>Reorder Level</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody id="admin-inventory-list"></tbody>
               </table>
             </div>
@@ -729,7 +833,53 @@
           </div>
 
           <div class="form-section">
-            <h3>2. Payment Method</h3>
+            <h3>2. Shipping Method</h3>
+            <div class="shipping-methods-grid">
+              <label class="shipping-card-label active" onclick="selectShipping(this,'DHL Express',800)">
+                <input type="radio" name="shipping-method" value="DHL Express" checked>
+                <div class="shipping-card-body">
+                  <span class="shipper-name"><i class="fa-solid fa-plane"></i> DHL Express</span>
+                  <span class="shipper-eta">2–3 days</span>
+                  <span class="shipper-cost">PKR 800</span>
+                </div>
+              </label>
+              <label class="shipping-card-label" onclick="selectShipping(this,'TCS Overnight',450)">
+                <input type="radio" name="shipping-method" value="TCS Overnight">
+                <div class="shipping-card-body">
+                  <span class="shipper-name"><i class="fa-solid fa-bolt"></i> TCS Overnight</span>
+                  <span class="shipper-eta">1–2 days</span>
+                  <span class="shipper-cost">PKR 450</span>
+                </div>
+              </label>
+              <label class="shipping-card-label" onclick="selectShipping(this,'Leopards Courier',350)">
+                <input type="radio" name="shipping-method" value="Leopards Courier">
+                <div class="shipping-card-body">
+                  <span class="shipper-name"><i class="fa-solid fa-truck"></i> Leopards</span>
+                  <span class="shipper-eta">3–5 days</span>
+                  <span class="shipper-cost">PKR 350</span>
+                </div>
+              </label>
+              <label class="shipping-card-label" onclick="selectShipping(this,'BlueEx',250)">
+                <input type="radio" name="shipping-method" value="BlueEx">
+                <div class="shipping-card-body">
+                  <span class="shipper-name"><i class="fa-solid fa-box"></i> BlueEx</span>
+                  <span class="shipper-eta">5–7 days</span>
+                  <span class="shipper-cost">PKR 250</span>
+                </div>
+              </label>
+              <label class="shipping-card-label" onclick="selectShipping(this,'Standard Post',150)">
+                <input type="radio" name="shipping-method" value="Standard Post">
+                <div class="shipping-card-body">
+                  <span class="shipper-name"><i class="fa-solid fa-envelope"></i> Standard Post</span>
+                  <span class="shipper-eta">7–10 days</span>
+                  <span class="shipper-cost">PKR 150</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>3. Payment Method</h3>
             <div class="payment-methods-grid">
               <label class="payment-card-label active">
                 <input type="radio" name="payment-method" value="Card" checked onclick="togglePaymentSection('card')">
@@ -967,7 +1117,8 @@
 
         <!-- Step 2: Enter OTP + new password -->
         <div id="fp-step-2" style="display:none;">
-          <p style="color:var(--text-secondary);margin-bottom:1rem;">Enter the 6-digit OTP sent to your email and your new password.</p>
+          <p style="color:var(--text-secondary);margin-bottom:0.75rem;">Enter the 6-digit OTP sent to your email and choose a new password.</p>
+          <div id="fp-dev-otp-hint" style="display:none;background:rgba(255,170,0,0.12);border:1px solid rgba(255,170,0,0.3);border-radius:6px;padding:0.5rem 0.75rem;font-size:0.8rem;color:#ffaa00;font-weight:600;margin-bottom:0.85rem;"></div>
           <div class="form-group" style="margin-bottom:0.8rem;">
             <label>OTP Code</label>
             <input type="text" id="fp-otp" placeholder="123456" maxlength="6">

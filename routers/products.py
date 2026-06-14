@@ -146,3 +146,18 @@ async def get_customization_options(db: AsyncSession = Depends(get_db)):
             } for p in prints
         ]
     }
+
+
+@router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_product(
+    product_id: str,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_admin)
+):
+    """Permanently delete a product (admin only)."""
+    result = await db.execute(select(Product).where(Product.product_id == product_id))
+    product = result.scalars().first()
+    if not product:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Product '{product_id}' not found")
+    await db.delete(product)
+    await db.commit()

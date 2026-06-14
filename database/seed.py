@@ -19,7 +19,9 @@ async def seed_data():
                 product_id="tshirt",
                 name="Aura Premium Streetwear Tee",
                 category="T-Shirt",
+                gender="Men",
                 base_price=1200.0,
+                discount_percent=0.0,
                 description="Heavyweight 240GSM cotton t-shirt with drop shoulders and a boxy fit.",
                 image_url="https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500&auto=format&fit=crop&q=60"
             ),
@@ -27,7 +29,9 @@ async def seed_data():
                 product_id="hoodie",
                 name="Aura Signature Oversized Hoodie",
                 category="Hoodie",
+                gender="Unisex",
                 base_price=2500.0,
+                discount_percent=10.0,
                 description="Ultra-soft fleece hoodie featuring double-lined hood and kangaroo pocket.",
                 image_url="https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=500&auto=format&fit=crop&q=60"
             ),
@@ -35,7 +39,9 @@ async def seed_data():
                 product_id="jacket",
                 name="Aura Technical Windbreaker",
                 category="Jacket",
+                gender="Men",
                 base_price=3500.0,
+                discount_percent=0.0,
                 description="Weatherproof ripstop shell jacket with flatlock sealing and mesh insulation.",
                 image_url="https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500&auto=format&fit=crop&q=60"
             ),
@@ -43,13 +49,46 @@ async def seed_data():
                 product_id="uniform",
                 name="Aura V-Neck Athletic Jersey",
                 category="Sports Uniform",
+                gender="Unisex",
                 base_price=1800.0,
+                discount_percent=0.0,
                 description="Interlock polyester mesh jersey with anti-bacterial dry fit weave.",
                 image_url="https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=500&auto=format&fit=crop&q=60"
-            )
+            ),
+            Product(
+                product_id="womens_tee",
+                name="Aura Fitted Women's Tee",
+                category="T-Shirt",
+                gender="Women",
+                base_price=1100.0,
+                discount_percent=15.0,
+                description="Soft 180GSM fitted cotton tee with flattering cut, perfect for everyday style.",
+                image_url="https://images.unsplash.com/photo-1594938298603-c8148c4b4f41?w=500&auto=format&fit=crop&q=60"
+            ),
+            Product(
+                product_id="kids_tee",
+                name="Aura Kids Graphic Tee",
+                category="T-Shirt",
+                gender="Children",
+                base_price=700.0,
+                discount_percent=0.0,
+                description="Soft 160GSM kids cotton tee with vibrant screen-print graphics, durable and comfortable.",
+                image_url="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500&auto=format&fit=crop&q=60"
+            ),
+            Product(
+                product_id="womens_hoodie",
+                name="Aura Cropped Women's Hoodie",
+                category="Hoodie",
+                gender="Women",
+                base_price=2200.0,
+                discount_percent=0.0,
+                description="Cozy cropped fleece hoodie with ribbed cuffs, kangaroo pocket, and relaxed silhouette.",
+                image_url="https://images.unsplash.com/photo-1578587018452-892bacefd3f2?w=500&auto=format&fit=crop&q=60"
+            ),
         ]
         
         # 2. Seed Fabric Options
+        GSM_LEVELS = [150, 180, 220, 240, 300]
         fabrics = []
         fabric_specs = [
             ("cotton", "Combed Cotton", 1.0),
@@ -58,10 +97,11 @@ async def seed_data():
             ("fleece", "Brushed Fleece", 1.3)
         ]
         for ftype, name, base_mult in fabric_specs:
-            for grade in range(1, 6):
-                mult = round(base_mult * (1 + (grade - 1) * 0.15), 2)
+            for i, gsm in enumerate(GSM_LEVELS):
+                grade = i + 1
+                mult = round(base_mult * (1 + i * 0.15), 2)
                 fabrics.append(FabricOption(
-                    name=f"{name} (Grade {grade})",
+                    name=f"{name} ({gsm} GSM)",
                     type=ftype,
                     grade=grade,
                     price_multiplier=mult,

@@ -22,11 +22,13 @@ class User(Base):
 
 class Product(Base):
     __tablename__ = "products"
-    
-    product_id: Mapped[str] = mapped_column(String(50), primary_key=True) # e.g. 'tshirt', 'hoodie'
+
+    product_id: Mapped[str] = mapped_column(String(50), primary_key=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     category: Mapped[str] = mapped_column(String(50), nullable=False)
+    gender: Mapped[str] = mapped_column(String(20), default="Unisex")
     base_price: Mapped[float] = mapped_column(Float, nullable=False)
+    discount_percent: Mapped[float] = mapped_column(Float, default=0.0)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     image_url: Mapped[str] = mapped_column(String(255), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -71,10 +73,12 @@ class Order(Base):
     
     order_id: Mapped[str] = mapped_column(String(50), primary_key=True) # e.g. 'ORD-123456'
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.user_id"), nullable=False)
-    status: Mapped[str] = mapped_column(String(30), default="Pending") # Pending, In Production, Quality Check, Shipped, Delivered, Cancelled
+    status: Mapped[str] = mapped_column(String(30), default="Pending")
     total_price: Mapped[float] = mapped_column(Float, nullable=False)
     payment_method: Mapped[str] = mapped_column(String(30), nullable=False)
     payment_status: Mapped[str] = mapped_column(String(30), default="Pending")
+    shipping_method: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    shipping_cost: Mapped[float] = mapped_column(Float, default=0.0)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow)
     updated_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
