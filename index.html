@@ -23,12 +23,13 @@
       <a href="#" class="brand-logo" onclick="switchView('landing')">
         <i class="fa-solid fa-wand-magic-sparkles"></i> AURA<span>WEAR</span>
       </a>
-      <nav class="nav-links">
-        <a href="#" class="nav-link active" id="nav-landing" onclick="switchView('landing')">Home</a>
-        <a href="#" class="nav-link" id="nav-catalog" onclick="switchView('catalog')">Shop Catalog</a>
-        <a href="#" class="nav-link" id="nav-customizer" onclick="switchView('customizer')">AI Customizer</a>
-        <a href="#" class="nav-link" id="nav-orders" onclick="switchView('orders')">My Orders</a>
-        <a href="#" class="nav-link" id="nav-admin" onclick="switchView('admin')" style="display:none">Admin Panel</a>
+      <nav class="nav-links" id="main-nav">
+        <a href="#" class="nav-link active" id="nav-landing" onclick="switchView('landing');closeMobileNav()">Home</a>
+        <a href="#" class="nav-link" id="nav-catalog" onclick="switchView('catalog');closeMobileNav()">Shop Catalog</a>
+        <a href="#" class="nav-link" id="nav-customizer" onclick="switchView('customizer');closeMobileNav()">AI Customizer</a>
+        <a href="#" class="nav-link" id="nav-orders" onclick="switchView('orders');closeMobileNav()">My Orders</a>
+        <a href="#" class="nav-link" id="nav-profile" onclick="switchView('profile');closeMobileNav()" style="display:none">Profile</a>
+        <a href="#" class="nav-link" id="nav-admin" onclick="switchView('admin');closeMobileNav()" style="display:none">Admin Panel</a>
       </nav>
       <div class="header-actions">
         <button class="cart-btn" onclick="toggleCartDrawer()">
@@ -39,12 +40,33 @@
           <i class="fa-solid fa-right-to-bracket"></i> <span id="auth-btn-label">Login</span>
         </button>
         <div class="user-profile">
-          <i class="fa-solid fa-user-circle" id="user-avatar-icon"></i>
+          <i class="fa-solid fa-user-circle" id="user-avatar-icon" style="cursor:pointer" onclick="switchView('profile')" title="My Profile"></i>
           <span class="user-name" id="header-username">Guest</span>
         </div>
+        <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileNav()" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
       </div>
     </div>
   </header>
+
+  <!-- Mobile Navigation Overlay -->
+  <div class="mobile-nav-overlay" id="mobile-nav-overlay" onclick="closeMobileNav()">
+    <div class="mobile-nav-drawer glass" onclick="event.stopPropagation()">
+      <div class="mobile-nav-header">
+        <span class="brand-logo"><i class="fa-solid fa-wand-magic-sparkles"></i> AURA<span>WEAR</span></span>
+        <button class="close-btn" onclick="closeMobileNav()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <nav class="mobile-nav-links">
+        <a href="#" onclick="switchView('landing');closeMobileNav()"><i class="fa-solid fa-house"></i> Home</a>
+        <a href="#" onclick="switchView('catalog');closeMobileNav()"><i class="fa-solid fa-store"></i> Shop Catalog</a>
+        <a href="#" onclick="switchView('customizer');closeMobileNav()"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Customizer</a>
+        <a href="#" onclick="switchView('orders');closeMobileNav()"><i class="fa-solid fa-bag-shopping"></i> My Orders</a>
+        <a href="#" id="mobile-nav-profile" onclick="switchView('profile');closeMobileNav()" style="display:none"><i class="fa-solid fa-user"></i> My Profile</a>
+        <a href="#" id="mobile-nav-admin" onclick="switchView('admin');closeMobileNav()" style="display:none"><i class="fa-solid fa-shield-halved"></i> Admin Panel</a>
+      </nav>
+    </div>
+  </div>
 
   <!-- Main View Container -->
   <main class="app-main">
@@ -264,6 +286,18 @@
                   <span>Sport Jersey</span>
                 </div>
               </div>
+            </div>
+            <div class="control-group">
+              <label class="group-title">Size</label>
+              <div class="size-tile-grid">
+                <div class="tile-card size-tile" onclick="setSize('XS')" id="tile-size-xs"><span>XS</span></div>
+                <div class="tile-card size-tile" onclick="setSize('S')"  id="tile-size-s"><span>S</span></div>
+                <div class="tile-card size-tile active" onclick="setSize('M')"  id="tile-size-m"><span>M</span></div>
+                <div class="tile-card size-tile" onclick="setSize('L')"  id="tile-size-l"><span>L</span></div>
+                <div class="tile-card size-tile" onclick="setSize('XL')" id="tile-size-xl"><span>XL</span></div>
+                <div class="tile-card size-tile" onclick="setSize('XXL')" id="tile-size-xxl"><span>XXL</span></div>
+              </div>
+              <p class="hint-text" style="margin-top:0.5rem"><i class="fa-solid fa-circle-info"></i> All sizes custom-cut to order at no extra charge.</p>
             </div>
           </div>
 
@@ -496,6 +530,40 @@
       </div>
     </section>
 
+    <!-- VIEW: MY PROFILE -->
+    <section id="view-profile" class="view-section">
+      <div class="container" style="max-width:600px;margin:0 auto;padding:2rem 1rem">
+        <h2 style="font-family:'Outfit',sans-serif;margin-bottom:0.5rem"><i class="fa-solid fa-user-circle"></i> My Profile</h2>
+        <p style="color:var(--text-secondary);margin-bottom:2rem">Update your personal details and delivery preferences.</p>
+        <div class="glass" style="padding:2rem;border-radius:16px">
+          <form id="profile-form" onsubmit="handleUpdateProfile(event)">
+            <div class="form-grid">
+              <div class="form-group col-12" style="margin-bottom:1rem">
+                <label>Full Name</label>
+                <input type="text" id="profile-name" placeholder="Your full name" required style="width:100%">
+              </div>
+              <div class="form-group col-12" style="margin-bottom:1rem">
+                <label>Email <span style="color:var(--text-muted);font-size:0.8rem">(cannot change)</span></label>
+                <input type="email" id="profile-email" placeholder="your@email.com" disabled style="width:100%;opacity:0.6">
+              </div>
+              <div class="form-group col-12" style="margin-bottom:1rem">
+                <label>Phone Number <span style="color:var(--text-muted);font-size:0.8rem">(optional)</span></label>
+                <input type="tel" id="profile-phone" placeholder="+92 300 1234567" style="width:100%">
+              </div>
+              <div class="form-group col-12" style="margin-bottom:1.5rem">
+                <label>Default Delivery Address <span style="color:var(--text-muted);font-size:0.8rem">(optional)</span></label>
+                <textarea id="profile-address" rows="3" placeholder="Street, City, Province, Pakistan" style="width:100%;background:var(--bg-main);border:1px solid var(--border-color);color:#fff;padding:0.6rem 1rem;border-radius:6px;resize:vertical;font-family:var(--font-body)"></textarea>
+              </div>
+            </div>
+            <div style="display:flex;gap:1rem">
+              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+              <button type="button" class="btn btn-outline" onclick="switchView('orders')"><i class="fa-solid fa-bag-shopping"></i> My Orders</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
     <!-- VIEW 4: ADMIN PANEL -->
     <!-- VIEW: MY ORDERS -->
     <section id="view-orders" class="view-section">
@@ -558,6 +626,18 @@
                 <div class="trend text-warning"><i class="fa-solid fa-bell"></i> Action required</div>
               </div>
             </div>
+            <!-- Analytics Charts -->
+            <div class="charts-row">
+              <div class="chart-card glass">
+                <h4><i class="fa-solid fa-chart-bar"></i> Order Status Breakdown</h4>
+                <canvas id="chart-orders-status" height="160"></canvas>
+              </div>
+              <div class="chart-card glass">
+                <h4><i class="fa-solid fa-chart-line"></i> Revenue Summary</h4>
+                <canvas id="chart-revenue" height="160"></canvas>
+              </div>
+            </div>
+
             <div class="recent-activities">
               <h3><i class="fa-solid fa-circle-info"></i> System Health</h3>
               <div class="log-list">
@@ -623,9 +703,14 @@
           <div class="admin-tab-content" id="admin-tab-orders">
             <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
               <h2 class="tab-title" style="margin:0;"><i class="fa-solid fa-boxes-stacked"></i> Order Management</h2>
-              <button class="btn btn-primary" onclick="toggleManualOrderForm()" id="toggle-manual-order-btn">
-                <i class="fa-solid fa-plus"></i> Add Manual Order
-              </button>
+              <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+                <button class="btn btn-outline btn-sm" onclick="exportOrdersCsv()">
+                  <i class="fa-solid fa-file-csv"></i> Export CSV
+                </button>
+                <button class="btn btn-primary" onclick="toggleManualOrderForm()" id="toggle-manual-order-btn">
+                  <i class="fa-solid fa-plus"></i> Add Manual Order
+                </button>
+              </div>
             </div>
             <p class="hint-text"><i class="fa-solid fa-circle-info"></i> Update order status to trigger pipeline stages. Use Add Manual Order for walk-in or phone orders.</p>
 
@@ -640,11 +725,7 @@
                 <div class="form-group">
                   <label>Product</label>
                   <select id="mo-product-id" required style="width:100%; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; padding:0.6rem; border-radius:6px;">
-                    <option value="">— Select Product —</option>
-                    <option value="tshirt">T-Shirt</option>
-                    <option value="hoodie">Hoodie</option>
-                    <option value="jacket">Jacket</option>
-                    <option value="jersey">Jersey</option>
+                    <option value="">— Loading products… —</option>
                   </select>
                 </div>
                 <div class="form-group">
@@ -934,6 +1015,15 @@
             <div class="payment-sub-fields" id="pay-fields-cod">
               <p class="hint-text text-success"><i class="fa-solid fa-check-circle"></i> Pay in cash upon delivery. Standard COD processing applies.</p>
             </div>
+          </div>
+
+          <div class="form-section">
+            <h3>4. Promo Code <span style="color:var(--text-muted);font-size:0.85rem">(optional)</span></h3>
+            <div class="coupon-row">
+              <input type="text" id="coupon-code-input" placeholder="e.g. AURA10" style="flex:1;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:6px;padding:0.6rem 1rem;color:#fff;font-family:var(--font-body)">
+              <button type="button" class="btn btn-outline btn-sm" onclick="applyCoupon()"><i class="fa-solid fa-tag"></i> Apply</button>
+            </div>
+            <p id="coupon-feedback" style="font-size:0.8rem;margin-top:0.4rem;display:none"></p>
           </div>
 
           <div class="modal-footer">

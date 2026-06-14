@@ -694,6 +694,7 @@ let state = {
     apparelType: 'tshirt',
     fabricType: 'cotton',
     fabricGrade: 1,
+    size: 'M',
     primaryColor: '#1e1e24',
     secondaryColor: '#00f0ff',
     stitchingStyle: 'flatlock',
@@ -760,6 +761,9 @@ window.onload = async function() {
     renderCatalogFallback();
   }
 
+  // Restore chat history from session
+  _loadChatHistory();
+
   showToast('Welcome to AURA-WEAR!', 'Design your custom apparel.', 'success');
 };
 
@@ -807,9 +811,9 @@ function switchView(viewName) {
       return;           // abort — never touch the DOM
     }
   }
-  if (viewName === 'orders') {
+  if (viewName === 'orders' || viewName === 'profile') {
     if (!state.authToken) {
-      showToast('Login Required', 'Please sign in to view your orders.', 'warning');
+      showToast('Login Required', 'Please sign in first.', 'warning');
       openAuthModal();
       return;           // abort — never touch the DOM
     }
@@ -830,8 +834,9 @@ function switchView(viewName) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   // ── Post-render hooks ─────────────────────────────────────────────────────
-  if (viewName === 'admin')  renderAdminDashboard();
-  if (viewName === 'orders') loadMyOrders();
+  if (viewName === 'admin')   renderAdminDashboard();
+  if (viewName === 'orders')  loadMyOrders();
+  if (viewName === 'profile') loadProfile();
 }
 
 // --- Catalog Rendering & Filters ---
@@ -869,21 +874,24 @@ function _renderProductCards(products) {
     return;
   }
   products.forEach(p => {
+    const isActive = p.is_active !== false;
     const discount = p.discountPercent || 0;
-    const discountedPrice = discount > 0 ? Math.round(p.basePrice * (1 - discount / 100)) : null;
-    const saleBadge   = discount > 0 ? `<span class="sale-badge">-${discount}% OFF</span>` : '';
+    const discountedPrice = (discount > 0 && isActive) ? Math.round(p.basePrice * (1 - discount / 100)) : null;
+    const saleBadge   = (discount > 0 && isActive) ? `<span class="sale-badge">-${discount}% OFF</span>` : '';
+    const outOfStock  = !isActive ? `<span class="out-of-stock-badge">Unavailable</span>` : '';
     const genderTag   = p.gender && p.gender !== 'Unisex' ? `<span class="gender-tag">${p.gender}</span>` : '';
     const priceHtml   = discountedPrice
       ? `<span class="price-original">PKR ${p.basePrice.toLocaleString()}</span><span class="price price-sale">PKR ${discountedPrice.toLocaleString()}</span>`
       : `<span class="price">PKR ${p.basePrice.toLocaleString()}</span>`;
 
     const card = document.createElement('div');
-    card.className = 'product-card glass';
+    card.className = `product-card glass${!isActive ? ' product-unavailable' : ''}`;
     card.innerHTML = `
       <div class="product-visual">
         <span class="product-tag">${p.category}</span>
         ${genderTag}
         ${saleBadge}
+        ${outOfStock}
         <img src="${p.img}" alt="${p.name}">
       </div>
       <div class="product-info">
@@ -891,9 +899,10 @@ function _renderProductCards(products) {
         <p>${p.desc}</p>
         <div class="product-card-footer">
           <div class="price-group">${priceHtml}</div>
-          <button class="btn btn-sm btn-primary" onclick="loadProductIntoCustomizer('${p.id}'); loadRelatedProducts('${p.id}');">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> Customize
-          </button>
+          ${isActive
+            ? `<button class="btn btn-sm btn-primary" onclick="loadProductIntoCustomizer('${p.id}'); loadRelatedProducts('${p.id}');"><i class="fa-solid fa-wand-magic-sparkles"></i> Customize</button>`
+            : `<button class="btn btn-sm btn-outline" disabled style="opacity:0.5;cursor:not-allowed">Unavailable</button>`
+          }
         </div>
       </div>
     `;
@@ -1287,7 +1296,7 @@ function renderCart() {
       <div class="cart-item-details">
         <h4>${item.apparelType.toUpperCase()} - Design #${100 + index}</h4>
         <div class="cart-item-meta">
-          <span>Material: ${FABRICS_INFO[item.fabricType].name} (${(GSM_MAP[item.fabricGrade] || GSM_MAP[1]).label})</span>
+          <span>Size: ${item.size || 'M'} &nbsp;|&nbsp; Material: ${FABRICS_INFO[item.fabricType].name} (${(GSM_MAP[item.fabricGrade] || GSM_MAP[1]).label})</span>
           <span>Print: ${item.printMethod.toUpperCase()} | Stitch: ${item.stitchingStyle}</span>
           <span>Colors: <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${item.primaryColor}"></span> / <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${item.secondaryColor}"></span></span>
         </div>
@@ -1325,13 +1334,16 @@ function openCheckoutModal() {
   }
   toggleCartDrawer();
   
-  // Calculate Grand Total for display (subtotal + 5% GST + shipping)
-  let subtotal = state.cart.reduce((sum, item) => sum + item.totalPrice, 0);
-  state._checkoutShippingCost   = 800; // default DHL
+  // Reset coupon + shipping defaults
+  state._checkoutShippingCost   = 800;
   state._checkoutShippingMethod = 'DHL Express';
-  let grand = Math.round(subtotal * 1.05) + state._checkoutShippingCost;
+  state._couponDiscount = 0;
+  state._couponCode     = '';
+  document.getElementById('coupon-code-input').value = '';
+  const fb = document.getElementById('coupon-feedback');
+  if (fb) { fb.style.display = 'none'; fb.textContent = ''; }
 
-  document.getElementById('checkout-total-price').innerText = grand.toLocaleString();
+  _recalcCheckoutTotal();
   document.getElementById('checkout-modal').classList.add('active');
 }
 
@@ -1340,11 +1352,7 @@ function selectShipping(labelEl, method, cost) {
   labelEl.classList.add('active');
   state._checkoutShippingCost   = cost;
   state._checkoutShippingMethod = method;
-
-  // Recalculate and update total display
-  const subtotal = state.cart.reduce((sum, item) => sum + item.totalPrice, 0);
-  const grand = Math.round(subtotal * 1.05) + cost;
-  document.getElementById('checkout-total-price').innerText = grand.toLocaleString();
+  _recalcCheckoutTotal();
 }
 
 function closeCheckoutModal() {
@@ -1401,12 +1409,14 @@ async function handlePlaceOrder(event) {
   try {
     const order = await api('/api/orders', 'POST', {
       items,
-      payment_method: payMethod,
+      payment_method:   payMethod,
       name,
       phone,
       address,
-      shipping_method: state._checkoutShippingMethod || 'Standard Post',
-      shipping_cost:   state._checkoutShippingCost   || 150
+      shipping_method:  state._checkoutShippingMethod || 'Standard Post',
+      shipping_cost:    state._checkoutShippingCost   || 150,
+      coupon_code:      state._couponCode || null,
+      coupon_discount:  state._couponDiscount || 0
     });
     if (!order) return;
 
@@ -1560,22 +1570,28 @@ function handleLogout() {
 
 function updateAuthUI() {
   const user = state.currentUser;
-  const label     = document.getElementById('auth-btn-label');
   const username  = document.getElementById('header-username');
   const btn       = document.getElementById('auth-btn');
   const adminLink = document.getElementById('nav-admin');
+  const profileLink = document.getElementById('nav-profile');
+  const mobileAdmin = document.getElementById('mobile-nav-admin');
+  const mobileProfile = document.getElementById('mobile-nav-profile');
   if (user) {
-    label.innerText    = 'Logout';
     username.innerText = user.name;
     btn.onclick        = handleLogout;
     btn.innerHTML      = '<i class="fa-solid fa-right-from-bracket"></i> <span id="auth-btn-label">Logout</span>';
-    // Show admin link only for admins
-    if (adminLink) adminLink.style.display = user.role === 'admin' ? '' : 'none';
+    if (adminLink)   adminLink.style.display   = user.role === 'admin' ? '' : 'none';
+    if (profileLink) profileLink.style.display = '';
+    if (mobileAdmin)   mobileAdmin.style.display   = user.role === 'admin' ? '' : 'none';
+    if (mobileProfile) mobileProfile.style.display = '';
   } else {
     btn.onclick   = openAuthModal;
     btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> <span id="auth-btn-label">Login</span>';
     username.innerText = 'Guest';
-    if (adminLink) adminLink.style.display = 'none';
+    if (adminLink)   adminLink.style.display   = 'none';
+    if (profileLink) profileLink.style.display = 'none';
+    if (mobileAdmin)   mobileAdmin.style.display   = 'none';
+    if (mobileProfile) mobileProfile.style.display = 'none';
   }
 }
 
@@ -1715,6 +1731,7 @@ function renderMessageBubble(text, sender) {
   bubble.innerHTML = `<div class="msg-text">${text}</div>`;
   container.appendChild(bubble);
   container.scrollTop = container.scrollHeight;
+  _saveChatHistory();
 }
 
 /* n8n Retrieval Node Parser
@@ -1823,12 +1840,12 @@ function switchAdminTab(tabName, elem) {
   document.getElementById(`admin-tab-${tabName}`).classList.add('active');
 
   // Lazy-load tab data
-  if (tabName === 'products') renderAdminProductsTable();
-  if (tabName === 'orders')   renderAdminOrdersTable();
+  if (tabName === 'products')  renderAdminProductsTable();
+  if (tabName === 'orders')  { renderAdminOrdersTable(); loadProductsForManualOrder(); }
   if (tabName === 'users')    renderAdminUsersTable();
-  if (tabName === 'inventory')renderAdminInventoryTable();
+  if (tabName === 'inventory') renderAdminInventoryTable();
   if (tabName === 'faqs')     renderAdminFaqsTable();
-  if (tabName === 'logs')     renderAdminChatLogs();
+  if (tabName === 'logs')     renderAdminRAGLogsTable();
 }
 
 async function renderAdminDashboard() {
@@ -1836,10 +1853,11 @@ async function renderAdminDashboard() {
   try {
     const stats = await api('/api/analytics');
     if (stats) {
-      document.getElementById('admin-revenue').innerText      = `PKR ${stats.total_revenue.toLocaleString()}`;
-      document.getElementById('admin-orders-count').innerText = stats.total_orders;
-      document.getElementById('admin-users-count').innerText  = stats.total_users;
+      document.getElementById('admin-revenue').innerText        = `PKR ${stats.total_revenue.toLocaleString()}`;
+      document.getElementById('admin-orders-count').innerText   = stats.total_orders;
+      document.getElementById('admin-users-count').innerText    = stats.total_users;
       document.getElementById('admin-stock-warnings').innerText = stats.low_stock_count;
+      setTimeout(() => renderAnalyticsCharts(stats), 50); // defer until DOM paints
     }
   } catch(e) { /* non-fatal */ }
 
@@ -1849,6 +1867,7 @@ async function renderAdminDashboard() {
   await renderAdminProductsTable();
   await renderAdminUsersTable();
   await renderAdminFaqsTable();
+  loadProductsForManualOrder();
 }
 
 async function renderAdminOrdersTable() {
@@ -2400,6 +2419,275 @@ async function handlePasswordReset() {
   } catch(e) {
     showToast('Reset Failed', e.message, 'danger');
   }
+}
+
+// ==========================================================================
+// MOBILE NAV
+// ==========================================================================
+function toggleMobileNav() {
+  document.getElementById('mobile-nav-overlay').classList.toggle('active');
+  document.body.classList.toggle('nav-open');
+}
+function closeMobileNav() {
+  document.getElementById('mobile-nav-overlay').classList.remove('active');
+  document.body.classList.remove('nav-open');
+}
+
+// ==========================================================================
+// SIZE SELECTION
+// ==========================================================================
+function setSize(size) {
+  state.currentCustomization.size = size;
+  document.querySelectorAll('.size-tile').forEach(t => t.classList.remove('active'));
+  const el = document.getElementById(`tile-size-${size.toLowerCase()}`);
+  if (el) el.classList.add('active');
+}
+
+// ==========================================================================
+// USER PROFILE
+// ==========================================================================
+async function loadProfile() {
+  if (!state.authToken) {
+    showToast('Login Required', 'Sign in to view your profile.', 'warning');
+    openAuthModal();
+    return;
+  }
+  try {
+    const me = await api('/api/auth/me');
+    if (!me) return;
+    document.getElementById('profile-name').value    = me.name    || '';
+    document.getElementById('profile-email').value   = me.email   || '';
+    document.getElementById('profile-phone').value   = me.phone   || '';
+    document.getElementById('profile-address').value = me.address || '';
+  } catch(e) {
+    showToast('Error', 'Could not load profile.', 'danger');
+  }
+}
+
+async function handleUpdateProfile(event) {
+  event.preventDefault();
+  const btn = event.target.querySelector('button[type="submit"]');
+  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
+  try {
+    const updated = await api('/api/auth/profile', 'PATCH', {
+      name:    document.getElementById('profile-name').value    || null,
+      phone:   document.getElementById('profile-phone').value   || null,
+      address: document.getElementById('profile-address').value || null
+    });
+    if (updated) {
+      state.currentUser = { ...state.currentUser, ...updated };
+      localStorage.setItem('aura_user', JSON.stringify(state.currentUser));
+      document.getElementById('header-username').innerText = updated.name || state.currentUser.name;
+      showToast('Profile Saved', 'Your details have been updated.', 'success');
+    }
+  } catch(e) {
+    showToast('Save Failed', e.message, 'danger');
+  } finally {
+    btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Changes';
+  }
+}
+
+// ==========================================================================
+// COUPON / PROMO CODES
+// ==========================================================================
+const PROMO_CODES = {
+  'AURA10':  { discount: 10, label: '10% off your order' },
+  'SAVE20':  { discount: 20, label: '20% off your order' },
+  'FYP2025': { discount: 15, label: '15% student discount' },
+  'FIRST50': { discount: 50, label: '50% off first order' }
+};
+
+function applyCoupon() {
+  const code = document.getElementById('coupon-code-input').value.trim().toUpperCase();
+  const feedback = document.getElementById('coupon-feedback');
+  const promo = PROMO_CODES[code];
+  if (!promo) {
+    feedback.style.display = 'block';
+    feedback.style.color = 'var(--red-neon)';
+    feedback.textContent = '✗ Invalid promo code.';
+    state._couponDiscount = 0;
+    state._couponCode = '';
+    _recalcCheckoutTotal();
+    return;
+  }
+  state._couponDiscount = promo.discount;
+  state._couponCode = code;
+  feedback.style.display = 'block';
+  feedback.style.color = 'var(--green-neon)';
+  feedback.textContent = `✓ "${code}" applied — ${promo.label}`;
+  _recalcCheckoutTotal();
+  showToast('Promo Applied!', promo.label, 'success');
+}
+
+function _recalcCheckoutTotal() {
+  const subtotal = state.cart.reduce((sum, item) => sum + item.totalPrice, 0);
+  const couponOff = state._couponDiscount || 0;
+  const afterCoupon = Math.round(subtotal * (1 - couponOff / 100));
+  const grand = Math.round(afterCoupon * 1.05) + (state._checkoutShippingCost || 800);
+  document.getElementById('checkout-total-price').innerText = grand.toLocaleString();
+}
+
+// ==========================================================================
+// EXPORT ORDERS TO CSV
+// ==========================================================================
+async function exportOrdersCsv() {
+  try {
+    const orders = await api('/api/orders') || [];
+    if (!orders.length) { showToast('No Data', 'No orders to export.', 'warning'); return; }
+    const header = ['Order ID', 'Date', 'User ID', 'Status', 'Payment', 'Payment Status', 'Shipping', 'Total PKR'];
+    const rows = orders.map(o => [
+      o.order_id,
+      new Date(o.created_at).toLocaleDateString(),
+      o.user_id,
+      o.status,
+      o.payment_method,
+      o.payment_status,
+      o.shipping_method || '',
+      o.total_price
+    ]);
+    const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `aura-orders-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Export Done', `${orders.length} orders exported.`, 'success');
+  } catch(e) { showToast('Export Failed', e.message, 'danger'); }
+}
+
+// ==========================================================================
+// MANUAL ORDER: LOAD LIVE PRODUCT LIST
+// ==========================================================================
+async function loadProductsForManualOrder() {
+  const sel = document.getElementById('mo-product-id');
+  if (!sel) return;
+  try {
+    const products = await api('/api/products') || [];
+    sel.innerHTML = '<option value="">— Select Product —</option>';
+    products.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.product_id;
+      opt.textContent = `${p.name} (PKR ${p.base_price.toLocaleString()})`;
+      sel.appendChild(opt);
+    });
+  } catch(e) {
+    sel.innerHTML = '<option value="">— Could not load —</option>';
+  }
+}
+
+// ==========================================================================
+// CHAT HISTORY PERSISTENCE (sessionStorage)
+// ==========================================================================
+function _saveChatHistory() {
+  const container = document.getElementById('chat-messages-container');
+  if (!container) return;
+  const msgs = [];
+  container.querySelectorAll('.chat-message').forEach(el => {
+    msgs.push({ sender: el.classList.contains('user') ? 'user' : 'bot', html: el.querySelector('.msg-text').innerHTML });
+  });
+  sessionStorage.setItem('aura_chat', JSON.stringify(msgs));
+}
+
+function _loadChatHistory() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem('aura_chat') || '[]');
+    if (!saved.length) return;
+    const container = document.getElementById('chat-messages-container');
+    if (!container) return;
+    container.innerHTML = '';
+    saved.forEach(m => {
+      const el = document.createElement('div');
+      el.className = `chat-message ${m.sender}`;
+      el.innerHTML = `<div class="msg-text">${m.html}</div>`;
+      container.appendChild(el);
+    });
+    container.scrollTop = container.scrollHeight;
+  } catch(e) { /* non-fatal */ }
+}
+
+// ==========================================================================
+// ADMIN: ANALYTICS CHARTS
+// ==========================================================================
+function renderAnalyticsCharts(stats) {
+  renderOrdersChart(stats);
+  renderRevenueChart(stats);
+}
+
+function renderOrdersChart(stats) {
+  const canvas = document.getElementById('chart-orders-status');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const labels = ['Pending', 'In Production', 'Shipped', 'Delivered', 'Cancelled'];
+  const values = [
+    stats.pending_orders || 0,
+    stats.in_production  || 0,
+    stats.shipped_orders || 0,
+    stats.delivered_orders || 0,
+    stats.cancelled_orders || 0
+  ];
+  const colors = ['#ffaa00','#00bfff','#00f0ff','#39ff14','#ff3366'];
+  const W = canvas.offsetWidth || 400;
+  const H = 160;
+  canvas.width  = W;
+  canvas.height = H;
+  const max = Math.max(...values, 1);
+  const barW = Math.floor((W - 60) / labels.length) - 10;
+  ctx.clearRect(0, 0, W, H);
+  labels.forEach((label, i) => {
+    const barH = Math.round(((values[i] / max) * (H - 40)) || 2);
+    const x = 30 + i * (barW + 10);
+    const y = H - 30 - barH;
+    ctx.fillStyle = colors[i];
+    ctx.beginPath();
+    ctx.roundRect(x, y, barW, barH, 4);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.font = '10px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText(values[i], x + barW / 2, y - 4);
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.font = '9px Inter';
+    ctx.fillText(label.split(' ')[0], x + barW / 2, H - 8);
+  });
+}
+
+function renderRevenueChart(stats) {
+  const canvas = document.getElementById('chart-revenue');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 400;
+  const H = 160;
+  canvas.width  = W;
+  canvas.height = H;
+  const revenue = stats.total_revenue || 0;
+  const orders  = stats.total_orders  || 0;
+  const avgOrder = orders > 0 ? Math.round(revenue / orders) : 0;
+  const items = [
+    { label: 'Total Revenue (K)', value: Math.round(revenue / 1000), color: '#00f0ff', unit: 'K' },
+    { label: 'Orders Count',      value: orders,                      color: '#8a2be2', unit: '' },
+    { label: 'Avg Order (K)',     value: Math.round(avgOrder / 1000), color: '#39ff14', unit: 'K' }
+  ];
+  const barW = Math.floor((W - 80) / items.length) - 10;
+  const max = Math.max(...items.map(x => x.value), 1);
+  ctx.clearRect(0, 0, W, H);
+  items.forEach((item, i) => {
+    const barH = Math.round(((item.value / max) * (H - 40)) || 2);
+    const x = 30 + i * (barW + 20);
+    const y = H - 30 - barH;
+    ctx.fillStyle = item.color;
+    ctx.beginPath();
+    ctx.roundRect(x, y, barW, barH, 4);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.font = '10px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText(item.value + item.unit, x + barW / 2, y - 4);
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.font = '9px Inter';
+    ctx.fillText(item.label.split(' ')[0], x + barW / 2, H - 8);
+  });
 }
 
 // ==========================================================================

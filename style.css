@@ -2294,3 +2294,218 @@ select.select-input:focus, .catalog-filters select:focus {
   font-weight: 800;
   color: var(--red-neon);
 }
+
+/* ==========================================================================
+   HAMBURGER BUTTON & MOBILE NAV
+   ========================================================================== */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+  cursor: pointer;
+}
+.hamburger-btn span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+
+.mobile-nav-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 200;
+  backdrop-filter: blur(4px);
+}
+.mobile-nav-overlay.active {
+  display: flex;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+.mobile-nav-drawer {
+  width: 280px;
+  max-width: 85vw;
+  background: var(--bg-surface);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  animation: slideInLeft 0.25s ease;
+}
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+.mobile-nav-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+.mobile-nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.mobile-nav-links a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+.mobile-nav-links a:hover {
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+}
+.mobile-nav-links a i {
+  width: 20px;
+  text-align: center;
+  color: var(--teal-neon);
+}
+
+/* ==========================================================================
+   SIZE TILE GRID
+   ========================================================================== */
+.size-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+}
+.size-tile {
+  padding: 0.65rem 0.25rem !important;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+}
+.size-tile span {
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  text-align: center;
+}
+
+/* ==========================================================================
+   PROFILE PAGE
+   ========================================================================== */
+#view-profile .form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.4rem;
+  font-family: var(--font-display);
+}
+#view-profile input,
+#view-profile textarea {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+}
+#view-profile input:focus,
+#view-profile textarea:focus {
+  outline: none;
+  border-color: var(--teal-neon);
+}
+
+/* ==========================================================================
+   COUPON CODE ROW
+   ========================================================================== */
+.coupon-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* ==========================================================================
+   OUT OF STOCK BADGE
+   ========================================================================== */
+.out-of-stock-badge {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--red-neon);
+  border-radius: var(--border-radius-sm);
+  text-transform: uppercase;
+  z-index: 3;
+}
+.product-unavailable {
+  opacity: 0.7;
+}
+
+/* ==========================================================================
+   ANALYTICS CHARTS ROW
+   ========================================================================== */
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+.chart-card {
+  padding: 1.25rem;
+  border-radius: var(--border-radius-sm);
+}
+.chart-card h4 {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  font-family: var(--font-display);
+}
+.chart-card canvas {
+  width: 100%;
+  display: block;
+}
+
+/* ==========================================================================
+   MOBILE RESPONSIVE OVERRIDES
+   ========================================================================== */
+@media (max-width: 768px) {
+  .hamburger-btn {
+    display: flex;
+  }
+  .size-tile-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .charts-row {
+    grid-template-columns: 1fr;
+  }
+  .coupon-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .user-profile .user-name {
+    display: none;
+  }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(50px); }
+}

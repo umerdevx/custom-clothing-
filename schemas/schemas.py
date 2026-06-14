@@ -21,6 +21,8 @@ class UserOut(BaseModel):
     role: str
     is_active: bool
     created_at: datetime.datetime
+    phone: Optional[str] = None
+    address: Optional[str] = None
 
     class Config:
         from_attributes = True
