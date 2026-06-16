@@ -843,6 +843,17 @@ function switchView(viewName) {
 // Cached products from API
 let _products = [];
 
+// Maps product category to one of the 4 SVG apparel types
+const CATEGORY_SVG_MAP = {
+  'T-Shirt':        'tshirt',
+  'Hoodie':         'hoodie',
+  'Jacket':         'jacket',
+  'Sports Uniform': 'uniform',
+};
+function getSvgType(category) {
+  return CATEGORY_SVG_MAP[category] || 'tshirt';
+}
+
 async function renderCatalog() {
   const grid = document.getElementById('catalog-grid');
   grid.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted)"><i class="fa-solid fa-spinner fa-spin"></i> Loading products…</div>';
@@ -856,7 +867,8 @@ async function renderCatalog() {
     basePrice: p.base_price,
     discountPercent: p.discount_percent || 0,
     desc: p.description,
-    img: p.image_url
+    img: p.image_url,
+    svgType: getSvgType(p.category),
   }));
   _renderProductCards(_products);
 }
@@ -892,7 +904,8 @@ function _renderProductCards(products) {
         ${genderTag}
         ${saleBadge}
         ${outOfStock}
-        <img src="${p.img}" alt="${p.name}">
+        <img src="${p.img}" alt="${p.name}"
+             onerror="this.onerror=null;this.src='https://placehold.co/500x400/1e1e24/00f0ff?text=${encodeURIComponent(p.category)}'">
       </div>
       <div class="product-info">
         <h3>${p.name}</h3>
@@ -900,7 +913,10 @@ function _renderProductCards(products) {
         <div class="product-card-footer">
           <div class="price-group">${priceHtml}</div>
           ${isActive
-            ? `<button class="btn btn-sm btn-primary" onclick="loadProductIntoCustomizer('${p.id}'); loadRelatedProducts('${p.id}');"><i class="fa-solid fa-wand-magic-sparkles"></i> Customize</button>`
+            ? `<div class="product-card-actions">
+                 <button class="btn btn-sm btn-outline" onclick="quickAddToCart('${p.id}')"><i class="fa-solid fa-cart-plus"></i> Add to Cart</button>
+                 <button class="btn btn-sm btn-primary" onclick="loadProductIntoCustomizer('${p.id}'); loadRelatedProducts('${p.id}');"><i class="fa-solid fa-wand-magic-sparkles"></i> Customize</button>
+               </div>`
             : `<button class="btn btn-sm btn-outline" disabled style="opacity:0.5;cursor:not-allowed">Unavailable</button>`
           }
         </div>
@@ -928,18 +944,20 @@ function filterCatalog() {
 }
 
 function loadProductIntoCustomizer(productId) {
-  const p = INITIAL_PRODUCTS.find(item => item.id === productId);
+  const p = _products.find(item => item.id === productId) || INITIAL_PRODUCTS.find(item => item.id === productId);
   if (p) {
     state.currentCustomization.apparelType = p.id;
+    state.currentCustomization.svgType = p.svgType || getSvgType(p.category) || 'tshirt';
     state.currentCustomization.basePrice = p.basePrice;
-    
+    state.currentCustomization.productName = p.name;
+
     // Update labels
     document.getElementById('selected-product-title').innerText = p.name;
-    
-    // Highlight correct tile in apparel types
+
+    // Highlight the matching base-type tile (tshirt/hoodie/jacket/uniform)
     document.querySelectorAll('#tab-apparel .tile-card').forEach(t => t.classList.remove('active'));
-    const activeTile = document.getElementById(`tile-type-${p.id}`);
-    if (activeTile) activeTile.classList.add('active');
+    const baseTile = document.getElementById(`tile-type-${state.currentCustomization.svgType}`);
+    if (baseTile) baseTile.classList.add('active');
     
     // Recalculate, render, & route
     updatePrice();
@@ -951,7 +969,7 @@ function loadProductIntoCustomizer(productId) {
 // --- SVG Preview Construction & Rendering ---
 function renderCustomizerPreview() {
   const container = document.getElementById('apparel-canvas-container');
-  const type = state.currentCustomization.apparelType;
+  const type = state.currentCustomization.svgType || state.currentCustomization.apparelType;
   const primary = state.currentCustomization.primaryColor;
   const secondary = state.currentCustomization.secondaryColor;
   const view = state.previewMode;
@@ -1250,6 +1268,37 @@ function addToCartFromCustomizer() {
   showToast('Item Added', 'Your customized clothing was added to bag.', 'success');
 }
 
+function quickAddToCart(productId) {
+  const p = _products.find(item => item.id === productId) || INITIAL_PRODUCTS.find(item => item.id === productId);
+  if (!p) return;
+  const cartItem = {
+    apparelType: p.id,
+    svgType: p.svgType || getSvgType(p.category) || 'tshirt',
+    name: p.name,
+    fabricType: 'cotton',
+    fabricGrade: 1,
+    fabricName: 'Combed Cotton',
+    size: 'M',
+    primaryColor: '#1e1e24',
+    secondaryColor: '#00f0ff',
+    stitchingStyle: 'flatlock',
+    printMethod: 'dtg',
+    washFinish: 'standard',
+    logoPlacement: 'chest',
+    logoPreset: '',
+    logoDataUrl: '',
+    quantity: 1,
+    basePrice: p.basePrice,
+    unitPrice: p.basePrice,
+    totalPrice: p.basePrice,
+  };
+  state.cart.push(cartItem);
+  localStorage.setItem('aura_cart', JSON.stringify(state.cart));
+  renderCart();
+  updateCartBadge();
+  showToast('Added to Cart', `${p.name} added with default settings. Customize before checkout.`, 'success');
+}
+
 function updateCartBadge() {
   document.getElementById('cart-count').innerText = state.cart.length;
 }
@@ -1285,7 +1334,7 @@ function renderCart() {
     if (item.logoPreset) {
       logoMini = `<g transform="translate(15, 15) scale(0.4)" color="${item.secondaryColor}">${LOGO_PRESETS[item.logoPreset]}</g>`;
     }
-    const svgThumb = APPAREL_SVGS[item.apparelType].front(item.primaryColor, item.secondaryColor, logoMini);
+    const svgThumb = APPAREL_SVGS[item.svgType || item.apparelType]?.front(item.primaryColor, item.secondaryColor, logoMini) || '';
     
     const cartCard = document.createElement('div');
     cartCard.className = 'cart-item';
@@ -1294,7 +1343,7 @@ function renderCart() {
         ${svgThumb}
       </div>
       <div class="cart-item-details">
-        <h4>${item.apparelType.toUpperCase()} - Design #${100 + index}</h4>
+        <h4>${item.name || item.apparelType.toUpperCase()} — Design #${100 + index}</h4>
         <div class="cart-item-meta">
           <span>Size: ${item.size || 'M'} &nbsp;|&nbsp; Material: ${FABRICS_INFO[item.fabricType].name} (${(GSM_MAP[item.fabricGrade] || GSM_MAP[1]).label})</span>
           <span>Print: ${item.printMethod.toUpperCase()} | Stitch: ${item.stitchingStyle}</span>

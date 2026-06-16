@@ -1,124 +1,87 @@
 {
-  "name": "AURA-WEAR RAG Chatbot",
+  "name": "AURA-WEAR Chatbot",
+  "id": "9EGwx27zjEeXLZom",
+  "active": true,
   "nodes": [
     {
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 300],
       "parameters": {
         "httpMethod": "POST",
         "path": "aura-chat",
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "webhook-trigger",
-      "name": "Webhook Trigger",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1.1,
-      "position": [240, 300],
       "webhookId": "aura-chat-webhook"
     },
     {
-      "parameters": {
-        "jsCode": "// Extract fields sent by AURA-WEAR FastAPI backend\nconst body = $input.first().json.body || $input.first().json;\n\nconst query      = body.query      || '';\nconst context    = body.context    || '';\nconst session_id = body.session_id || 'unknown';\nconst user_id    = body.user_id    || null;\n\n// Build the system + user messages for the LLM\nconst systemPrompt = `You are AURA-AI, the official AI assistant for AURA-WEAR — a premium custom clothing brand based in Pakistan.\n\nYou help customers with:\n- Fabric recommendations (Cotton, Fleece, Polyester, Blended)\n- Garment types (T-Shirts, Hoodies, Jackets, Sports Uniforms)\n- Print methods (DTG, Screen Print, Embroidery, Sublimation)\n- Stitching styles and wash finishes\n- Order tracking and status updates\n- Pricing guidance\n- General brand FAQs\n\nIMPORTANT RULES:\n- ONLY answer based on the database context provided below\n- If context is empty or irrelevant, politely say you don't have that information\n- Keep answers concise, friendly and professional\n- Always respond in the same language as the customer's query\n- For prices, always specify PKR currency\n- Never make up product IDs, order IDs, or prices not found in context`;\n\nconst userMessage = `DATABASE CONTEXT (retrieved from AURA-WEAR database):\n${context}\n\nCUSTOMER QUESTION:\n${query}`;\n\nreturn [{\n  json: {\n    query,\n    context,\n    session_id,\n    user_id,\n    systemPrompt,\n    userMessage\n  }\n}];"
-      },
       "id": "prepare-prompt",
       "name": "Prepare Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [460, 300]
-    },
-    {
+      "position": [460, 300],
       "parameters": {
-        "authentication": "apiKey",
-        "resource": "chat",
-        "operation": "complete",
-        "model": {
-          "__rl": true,
-          "value": "gpt-4o-mini",
-          "mode": "list",
-          "cachedResultName": "gpt-4o-mini"
-        },
-        "messages": {
-          "values": [
-            {
-              "role": "system",
-              "content": "={{ $json.systemPrompt }}"
-            },
-            {
-              "role": "user",
-              "content": "={{ $json.userMessage }}"
-            }
-          ]
-        },
-        "options": {
-          "maxTokens": 512,
-          "temperature": 0.3
-        }
-      },
-      "id": "openai-chat",
-      "name": "OpenAI GPT-4o-mini",
-      "type": "@n8n/n8n-nodes-langchain.openAi",
-      "typeVersion": 1.7,
-      "position": [680, 300],
-      "credentials": {
-        "openAiApi": {
-          "id": "openai-cred",
-          "name": "OpenAI API"
-        }
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\n\nconst query      = body.query      || '';\nconst context    = body.context    || '';\nconst session_id = body.session_id || 'unknown';\nconst user_id    = body.user_id    || null;\n\nconst systemPrompt = `You are AURA-AI, the official AI assistant for AURA-WEAR — a premium custom clothing brand based in Pakistan.\n\nYou help customers with:\n- Fabric recommendations (Cotton, Fleece, Polyester, Blended) and GSM grades\n- Garment types (T-Shirts, Hoodies, Jackets, Sports Uniforms)\n- Print methods (DTG, Screen Print, Embroidery, Heat Transfer)\n- Order tracking and status updates\n- Pricing in PKR including GST and shipping\n\nRULES:\n- Answer ONLY based on the database context provided\n- When order data is in context, clearly state the order ID, status, and total\n- Keep answers concise (2-4 sentences), friendly and professional\n- Always quote prices in PKR\n- Never mention internal system names like database connectors or APIs`;\n\nconst userMessage = `DATABASE CONTEXT:\\n${context}\\n\\nCUSTOMER QUESTION:\\n${query}`;\n\n// Build Gemini API request body\nconst geminiBody = {\n  systemInstruction: { parts: [{ text: systemPrompt }] },\n  contents: [{ role: 'user', parts: [{ text: userMessage }] }],\n  generationConfig: { temperature: 0.3, maxOutputTokens: 512 }\n};\n\nreturn [{ json: { query, context, session_id, user_id, geminiBody } }];"
       }
     },
     {
+      "id": "gemini-chat",
+      "name": "Google Gemini Flash",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300],
       "parameters": {
-        "jsCode": "// Extract the AI reply from OpenAI response\nconst openaiData = $input.first().json;\n\n// The reply may be nested differently depending on n8n OpenAI node version\nlet reply = '';\n\nif (openaiData.message && openaiData.message.content) {\n  reply = openaiData.message.content;\n} else if (openaiData.choices && openaiData.choices[0]) {\n  reply = openaiData.choices[0].message?.content || openaiData.choices[0].text || '';\n} else if (openaiData.text) {\n  reply = openaiData.text;\n} else if (openaiData.content) {\n  reply = openaiData.content;\n} else {\n  reply = 'I apologize, I was unable to generate a response. Please try again.';\n}\n\nreturn [{ json: { output: reply.trim() } }];"
-      },
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={{ $env.GEMINI_API_KEY }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify($json.geminiBody) }}",
+        "options": {}
+      }
+    },
+    {
       "id": "extract-reply",
       "name": "Extract Reply",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [900, 300]
+      "position": [900, 300],
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nlet reply = '';\n\ntry {\n  // Gemini response: candidates[0].content.parts[0].text\n  reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '';\n} catch(e) {\n  reply = '';\n}\n\nif (!reply) {\n  reply = 'I am unable to generate a response right now. Please try again shortly.';\n}\n\nreturn [{ json: { output: reply.trim() } }];"
+      }
     },
     {
+      "id": "respond-to-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 300],
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ JSON.stringify($json) }}",
         "options": {
           "responseCode": 200,
           "responseHeaders": {
-            "entries": [
-              {
-                "name": "Content-Type",
-                "value": "application/json"
-              }
-            ]
+            "entries": [{ "name": "Content-Type", "value": "application/json" }]
           }
         }
-      },
-      "id": "respond-to-webhook",
-      "name": "Respond to Webhook",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1,
-      "position": [1120, 300]
+      }
     }
   ],
   "connections": {
-    "Webhook Trigger": {
-      "main": [
-        [{ "node": "Prepare Prompt", "type": "main", "index": 0 }]
-      ]
-    },
-    "Prepare Prompt": {
-      "main": [
-        [{ "node": "OpenAI GPT-4o-mini", "type": "main", "index": 0 }]
-      ]
-    },
-    "OpenAI GPT-4o-mini": {
-      "main": [
-        [{ "node": "Extract Reply", "type": "main", "index": 0 }]
-      ]
-    },
-    "Extract Reply": {
-      "main": [
-        [{ "node": "Respond to Webhook", "type": "main", "index": 0 }]
-      ]
-    }
+    "Webhook Trigger":    { "main": [[{ "node": "Prepare Prompt",       "type": "main", "index": 0 }]] },
+    "Prepare Prompt":     { "main": [[{ "node": "Google Gemini Flash",   "type": "main", "index": 0 }]] },
+    "Google Gemini Flash":{ "main": [[{ "node": "Extract Reply",         "type": "main", "index": 0 }]] },
+    "Extract Reply":      { "main": [[{ "node": "Respond to Webhook",    "type": "main", "index": 0 }]] }
   },
   "settings": {
     "executionOrder": "v1",
@@ -126,8 +89,6 @@
     "callerPolicy": "workflowsFromSameOwner"
   },
   "staticData": null,
-  "tags": ["aura-wear", "rag", "chatbot"],
   "triggerCount": 0,
-  "updatedAt": "2026-06-15T00:00:00.000Z",
-  "versionId": "1"
+  "versionId": "2"
 }

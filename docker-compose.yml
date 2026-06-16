@@ -1,6 +1,6 @@
 services:
 
-  # ─── PostgreSQL Database ───────────────────────────────────────────────────
+  # ─── PostgreSQL 16 ────────────────────────────────────────────────────────
   db:
     image: postgres:16-alpine
     container_name: aura_db
@@ -19,8 +19,35 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    networks:
+      - aura_network
 
-  # ─── FastAPI Backend + Frontend ────────────────────────────────────────────
+  # ─── n8n Workflow Engine (AI chatbot backend) ─────────────────────────────
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: aura_n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      WEBHOOK_URL:                        "http://localhost:5678"
+      N8N_HOST:                           "0.0.0.0"
+      N8N_PORT:                           5678
+      N8N_PROTOCOL:                       "http"
+      N8N_EDITOR_BASE_URL:                "http://localhost:5678"
+      GENERIC_TIMEZONE:                   "Asia/Karachi"
+      N8N_DIAGNOSTICS_ENABLED:           "false"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      N8N_LOG_LEVEL:                      "info"
+      N8N_API_DISABLED:                   "false"
+      GEMINI_API_KEY:                     ${GEMINI_API_KEY:-}
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n/aura-wear-workflow.json:/data/aura-wear-workflow.json:ro
+    networks:
+      - aura_network
+
+  # ─── FastAPI Backend + Vanilla JS Frontend ────────────────────────────────
   backend:
     build:
       context: .
@@ -32,19 +59,30 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-aura}:${POSTGRES_PASSWORD:-aurapassword}@db:5432/${POSTGRES_DB:-aurawear}
+      DATABASE_URL:      postgresql+asyncpg://${POSTGRES_USER:-aura}:${POSTGRES_PASSWORD:-aurapassword}@db:5432/${POSTGRES_DB:-aurawear}
+      N8N_WEBHOOK_URL:   http://n8n:5678/webhook/aura-chat
+      GEMINI_API_KEY:    ${GEMINI_API_KEY:-}
     volumes:
       - uploads_data:/app/uploads
     depends_on:
       db:
         condition: service_healthy
+      n8n:
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8001/docs')\""]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 15s
+      start_period: 20s
+    networks:
+      - aura_network
 
 volumes:
   db_data:
+  n8n_data:
   uploads_data:
+
+networks:
+  aura_network:
+    driver: bridge
