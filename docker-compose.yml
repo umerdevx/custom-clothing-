@@ -64,6 +64,11 @@ services:
       GEMINI_API_KEY:    ${GEMINI_API_KEY:-}
     volumes:
       - uploads_data:/app/uploads
+      - ./index.html:/app/index.html:ro
+      - ./style.css:/app/style.css:ro
+      - ./app.js:/app/app.js:ro
+      - ./main.py:/app/main.py:ro
+      - ./static:/app/static:ro
     depends_on:
       db:
         condition: service_healthy

@@ -31,6 +31,10 @@ app.add_middleware(
 os.makedirs("./uploads/logos", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
+# Serve 3D GLB model files
+os.makedirs("./static/3d", exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # Include API Routers
 app.include_router(auth.router)
 app.include_router(products.router)
@@ -55,14 +59,16 @@ async def startup_event():
         # Tables already exist (race on multi-worker start) — safe to continue
         print(f"[STARTUP] Skipped (already initialized): {e.__class__.__name__}")
 
+_NO_CACHE = {"Cache-Control": "no-store, no-cache, must-revalidate", "Pragma": "no-cache"}
+
 @app.get("/")
 async def serve_frontend():
-    return FileResponse("index.html")
+    return FileResponse("index.html", headers=_NO_CACHE)
 
 @app.get("/style.css")
 async def serve_css():
-    return FileResponse("style.css", media_type="text/css")
+    return FileResponse("style.css", media_type="text/css", headers=_NO_CACHE)
 
 @app.get("/app.js")
 async def serve_js():
-    return FileResponse("app.js", media_type="application/javascript")
+    return FileResponse("app.js", media_type="application/javascript", headers=_NO_CACHE)

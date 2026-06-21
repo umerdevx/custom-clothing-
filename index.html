@@ -11,7 +11,11 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Core Stylesheet -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=3d2">
+  <!-- Three.js 3D engine + loaders (r128 — last version with UMD examples/js builds) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body class="dark-theme">
   <!-- Notification Toast Container -->
@@ -231,23 +235,39 @@
     <!-- VIEW 3: AI CUSTOMIZER -->
     <section id="view-customizer" class="view-section">
       <div class="customizer-container">
-        <!-- Left Column: 2D Live Preview -->
+        <!-- Left Column: 2D + 3D Live Preview (side-by-side) -->
         <div class="customizer-preview-pane glass">
-          <div class="preview-badge"><i class="fa-solid fa-eye"></i> Live 2D Render</div>
-          
-          <!-- Dynamic SVG Container for clothing -->
-          <div class="clothing-render-box" id="apparel-canvas-container">
-            <!-- SVGs will be dynamically injected here based on apparel type -->
+
+          <!-- 2D Flat SVG Panel -->
+          <div class="preview-split-panel" id="preview-2d-panel">
+            <div class="preview-badge"><i class="fa-solid fa-eye"></i> 2D Flat</div>
+            <div class="clothing-render-box" id="apparel-canvas-container"></div>
+            <div class="preview-controls">
+              <button class="preview-btn active" onclick="togglePreviewMode('front')" id="btn-view-front">
+                Front View
+              </button>
+              <button class="preview-btn" onclick="togglePreviewMode('back')" id="btn-view-back">
+                Back View
+              </button>
+            </div>
           </div>
 
-          <div class="preview-controls">
-            <button class="preview-btn" onclick="togglePreviewMode('front')" id="btn-view-front">
-              Front View
-            </button>
-            <button class="preview-btn active" onclick="togglePreviewMode('back')" id="btn-view-back">
-              Back View
-            </button>
+          <!-- 3D Interactive Preview Panel -->
+          <div class="preview-split-panel" id="preview-3d-panel">
+            <div class="preview-badge"><i class="fa-solid fa-cube"></i> 3D Preview</div>
+            <div class="clothing-render-box" id="three-canvas-container">
+              <div id="three-loading" class="three-loading-overlay">
+                <i class="fa-solid fa-spinner fa-spin"></i>&nbsp;Loading 3D model…
+              </div>
+            </div>
+            <div class="preview-controls">
+              <span class="upload-hint" style="text-align:center; width:100%;">
+                <i class="fa-solid fa-arrows-rotate"></i> Drag to rotate &nbsp;·&nbsp;
+                <i class="fa-solid fa-magnifying-glass-plus"></i> Scroll to zoom
+              </span>
+            </div>
           </div>
+
         </div>
 
         <!-- Right Column: Control Panels -->
@@ -1280,6 +1300,6 @@
   </div>
 
   <!-- Main JavaScript File -->
-  <script src="app.js"></script>
+  <script src="app.js?v=3d2"></script>
 </body>
 </html>

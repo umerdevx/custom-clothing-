@@ -720,6 +720,186 @@ let state = {
 };
 localStorage.setItem('aura_session', state.chatSessionId);
 
+// ==========================================================================
+// THREE.JS 3D PREVIEW MODULE
+// ==========================================================================
+const ThreePreview = {
+  _scene:       null,
+  _camera:      null,
+  _renderer:    null,
+  _controls:    null,
+  _model:       null,
+  _container:   null,
+  _animFrame:   null,
+  _initialized: false,
+
+  init() {
+    const container = document.getElementById('three-canvas-container');
+    if (!container || this._initialized || typeof THREE === 'undefined') return;
+    this._container = container;
+
+    // Scene
+    this._scene = new THREE.Scene();
+    this._scene.background = new THREE.Color(0x16161e);
+
+    // Camera
+    const w = container.clientWidth  || 300;
+    const h = container.clientHeight || 300;
+    this._camera = new THREE.PerspectiveCamera(42, w / h, 0.05, 200);
+    this._camera.position.set(0, 1.1, 3.2);
+
+    // Lights
+    const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+    const key = new THREE.DirectionalLight(0xffffff, 1.4);
+    key.position.set(2, 4, 3);
+    const fill = new THREE.DirectionalLight(0x8899ff, 0.45);
+    fill.position.set(-2, 0, -2);
+    const rim = new THREE.DirectionalLight(0x00f0ff, 0.25);
+    rim.position.set(0, -2, -3);
+    this._scene.add(ambient, key, fill, rim);
+
+    // Renderer
+    this._renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    this._renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this._renderer.setSize(w, h);
+    this._renderer.outputEncoding = THREE.sRGBEncoding;
+    this._renderer.shadowMap.enabled = true;
+    container.appendChild(this._renderer.domElement);
+
+    // OrbitControls
+    this._controls = new THREE.OrbitControls(this._camera, this._renderer.domElement);
+    this._controls.enableDamping   = true;
+    this._controls.dampingFactor   = 0.06;
+    this._controls.minDistance     = 1.2;
+    this._controls.maxDistance     = 7;
+    this._controls.maxPolarAngle   = Math.PI * 0.9;
+    this._controls.target.set(0, 0.8, 0);
+    this._controls.update();
+
+    // Auto-resize
+    new ResizeObserver(() => this.resize()).observe(container);
+
+    // Render loop
+    const loop = () => {
+      this._animFrame = requestAnimationFrame(loop);
+      this._controls.update();
+      this._renderer.render(this._scene, this._camera);
+    };
+    loop();
+
+    this._initialized = true;
+  },
+
+  loadModel(type) {
+    if (!this._initialized) return;
+    const loadingEl = document.getElementById('three-loading');
+    if (loadingEl) { loadingEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>&nbsp;Loading 3D model…'; loadingEl.style.display = 'flex'; }
+
+    // Dispose previous model
+    if (this._model) {
+      this._scene.remove(this._model);
+      this._model.traverse(c => {
+        if (c.isMesh) { c.geometry.dispose(); if (Array.isArray(c.material)) c.material.forEach(m => m.dispose()); else c.material.dispose(); }
+      });
+      this._model = null;
+    }
+
+    const loader = new THREE.GLTFLoader();
+    loader.load(
+      `/static/3d/${{ tshirt: 't-shirt', hoodie: 'hoodie', jacket: 'jacket', uniform: 'jersey' }[type] || type}.glb`,
+      (gltf) => {
+        this._model = gltf.scene;
+        // Auto-center & scale to fit viewport
+        const box    = new THREE.Box3().setFromObject(this._model);
+        const center = box.getCenter(new THREE.Vector3());
+        const size   = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const scale  = 2 / maxDim;
+        this._model.scale.setScalar(scale);
+        this._model.position.copy(center.multiplyScalar(-scale));
+        this._scene.add(this._model);
+        // Sync current customization
+        const c = state.currentCustomization;
+        this.applyColors(c.primaryColor, c.secondaryColor);
+        this.applyLogos(c.logos || []);
+        if (loadingEl) loadingEl.style.display = 'none';
+      },
+      undefined,
+      () => {
+        if (loadingEl) { loadingEl.innerHTML = '<i class="fa-solid fa-cube"></i>&nbsp;3D model not available yet'; loadingEl.style.display = 'flex'; }
+      }
+    );
+  },
+
+  applyColors(primary, secondary) {
+    if (!this._model) return;
+    const pColor = new THREE.Color(primary);
+    const sColor = new THREE.Color(secondary);
+    let idx = 0;
+    this._model.traverse(child => {
+      if (!child.isMesh) return;
+      child.material = child.material.clone();
+      const n = (child.name || '').toLowerCase();
+      const isAccent = n.includes('trim') || n.includes('accent') || n.includes('cuff') ||
+                       n.includes('neck') || n.includes('pocket') || n.includes('string') ||
+                       n.includes('zip')  || n.includes('logo')   || n.includes('stripe');
+      child.material.color.copy(isAccent ? sColor : (idx === 0 ? pColor : sColor));
+      child.material.needsUpdate = true;
+      idx++;
+    });
+  },
+
+  applyLogos(logos) {
+    if (!this._model || !logos || !logos.length) return;
+    const frontLogo = logos.find(l => l.placement !== 'back');
+    if (!frontLogo || (!frontLogo.dataUrl && !frontLogo.preset)) return;
+
+    const size = 512;
+    const offscreen = document.createElement('canvas');
+    offscreen.width = offscreen.height = size;
+    const ctx = offscreen.getContext('2d');
+    ctx.fillStyle = state.currentCustomization.primaryColor || '#1e1e24';
+    ctx.fillRect(0, 0, size, size);
+
+    const applyTex = () => {
+      const tex = new THREE.CanvasTexture(offscreen);
+      this._model.traverse(child => {
+        if (!child.isMesh) return;
+        const n = (child.name || '').toLowerCase();
+        if (n.includes('body') || n.includes('front') || n.includes('chest') || n.includes('shirt') || n.includes('main')) {
+          child.material = child.material.clone();
+          child.material.map = tex;
+          child.material.needsUpdate = true;
+        }
+      });
+    };
+
+    if (frontLogo.dataUrl) {
+      const img = new Image();
+      img.onload = () => { ctx.drawImage(img, 180, 120, 150, 150); applyTex(); };
+      img.src = frontLogo.dataUrl;
+    } else {
+      applyTex();
+    }
+  },
+
+  resize() {
+    if (!this._renderer || !this._container) return;
+    const w = this._container.clientWidth;
+    const h = this._container.clientHeight;
+    if (!w || !h) return;
+    this._camera.aspect = w / h;
+    this._camera.updateProjectionMatrix();
+    this._renderer.setSize(w, h);
+  },
+
+  dispose() {
+    if (this._animFrame) cancelAnimationFrame(this._animFrame);
+    if (this._renderer) { this._renderer.dispose(); this._renderer.domElement.remove(); }
+    this._initialized = false;
+  }
+};
+
 // --- Central API Helper ---
 async function api(endpoint, method = 'GET', body = null) {
   const headers = { 'Content-Type': 'application/json' };
@@ -836,7 +1016,12 @@ function switchView(viewName) {
   if (viewName === 'admin')      renderAdminDashboard();
   if (viewName === 'orders')     loadMyOrders();
   if (viewName === 'profile')    loadProfile();
-  if (viewName === 'customizer') renderLogoEditor();
+  if (viewName === 'customizer') {
+    renderLogoEditor();
+    // Init 3D on first visit, then load model for current apparel type
+    ThreePreview.init();
+    ThreePreview.loadModel(state.currentCustomization.svgType || state.currentCustomization.apparelType || 'tshirt');
+  }
 }
 
 // --- Catalog Rendering & Filters ---
@@ -1024,6 +1209,10 @@ function renderCustomizerPreview() {
   // 2. Fetch correct SVG function
   const svgTemplate = APPAREL_SVGS[type][view];
   container.innerHTML = svgTemplate(primary, secondary, logoMarkup);
+
+  // Sync 3D preview
+  ThreePreview.applyColors(primary, secondary);
+  ThreePreview.applyLogos(state.currentCustomization.logos || []);
 }
 
 function togglePreviewMode(mode) {
@@ -1059,6 +1248,7 @@ function setApparelType(type) {
   
   updatePrice();
   renderCustomizerPreview();
+  ThreePreview.loadModel(type);
 }
 
 function setFabricType(fabric) {
@@ -1094,6 +1284,8 @@ function setColor(type, color, elem = null) {
   }
   
   renderCustomizerPreview();
+  const c = state.currentCustomization;
+  ThreePreview.applyColors(c.primaryColor, c.secondaryColor);
 }
 
 function setStitchStyle(style) {
