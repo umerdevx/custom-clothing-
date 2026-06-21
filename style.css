@@ -675,32 +675,53 @@ select.select-input:focus, .catalog-filters select:focus {
 
 .customizer-preview-pane {
   display: flex;
+  flex-direction: row;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: radial-gradient(circle at center, #1b1b26 0%, var(--bg-surface) 100%);
+  overflow: hidden;
+}
+
+/* Each 2D / 3D panel */
+.preview-split-panel {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  position: relative;
+  display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  position: relative;
-  background: radial-gradient(circle at center, #1b1b26 0%, var(--bg-surface) 100%);
+  justify-content: flex-start;
+  padding-top: 3rem;
+  gap: 0.6rem;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border-color);
+  padding-bottom: 3rem;
   overflow: hidden;
 }
 
 .preview-badge {
   position: absolute;
-  top: 1.5rem;
-  left: 1.5rem;
-  background: rgba(0, 0, 0, 0.5);
+  top: 0.9rem;
+  left: 0.9rem;
+  background: rgba(0, 0, 0, 0.55);
   border: 1px solid var(--border-color);
-  padding: 0.4rem 1rem;
+  padding: 0.3rem 0.8rem;
   border-radius: 30px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   color: var(--teal-neon);
+  z-index: 2;
 }
 
 .clothing-render-box {
-  width: 80%;
-  height: 65%;
+  width: 90%;
+  flex: 1;
+  min-height: 180px;
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -708,14 +729,40 @@ select.select-input:focus, .catalog-filters select:focus {
 .clothing-render-box svg {
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.7));
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.7));
+}
+
+/* Three.js canvas sizing */
+#three-canvas-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 8px;
+  display: block;
+}
+
+.three-loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  gap: 0.5rem;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .preview-controls {
-  position: absolute;
-  bottom: 1.5rem;
   display: flex;
-  gap: 1rem;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 0 0.5rem;
+  width: 100%;
+  position: absolute;
+  bottom: 0.75rem;
+  left: 0;
 }
 .preview-btn {
   background: rgba(255, 255, 255, 0.05);
@@ -2162,7 +2209,17 @@ select.select-input:focus, .catalog-filters select:focus {
     height: auto;
   }
   .customizer-preview-pane {
-    height: 450px;
+    height: auto;
+    flex-direction: column;
+    min-height: 480px;
+  }
+  .preview-split-panel {
+    width: 100%;
+    min-height: 320px;
+  }
+  /* Hide 3D panel on small screens to avoid layout crush */
+  #preview-3d-panel {
+    min-height: 280px;
   }
   .admin-dashboard-container {
     grid-template-columns: 1fr;
@@ -2185,6 +2242,9 @@ select.select-input:focus, .catalog-filters select:focus {
   }
   .header-container {
     padding: 0 1rem;
+  }
+  #preview-3d-panel {
+    display: none;
   }
   .view-section {
     padding: 2rem 1rem;
