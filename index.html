@@ -81,7 +81,7 @@
         <div class="hero-content">
           <div class="badge-premium"><i class="fa-solid fa-crown"></i> NEXT-GEN APPAREL DESIGN</div>
           <h1>Create Your Identity with <span class="gradient-text">AI Customization</span></h1>
-          <p class="hero-lead">Design high-performance streetwear & sportswear in real-time. Power your fabric choices with our RAG AI assistant and watch your design come to life in 2D instantly.</p>
+          <p class="hero-lead">Design high-performance streetwear & sportswear in real-time. Our Gemini-powered AI assistant guides every fabric choice — and your design renders live in both 2D flat view and interactive 3D preview.</p>
           <div class="hero-actions">
             <button class="btn btn-primary btn-lg" onclick="switchView('customizer')">
               <i class="fa-solid fa-compass"></i> Enter AI Customizer
@@ -92,11 +92,11 @@
           </div>
           <div class="hero-stats">
             <div class="stat-item">
-              <h3>2D</h3>
-              <span>Live Render</span>
+              <h3>2D+3D</h3>
+              <span>Live Preview</span>
             </div>
             <div class="stat-item">
-              <h3>RAG</h3>
+              <h3>Gemini</h3>
               <span>AI Guidance</span>
             </div>
             <div class="stat-item">
@@ -126,18 +126,23 @@
       <div class="features-grid">
         <div class="feature-card glass">
           <div class="feature-icon"><i class="fa-solid fa-crop-simple"></i></div>
-          <h3>Dynamic 2D Canvas</h3>
-          <p>Change product colors, fabrics, and stitching in real-time. Upload and position custom logos dynamically.</p>
+          <h3>2D Live Canvas</h3>
+          <p>Swap colors, fabrics, and stitching in real-time with front/back views. Upload and position custom logos instantly.</p>
+        </div>
+        <div class="feature-card glass">
+          <div class="feature-icon"><i class="fa-solid fa-cube"></i></div>
+          <h3>Interactive 3D Preview</h3>
+          <p>Rotate and inspect your garment in full 3D using Three.js — powered by a live WebGL render that reflects your exact color choices.</p>
         </div>
         <div class="feature-card glass">
           <div class="feature-icon"><i class="fa-solid fa-robot"></i></div>
-          <h3>RAG AI Advisor</h3>
-          <p>Retrieve live product details, stock levels, and fabric performance guides based on your exact needs.</p>
+          <h3>Gemini AI Assistant</h3>
+          <p>Powered by Google Gemini with real-time RAG retrieval — get live fabric recommendations, pricing, and order tracking in natural language.</p>
         </div>
         <div class="feature-card glass">
           <div class="feature-icon"><i class="fa-solid fa-truck-fast"></i></div>
           <h3>Order Tracking</h3>
-          <p>Monitor your apparel from production floor, quality check, shipping, all the way to your door.</p>
+          <p>Monitor your apparel from production floor, quality check, and shipping all the way to your door.</p>
         </div>
       </div>
 
@@ -688,7 +693,8 @@
               <h3><i class="fa-solid fa-circle-info"></i> System Health</h3>
               <div class="log-list">
                 <div class="log-item"><span class="log-time">Live</span><span class="log-msg"><strong class="text-info"><i class="fa-solid fa-database"></i> Database</strong> PostgreSQL connected via SQLAlchemy asyncpg engine.</span></div>
-                <div class="log-item"><span class="log-time">Live</span><span class="log-msg"><strong class="text-info"><i class="fa-solid fa-robot"></i> RAG Engine</strong> Chat endpoint active — n8n webhook or local fallback.</span></div>
+                <div class="log-item"><span class="log-time">Live</span><span class="log-msg"><strong class="text-info"><i class="fa-solid fa-robot"></i> Gemini AI</strong> Chat endpoint active — Google Gemini Flash (gemini-flash-latest) with RAG retrieval.</span></div>
+                <div class="log-item"><span class="log-time">Live</span><span class="log-msg"><strong class="text-info"><i class="fa-solid fa-cube"></i> 3D Engine</strong> Three.js WebGL renderer active — interactive garment preview enabled.</span></div>
                 <div class="log-item"><span class="log-time">Live</span><span class="log-msg"><strong class="text-info"><i class="fa-solid fa-lock"></i> Auth</strong> JWT authentication enabled.</span></div>
               </div>
             </div>
@@ -1141,9 +1147,9 @@
         <!-- AI Messages will populate here -->
         <div class="chat-message bot">
           <div class="msg-text">
-            Hi! I am the AURA RAG AI assistant. I can query our database to recommend fabrics, colors, printing techniques, or track your current orders. 
+            Hi! I am <strong>AURA-AI</strong>, your personal clothing assistant — powered by Google Gemini. I can recommend fabrics, explain print methods, help you track orders, and answer pricing questions in real time.
             <br><br>
-            What kind of custom apparel are you looking to design today?
+            What can I help you design today?
           </div>
         </div>
       </div>

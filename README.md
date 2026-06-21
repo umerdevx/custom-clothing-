@@ -1,7 +1,7 @@
 # AURA-WEAR — AI Custom Clothing Platform
 
 > **Final Year Project (FYP) 2025–2026**
-> Full-stack AI-integrated custom clothing e-commerce platform built with FastAPI, vanilla JavaScript, and PostgreSQL.
+> Full-stack AI-integrated custom clothing e-commerce platform built with FastAPI, vanilla JavaScript, PostgreSQL, Google Gemini AI, and Three.js 3D rendering.
 
 ---
 
@@ -14,25 +14,28 @@
 5. [Database Schema](#database-schema)
 6. [API Reference](#api-reference)
 7. [Frontend SPA](#frontend-spa)
-8. [AI Chatbot (RAG)](#ai-chatbot-rag)
-9. [n8n Integration](#n8n-integration)
-10. [Email Notifications](#email-notifications)
-11. [Authentication & Security](#authentication--security)
-12. [Getting Started](#getting-started)
-13. [Docker Deployment](#docker-deployment)
-14. [Environment Variables](#environment-variables)
-15. [Customizer Logic](#customizer-logic)
-16. [Pricing Engine](#pricing-engine)
-17. [Admin Panel](#admin-panel)
-18. [Order Lifecycle](#order-lifecycle)
-19. [Known Limitations](#known-limitations)
-20. [Project Structure](#project-structure)
+8. [AI Chatbot (Gemini + RAG)](#ai-chatbot-gemini--rag)
+9. [3D Preview Engine](#3d-preview-engine)
+10. [n8n Integration](#n8n-integration)
+11. [Email Notifications](#email-notifications)
+12. [Authentication & Security](#authentication--security)
+13. [Getting Started](#getting-started)
+14. [Docker Deployment](#docker-deployment)
+15. [Environment Variables](#environment-variables)
+16. [Customizer Logic](#customizer-logic)
+17. [Pricing Engine](#pricing-engine)
+18. [Admin Panel](#admin-panel)
+19. [Order Lifecycle](#order-lifecycle)
+20. [Known Limitations](#known-limitations)
+21. [Project Structure](#project-structure)
 
 ---
 
 ## Project Overview
 
-AURA-WEAR is a custom clothing platform where customers design garments in real time — choosing fabric type, GSM grade, primary/secondary colors, stitching style, print method, and wash finish — then place orders with automated email confirmation. An AI chatbot (RAG-powered) assists customers with product queries and order tracking. Admins manage the full manufacturing pipeline from a dashboard.
+AURA-WEAR is a custom clothing platform where customers design garments in real time — choosing fabric type, GSM grade, primary/secondary colors, stitching style, print method, and wash finish — then place orders with automated email confirmation.
+
+A **Google Gemini-powered AI chatbot** with live RAG retrieval assists customers with product queries and order tracking. The customizer renders designs simultaneously in **2D SVG** and **interactive 3D** (Three.js WebGL). Admins manage the full manufacturing pipeline from a dashboard.
 
 ---
 
@@ -42,18 +45,20 @@ AURA-WEAR is a custom clothing platform where customers design garments in real 
 | Feature | Details |
 |---|---|
 | **Product Catalog** | 80+ products across T-Shirts, Hoodies, Jackets, Sports Uniforms |
-| **Real-Time SVG Customizer** | 4 garment types (tshirt, hoodie, jacket, uniform), front/back views, live color injection |
+| **2D Live Canvas** | Front/back SVG views with real-time color, fabric, and logo injection |
+| **3D Interactive Preview** | Three.js WebGL renderer — rotate and inspect garment in full 3D, live color sync |
+| **Multi-Logo Support** | Upload multiple PNG/JPG logos; position per placement zone |
 | **Size Selection** | XS / S / M / L / XL / XXL tile picker |
-| **Logo Upload** | Upload PNG/JPG; stored as base64, saved server-side |
 | **Cart** | Multi-item cart with size, color, quantity tracking |
 | **Coupon Codes** | AURA10 (10%), SAVE20 (20%), FYP2025 (15%), FIRST50 (50%) |
 | **Shipping Options** | DHL Express (800), TCS Overnight (450), Leopards (350), BlueEx (250), Standard Post (150) |
-| **Checkout** | GST 5% + shipping + coupon discount; payment methods: COD, Card, Bank Transfer, JazzCash, EasyPaisa |
+| **Checkout** | GST 5% + shipping + coupon discount; COD, Card, Bank Transfer, JazzCash, EasyPaisa |
 | **My Orders** | View order history, track status, cancel Pending orders |
 | **User Profile** | Edit name, phone, address |
 | **Password Reset** | OTP-based via email (10-minute expiry) |
-| **AI Chatbot** | RAG chatbot with order tracking and product recommendations |
+| **AI Chatbot** | Gemini-powered with real-time RAG — fabric recs, pricing, order tracking |
 | **Chat Persistence** | Chat history persists across page refreshes (sessionStorage) |
+| **Markdown Rendering** | Bold, italic, and line breaks rendered properly in chat bubbles |
 
 ### Admin Panel
 | Feature | Details |
@@ -67,7 +72,7 @@ AURA-WEAR is a custom clothing platform where customers design garments in real 
 | **User Management** | View all users, toggle active/banned, change roles (admin↔customer), delete |
 | **Inventory Management** | CRUD for fabric and dye inventory, low-stock monitoring |
 | **FAQ Management** | Create, edit, activate/deactivate FAQs |
-| **RAG Chat Logs** | Browse the last 200 chatbot conversations |
+| **AI Chat Logs** | Browse the last 200 chatbot conversations with retrieved context |
 
 ---
 
@@ -77,51 +82,60 @@ AURA-WEAR is a custom clothing platform where customers design garments in real 
 |---|---|
 | **Backend** | Python 3.11, FastAPI, Uvicorn (ASGI) |
 | **ORM** | SQLAlchemy 2.0 (async) |
-| **Database** | PostgreSQL 16 (production), SQLite (dev fallback) |
+| **Database** | PostgreSQL 16 |
 | **Auth** | JWT (python-jose), bcrypt (passlib) |
 | **Email** | SMTP via smtplib (Gmail-ready) |
-| **HTTP Client** | httpx (async, for n8n webhook calls) |
+| **HTTP Client** | httpx (async, for Gemini API calls) |
 | **Frontend** | Vanilla JavaScript (no framework), HTML5 Canvas API, CSS3 |
+| **3D Engine** | Three.js r128 (WebGL, UMD build) |
+| **AI** | Google Gemini Flash (`gemini-flash-latest`) via REST API |
+| **Workflow Automation** | n8n 2.x (optional secondary AI pipeline via webhook) |
 | **Containerization** | Docker, Docker Compose |
-| **AI Integration** | n8n webhook (optional), local RAG fallback |
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        Browser (SPA)                        │
-│  index.html + style.css + app.js                            │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────┐  │
-│  │ Catalog  │ │Customizer│ │Checkout  │ │ Admin Panel  │  │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────────┘  │
-└──────────────────────┬──────────────────────────────────────┘
-                       │ fetch() / REST API
-┌──────────────────────▼──────────────────────────────────────┐
-│                    FastAPI (port 8001)                       │
-│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌─────────┐  │
-│  │ /auth  │ │/products│ │/orders│ │ /chat  │ │/analytics│  │
-│  └────────┘ └────────┘ └────────┘ └───┬────┘ └─────────┘  │
-│  ┌─────────────┐ ┌──────────┐         │                     │
-│  │ /inventory  │ │ /faqs    │         │ httpx POST          │
-│  └─────────────┘ └──────────┘         │                     │
-└──────────────────────┬─────────────── │ ────────────────────┘
-                       │ SQLAlchemy      │
-┌──────────────────────▼──────────┐  ┌──▼──────────────────────┐
-│     PostgreSQL 16 / SQLite      │  │     n8n Webhook          │
-│     (13 tables)                 │  │   (AI LLM response)      │
-└─────────────────────────────────┘  └─────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                         Browser (SPA)                           │
+│   index.html + style.css + app.js                               │
+│   ┌──────────┐ ┌────────────────┐ ┌──────────┐ ┌────────────┐  │
+│   │ Catalog  │ │  AI Customizer │ │Checkout  │ │Admin Panel │  │
+│   └──────────┘ └───────┬────────┘ └──────────┘ └────────────┘  │
+│              2D SVG    │   Three.js 3D                           │
+└───────────────────────┬─────────────────────────────────────────┘
+                        │ fetch() / REST API
+┌───────────────────────▼─────────────────────────────────────────┐
+│                    FastAPI (port 8001)                           │
+│  ┌────────┐ ┌──────────┐ ┌────────┐ ┌────────┐ ┌───────────┐  │
+│  │ /auth  │ │/products │ │/orders │ │ /chat  │ │/analytics │  │
+│  └────────┘ └──────────┘ └────────┘ └───┬────┘ └───────────┘  │
+│  ┌─────────────┐ ┌──────────┐           │ httpx                 │
+│  │ /inventory  │ │  /faqs   │           │                       │
+│  └─────────────┘ └──────────┘           │                       │
+└──────────────────────┬──────────────────┼──────────────────────┘
+                       │ SQLAlchemy       │
+          ┌────────────▼──────────┐  ┌────▼────────────────────┐
+          │   PostgreSQL 16       │  │  Google Gemini API       │
+          │   (13 tables)         │  │  gemini-flash-latest     │
+          └───────────────────────┘  │  + RAG context from DB   │
+                                     └─────────────────────────┘
+                                               │ (optional fallback)
+                                     ┌─────────▼──────────────┐
+                                     │  n8n Workflow (5678)   │
+                                     │  AURA-WEAR Chatbot     │
+                                     └────────────────────────┘
 ```
 
-**Request flow for the AI chatbot:**
+**AI chatbot request flow:**
 1. User sends message → `POST /api/chat`
 2. Backend performs RAG retrieval (Products, FabricOptions, Orders, FAQs from DB)
-3. If `N8N_WEBHOOK_URL` is set → forward `{query, context, session_id, user_id}` to n8n
-4. n8n runs LLM → returns `{output}` or `{reply}`
-5. If no n8n → local rule-based fallback response
-6. Log to `ChatLog` table
-7. Return `{reply, retrieved_context}` to frontend
+3. Assembled context + user query → Google Gemini API (`gemini-flash-latest`)
+4. Gemini returns AI response (thinking model — non-thought parts extracted)
+5. Response logged to `ChatLog` table
+6. Return `{reply, retrieved_context}` to frontend
+7. Frontend renders markdown (`**bold**`, `*italic*`, newlines → `<br>`)
 
 ---
 
@@ -195,7 +209,7 @@ PasswordReset
 ├── email, otp, expires_at, used
 ```
 
-> **Note:** There is no `size` column in OrderItem. Garment size (XS–XXL) is a UI-only state tracked in `state.currentCustomization.size` and shown in the cart but not persisted to the database.
+> **Note:** Garment size (XS–XXL) is UI-only state tracked in `state.currentCustomization.size` and not persisted to the database.
 
 ---
 
@@ -217,31 +231,11 @@ All protected endpoints require: `Authorization: Bearer <token>`
 |---|---|---|---|
 | `POST` | `/register` | Public | Register new user. First user becomes admin. |
 | `POST` | `/login` | Public | Login → returns JWT token |
-| `POST` | `/login-form` | Public | OAuth2 form login (Swagger UI) |
 | `GET` | `/me` | Customer | Get current user profile |
 | `PATCH` | `/profile` | Customer | Update name, phone, address |
 | `POST` | `/forgot-password` | Public | Request OTP for password reset |
 | `POST` | `/verify-otp` | Public | Verify OTP (6-digit, 10-min expiry) |
 | `POST` | `/reset-password` | Public | Reset password with OTP |
-
-**Register body:**
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "password123",
-  "phone": "+92-300-1234567",
-  "address": "123 Main St, Lahore"
-}
-```
-
-**Login response:**
-```json
-{
-  "access_token": "eyJ...",
-  "token_type": "bearer"
-}
-```
 
 ---
 
@@ -274,33 +268,6 @@ All protected endpoints require: `Authorization: Bearer <token>`
 | `POST` | `/{order_id}/confirm-payment` | Customer | Mark payment as paid |
 | `DELETE` | `/{order_id}` | Admin | Delete order |
 
-**Place order body:**
-```json
-{
-  "items": [
-    {
-      "product_id": "tshirt-polo",
-      "fabric_type": "cotton",
-      "fabric_grade": 3,
-      "primary_color": "#6C63FF",
-      "secondary_color": "#FFFFFF",
-      "stitching_style": "standard",
-      "print_method": "dtg",
-      "wash_finish": "standard",
-      "quantity": 2,
-      "logo_base64": "data:image/png;base64,...",
-      "notes": "Add front chest embroidery"
-    }
-  ],
-  "payment_method": "Card",
-  "name": "John Doe",
-  "phone": "+92-300-1234567",
-  "address": "123 Main St",
-  "shipping_method": "DHL Express",
-  "shipping_cost": 800
-}
-```
-
 **Order status pipeline:**
 ```
 Pending → In Production → Quality Check → Shipped → Delivered
@@ -313,22 +280,22 @@ Pending → In Production → Quality Check → Shipped → Delivered
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| `POST` | `/` | Optional | Send message to AI chatbot |
+| `POST` | `/` | Optional | Send message to Gemini AI chatbot |
 | `GET` | `/logs` | Admin | Last 200 chat logs |
 
-**Chat body:**
+**Request:**
 ```json
 {
-  "message": "What is the status of order ORD-123456?",
-  "session_id": "session-abc-123"
+  "message": "What hoodies do you have and what fabrics work for winter?",
+  "session_id": "sess-abc123"
 }
 ```
 
-**Chat response:**
+**Response:**
 ```json
 {
-  "reply": "Your order ORD-123456 is In Production...",
-  "retrieved_context": "MySQL Row -> Order ID: ORD-123456, Status: In Production..."
+  "reply": "For winter hoodies, we recommend **Brushed Fleece** (Grade 4–5)...",
+  "retrieved_context": "Product: Aura Sherpa-Lined Hoodie | Base Price: PKR 3200\nFabric: Brushed Fleece | Grade: 4 | Multiplier: 1.3x"
 }
 ```
 
@@ -339,22 +306,6 @@ Pending → In Production → Quality Check → Shipped → Delivered
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | `GET` | `/` | Admin | Dashboard statistics |
-
-**Response:**
-```json
-{
-  "total_orders": 42,
-  "total_revenue": 185000.0,
-  "pending_orders": 5,
-  "in_production": 8,
-  "shipped_orders": 12,
-  "delivered_orders": 15,
-  "cancelled_orders": 2,
-  "total_users": 28,
-  "low_stock_count": 1,
-  "chatbot_interactions": 134
-}
-```
 
 ---
 
@@ -394,13 +345,13 @@ Pending → In Production → Quality Check → Shipped → Delivered
 
 ## Frontend SPA
 
-The entire frontend is a single-page application driven by `switchView(viewName)` in `app.js`.
+Driven by `switchView(viewName)` in `app.js`.
 
 ### Views
 | View ID | Access | Description |
 |---|---|---|
 | `home` | Public | Product catalog with category filters |
-| `customizer` | Public | SVG garment customizer |
+| `customizer` | Public | 2D + 3D garment customizer |
 | `cart` | Public | Cart summary |
 | `orders` | Customer | My order history |
 | `profile` | Customer | Edit name, phone, address |
@@ -410,11 +361,10 @@ The entire frontend is a single-page application driven by `switchView(viewName)
 ```javascript
 state = {
   currentView: 'home',
-  cart: [],                     // Array of cart items
+  cart: [],
   currentCustomization: {
     productId: null,
-    productName: '',
-    productType: 'tshirt',
+    productType: 'tshirt',    // tshirt | hoodie | jacket | uniform
     view: 'front',
     primaryColor: '#6C63FF',
     secondaryColor: '#FFFFFF',
@@ -424,92 +374,114 @@ state = {
     printMethod: 'dtg',
     washFinish: 'standard',
     logoBase64: null,
-    size: 'M',                  // XS/S/M/L/XL/XXL
+    size: 'M',
     quantity: 1,
     notes: ''
   },
-  _couponDiscount: 0,           // Percentage discount (0–100)
-  _checkoutShippingCost: 800,   // PKR
+  chatSessionId: 'sess-...',   // persisted in localStorage
 }
 ```
 
-### Storage
-| Storage | Keys | Purpose |
-|---|---|---|
-| `localStorage` | `aura_token`, `aura_user`, `aura_cart`, `aura_session_id` | Auth & cart persistence |
-| `sessionStorage` | `aura_chat_history` | Chat message persistence within session |
-
 ---
 
-## AI Chatbot (RAG)
+## AI Chatbot (Gemini + RAG)
 
-### Retrieval Logic
+### How It Works
 
-The chatbot performs keyword-based database retrieval before generating a response:
+1. User types a message in the floating chat widget
+2. Frontend calls `POST /api/chat` with the message and session ID
+3. Backend runs **RAG retrieval** — keyword-based queries against PostgreSQL:
+   - **Orders** — fetches user's recent 3 orders (if logged in), or specific `ORD-xxxxxx` if mentioned
+   - **Products** — matches product name/category keywords
+   - **Fabrics** — matches fabric type keywords
+   - **FAQs** — matches FAQ question keywords (>3 chars)
+4. Retrieved rows assembled as plain-text context
+5. Context + user query sent to **Google Gemini** (`gemini-flash-latest`) via REST API
+6. Gemini response extracted (thinking model — filters `thought: true` parts)
+7. Response logged, returned to frontend
+8. Frontend renders markdown: `**bold**` → `<strong>`, `*italic*` → `<em>`, `\n` → `<br>`
 
-1. **Order tracking** — Detects "order", "track", or "ORD-" prefix; fetches order by ID or user's latest
-2. **Products** — Matches product name, category, or description keywords against query
-3. **Fabrics** — Matches fabric type or name keywords
-4. **FAQs** — Matches FAQ question keywords (>3 characters)
+### System Prompt
 
-All matched rows are concatenated as `retrieved_context` and sent to n8n or used in the fallback responder.
+AURA-AI is instructed to:
+- Use database context when available; fall back to general AURA-WEAR knowledge
+- Respond warmly to greetings and direct to products/orders
+- Quote all prices in PKR
+- Never mention internal system names, APIs, or how data is retrieved
+- Keep answers concise (2–4 sentences)
 
-### Fallback Responses (no n8n)
+### Local Fallback (if Gemini unavailable)
 
 | Query keyword | Response |
 |---|---|
 | order / track / ORD- | Order status with manufacturing stage description |
-| cotton / summer | Cotton fabric recommendation |
-| fleece / winter | Fleece fabric recommendation |
-| shipping / deliver | Delivery time and pricing info |
+| cotton / summer / sport | Cotton/Dry-Fit recommendation |
+| fleece / winter / hoodie | Fleece fabric recommendation |
+| ship / deliver | Delivery time and pricing |
+| hi / hello / salam | Warm greeting with feature overview |
 | (default) | General AURA-AI introduction |
+
+---
+
+## 3D Preview Engine
+
+The customizer renders a live **Three.js WebGL** 3D garment alongside the 2D SVG flat view.
+
+### How It Works
+- Three.js scene loads a 3D garment mesh (`.glb` / procedural geometry)
+- `primaryColor` and `secondaryColor` from the customizer state are applied as material colors in real-time
+- User can rotate the model by dragging (OrbitControls)
+- The 2D and 3D panels sit side-by-side in the customizer layout
+
+### Controls
+| Action | Result |
+|---|---|
+| Drag | Rotate garment |
+| Scroll | Zoom in/out |
+| Double-tap | Reset camera |
+
+### Tech
+- Three.js r128 (UMD CDN build)
+- GLTFLoader for `.glb` models
+- OrbitControls for camera interaction
+- MeshStandardMaterial with real-time color binding
 
 ---
 
 ## n8n Integration
 
-Set `N8N_WEBHOOK_URL` in `.env` to enable full AI responses. When set, the backend POSTs to your n8n webhook on every chat message.
+n8n runs as a **secondary AI pipeline** (optional fallback). It is currently **disabled** in the main chat flow since Gemini handles all requests directly. It can be re-enabled for advanced workflow automation.
 
-### Webhook Payload (sent by AURA-WEAR)
+### Current Status
+- n8n service runs at `http://localhost:5678`
+- Workflow: **AURA-WEAR Chatbot** (published and active)
+- Webhook: `POST /webhook/aura-chat`
+- The workflow calls Gemini (`gemini-flash-latest`) via HTTP Request node using `$env.GEMINI_API_KEY`
+
+### Webhook Payload (expected by n8n)
 ```json
 {
   "query": "What fabrics do you have for winter hoodies?",
-  "context": "MySQL Row -> Fabric: Brushed Fleece Grade 4, Type: fleece, Multiplier: 1.3x\nMySQL Row -> Product: Aura Sherpa-Lined Hoodie, ...",
-  "session_id": "session-abc-123",
+  "context": "Fabric: Brushed Fleece | Grade: 4 | Multiplier: 1.3x\nProduct: Aura Sherpa-Lined Hoodie...",
+  "session_id": "sess-abc123",
   "user_id": 5
 }
 ```
 
-### Expected n8n Response
-```json
-{
-  "output": "For winter hoodies, I recommend our Brushed Fleece Grade 4–5..."
-}
+### n8n Workflow Nodes
 ```
-or:
-```json
-{
-  "reply": "For winter hoodies, I recommend..."
-}
+Webhook Trigger (POST /webhook/aura-chat)
+    ↓
+Prepare Prompt (Code node — builds Gemini payload)
+    ↓
+Google Gemini Flash (HTTP Request → gemini-flash-latest)
+    ↓
+Extract Reply (Code node — filters thinking model parts)
+    ↓
+Respond to Webhook (JSON → { output: "..." })
 ```
 
-### Recommended n8n Workflow
-
-```
-Webhook Trigger
-    ↓
-Set Variables (extract query, context, session_id, user_id)
-    ↓
-OpenAI / Claude Chat Node
-  System: "You are AURA-AI, a custom clothing assistant for AURA-WEAR Pakistan.
-           Answer based only on the provided database context."
-  User: "Context:\n{{$json.context}}\n\nQuestion: {{$json.query}}"
-    ↓
-Respond to Webhook
-  Body: { "output": "{{$json.choices[0].message.content}}" }
-```
-
-### Other n8n Use Cases
+### Other n8n Automation Ideas
 
 | Use Case | n8n Nodes |
 |---|---|
@@ -517,7 +489,7 @@ Respond to Webhook
 | Low-stock Slack alert | Cron → HTTP → Slack |
 | Customer win-back | Webhook on cancelled order → delay → Email |
 | Sales report PDF | Cron → DB query → HTML to PDF → Email |
-| Chat escalation | AI node → IF node (confidence < threshold) → Slack |
+| Chat escalation | Gemini node → IF (confidence < threshold) → Slack |
 
 ---
 
@@ -536,114 +508,84 @@ Configured via SMTP env vars. Gracefully skips (logs to console) if `SMTP_USER`/
 
 ## Authentication & Security
 
-### JWT Token
-- Algorithm: HS256
-- Payload: `{sub: email, user_id: int, role: string, exp: timestamp}`
-- Default expiry: 30 minutes (hardcoded in `auth.py` — override by changing the constant)
-- Token stored in `localStorage` as `aura_token`
-
-### Role System
-- `admin` — Full access to all endpoints and admin panel
-- `customer` — Access to own orders, profile, checkout, chatbot
-- First registered user automatically becomes admin
+- **Algorithm:** HS256 JWT
+- **Payload:** `{sub: email, user_id: int, role: string, exp: timestamp}`
+- **Expiry:** 60 minutes (configurable via `ACCESS_TOKEN_EXPIRE_MINUTES`)
+- **Roles:** `admin` (full access) | `customer` (own orders, profile, chatbot)
+- **First user** registered automatically becomes admin
 
 ### Password Reset Flow
-1. `POST /api/auth/forgot-password` — generates 6-digit OTP, stores in `password_resets` table, sends email
+1. `POST /api/auth/forgot-password` — generates 6-digit OTP, stores in DB, sends email
 2. `POST /api/auth/verify-otp` — validates OTP + expiry
-3. `POST /api/auth/reset-password` — validates OTP, hashes new password, marks OTP as used
-
-### Security Notes
-> ⚠️ **For production deployment, address these before go-live:**
-> - `SECRET_KEY` is hardcoded in `routers/auth.py` — move to `os.getenv("SECRET_KEY")`
-> - `debug_otp` is returned in the `/forgot-password` response — remove in production
-> - `CORS allow_origins=["*"]` — restrict to your domain
-> - `ACCESS_TOKEN_EXPIRE_MINUTES` env var is defined in `.env.example` but ignored by `auth.py`
+3. `POST /api/auth/reset-password` — hashes new password, marks OTP used
 
 ---
 
 ## Getting Started
 
 ### Prerequisites
-- Python 3.11+
-- PostgreSQL 16 (or use the SQLite fallback for local dev)
+- Docker & Docker Compose (recommended)
+- Or: Python 3.11+, PostgreSQL 16
 
-### Local Development (SQLite)
+### Docker (Recommended)
 
 ```bash
-# 1. Clone the repo
+# 1. Clone and configure
 git clone <repo-url>
 cd custom-clothing-
+cp .env.example .env
+# Edit .env — add GEMINI_API_KEY, SMTP credentials, SECRET_KEY
 
-# 2. Create virtual environment
+# 2. Start all services (PostgreSQL + FastAPI + n8n)
+docker compose up --build -d
+
+# 3. Verify
+docker compose ps
+docker compose logs backend --tail 20
+```
+
+App: `http://localhost:8001` | n8n: `http://localhost:5678` | Swagger: `http://localhost:8001/docs`
+
+### Local Development (without Docker)
+
+```bash
 python -m venv venv
-source venv/bin/activate      # Linux/Mac
-# venv\Scripts\activate       # Windows
-
-# 3. Install dependencies
+source venv/bin/activate
 pip install -r requirements.txt
-
-# 4. Start the server (auto-creates tables and seeds data on first run)
 uvicorn main:app --reload --host 127.0.0.1 --port 8001
 ```
 
-Visit `http://127.0.0.1:8001` for the app, `http://127.0.0.1:8001/docs` for Swagger UI.
-
-> **SQLite fallback**: If no `DATABASE_URL` is set, the app uses `./clothing.db` automatically.
-
-### Windows One-Click Launch
-```
-run_backend.bat
-```
-This script installs dependencies, seeds the DB, and starts Uvicorn.
-
-### Seeding Extra Products
-To bulk-load 80 additional products (T-Shirts, Hoodies, Jackets, Sports Uniforms) into SQLite:
-```bash
-python seed_products.py
-```
+> SQLite fallback: if no `DATABASE_URL` is set, the app uses `./clothing.db` automatically.
 
 ---
 
 ## Docker Deployment
-
-### Quick Start
-```bash
-# 1. Copy and configure environment
-cp .env.example .env
-# Edit .env with your SMTP credentials, SECRET_KEY, etc.
-
-# 2. Start all services
-docker compose up --build -d
-
-# 3. Check health
-docker compose ps
-docker compose logs backend
-```
-
-The app will be available at `http://localhost:8001`.
 
 ### Services
 
 | Service | Container | Port | Description |
 |---|---|---|---|
 | `db` | `aura_db` | 5432 | PostgreSQL 16 |
+| `n8n` | `aura_n8n` | 5678 | n8n workflow automation |
 | `backend` | `aura_backend` | 8001 | FastAPI + static files |
 
 ### Data Persistence
-- `db_data` volume — PostgreSQL data directory
-- `uploads_data` volume — Customer logo uploads at `/app/uploads/logos/`
+- `db_data` — PostgreSQL data directory
+- `n8n_data` — n8n workflows, credentials, execution history
+- `uploads_data` — Customer logo uploads at `/app/uploads/logos/`
 
-### Stopping
+### Useful Commands
 ```bash
-docker compose down           # Keep data
-docker compose down -v        # Wipe all volumes (destructive)
+docker compose up --build -d          # Build and start all
+docker compose logs backend -f        # Stream backend logs
+docker compose restart backend        # Restart after code change
+docker compose down                   # Stop (keep data)
+docker compose down -v                # Stop and wipe all volumes
 ```
 
 ---
 
 ## Environment Variables
-
-Copy `.env.example` to `.env` and fill in values:
 
 ```bash
 # PostgreSQL
@@ -652,8 +594,11 @@ POSTGRES_USER=aura
 POSTGRES_PASSWORD=aurapassword
 DATABASE_URL=postgresql+asyncpg://aura:aurapassword@localhost:5432/aurawear
 
-# JWT — generate with: python3 -c "import secrets; print(secrets.token_hex(32))"
-SECRET_KEY=change-this-in-production
+# Google Gemini AI — generate at https://aistudio.google.com
+GEMINI_API_KEY=your-gemini-api-key
+
+# JWT
+SECRET_KEY=your-secret-key-here   # python3 -c "import secrets; print(secrets.token_hex(32))"
 ACCESS_TOKEN_EXPIRE_MINUTES=60
 
 # SMTP Email (leave blank to skip sending)
@@ -663,30 +608,22 @@ SMTP_USER=your@gmail.com
 SMTP_PASS=your-app-password
 FROM_EMAIL=your@gmail.com
 ADMIN_EMAIL=admin@yourdomain.com
-
-# n8n AI Integration (optional)
-N8N_WEBHOOK_URL=https://your-n8n.com/webhook/aura-chat
-
-# HTTPS enforcement (only if behind a reverse proxy)
-ENFORCE_HTTPS=false
 ```
 
-> **Gmail App Password**: Go to Google Account → Security → 2-Step Verification → App Passwords. Generate one for "Mail".
+> **Gmail App Password:** Google Account → Security → 2-Step Verification → App Passwords.
 
 ---
 
 ## Customizer Logic
 
-### Garment Types → SVG Templates
+### Garment Types → SVG + 3D
 
-| Type | SVG | Views |
+| Type | Views | 3D Mesh |
 |---|---|---|
-| `tshirt` | T-Shirt outline | Front, Back |
-| `hoodie` | Hoodie with pocket | Front, Back |
-| `jacket` | Zip jacket | Front, Back |
-| `uniform` | Sports jersey | Front, Back |
-
-The SVG renderer injects `primaryColor` and `secondaryColor` directly into SVG fill attributes via JavaScript. Switching the front/back view re-renders the SVG.
+| `tshirt` | Front, Back | T-Shirt geometry |
+| `hoodie` | Front, Back | Hoodie with pocket |
+| `jacket` | Front, Back | Zip jacket |
+| `uniform` | Front, Back | Sports jersey |
 
 ### Fabric GSM Map
 
@@ -711,8 +648,6 @@ The SVG renderer injects `primaryColor` and `secondaryColor` directly into SVG f
 
 ## Pricing Engine
 
-Order total calculation (server-side in `routers/orders.py`):
-
 ```
 unit_price = (base_price × fabric_multiplier) + stitch_cost + print_cost + wash_cost
 
@@ -721,15 +656,12 @@ quantity_discount:
   ≥ 50 pcs  → 20% off
 
 item_total = unit_price × quantity × (1 − quantity_discount)
-
 grand_total = sum(item_totals)
-tax = grand_total × 5%                    # GST
-shipping = chosen shipping option cost
-
-final_total = grand_total + tax + shipping
+tax         = grand_total × 5%   (GST)
+final_total = grand_total + tax + shipping_cost − coupon_discount
 ```
 
-**Coupon codes** (client-side, applied before checkout submission):
+**Coupon codes** (client-side):
 
 | Code | Discount |
 |---|---|
@@ -738,32 +670,21 @@ final_total = grand_total + tax + shipping
 | FYP2025 | 15% student discount |
 | FIRST50 | 50% off first order |
 
-> Coupons are applied to subtotal before GST and shipping are added.
-
 ---
 
 ## Admin Panel
-
-Access the admin panel by logging in as an admin user, then clicking the dashboard icon.
 
 ### Tabs
 
 | Tab | Contents |
 |---|---|
-| **Overview** | KPI cards + Canvas bar charts (order status, revenue) |
-| **Products** | Product table with add/edit/toggle/delete; image URL upload |
-| **Orders** | All orders table; status dropdown; Export CSV button |
+| **Overview** | KPI cards + Canvas bar charts (order status, revenue) + system health |
+| **Products** | Product table with add/edit/toggle/delete |
+| **Orders** | All orders; status dropdown; Export CSV |
 | **Users** | User list; role change; ban/unban; delete |
-| **Inventory** | Fabric/dye stock; edit qty; reorder level alerts |
+| **Inventory** | Fabric/dye stock; edit qty; reorder alerts |
 | **FAQs** | Add/edit/toggle/delete FAQ entries |
-| **RAG Logs** | Last 200 chatbot conversations with retrieved context |
-
-### Manual Order Creation
-
-Admins can log walk-in or phone orders:
-- Select from live product list (fetched from `/api/products`)
-- Set customer name, colors, quantity, payment method, notes
-- Order is created under the admin's user account
+| **AI Chat Logs** | Last 200 Gemini chatbot conversations with RAG context |
 
 ---
 
@@ -775,14 +696,13 @@ Customer places order
 Email: "Order Confirmed" → Customer
 Email: "New Order Alert" → Admin
     ↓
-Admin sets status: "In Production"
-Email: "Status Update" → Customer
+Admin: "In Production" → Email to Customer
     ↓
-Admin sets status: "Quality Check"
+Admin: "Quality Check"
     ↓
-Admin sets status: "Shipped"
+Admin: "Shipped" → Email to Customer
     ↓
-Admin sets status: "Delivered"
+Admin: "Delivered"
 
 --- OR ---
 
@@ -797,14 +717,13 @@ Customer cancels (Pending only): PATCH /orders/{id}/cancel
 |---|---|---|
 | 1 | `SECRET_KEY` hardcoded in `auth.py` | JWT security risk in production |
 | 2 | `debug_otp` in forgot-password response | OTP leaked in API response |
-| 3 | `ACCESS_TOKEN_EXPIRE_MINUTES` env ignored | Token always expires in 30 min |
-| 4 | CORS `allow_origins=["*"]` | Any origin can call the API |
-| 5 | Size (XS–XXL) not saved to DB | No size data in order records |
-| 6 | No real payment gateway | Payments are stub-only (COD, Card declared) |
-| 7 | `seed_products.py` uses raw sqlite3 | Won't work with PostgreSQL |
-| 8 | No rate limiting | Susceptible to brute-force on auth endpoints |
-| 9 | Inventory deduction is approximate | 2 fabric rolls/unit, no product↔inventory mapping |
-| 10 | No image upload to server | Product images must be external URLs |
+| 3 | CORS `allow_origins=["*"]` | Any origin can call the API |
+| 4 | Size (XS–XXL) not saved to DB | No size data in order records |
+| 5 | No real payment gateway | Payments are stub-only |
+| 6 | No rate limiting | Susceptible to brute-force on auth |
+| 7 | Inventory deduction approximate | No product↔inventory mapping |
+| 8 | No image upload to server | Product images must be external URLs |
+| 9 | Gemini free-tier quota | New Google Cloud project needed if quota exhausted |
 
 ---
 
@@ -813,16 +732,14 @@ Customer cancels (Pending only): PATCH /orders/{id}/cancel
 ```
 custom-clothing-/
 ├── main.py                    # FastAPI app entry point, router registration
-├── index.html                 # Single-page application HTML (~1300 lines)
-├── style.css                  # All styles (~2500 lines)
-├── app.js                     # All frontend JS (~2700 lines)
+├── index.html                 # Single-page application HTML
+├── style.css                  # All styles
+├── app.js                     # All frontend JS (SPA logic + 2D/3D customizer + chat)
 ├── requirements.txt           # Python dependencies
 ├── Dockerfile                 # Production container image
-├── docker-compose.yml         # Multi-service orchestration
+├── docker-compose.yml         # Multi-service: PostgreSQL + n8n + FastAPI
 ├── .env.example               # Environment variable template
 ├── run_backend.bat            # Windows one-click launcher
-├── server.py                  # Legacy static file server (dev only)
-├── seed_products.py           # Bulk product seeder (SQLite only)
 │
 ├── database/
 │   ├── database.py            # SQLAlchemy engine + session + Base
@@ -838,7 +755,7 @@ custom-clothing-/
 │   ├── auth.py                # Authentication + profile + password reset
 │   ├── products.py            # Product catalog + customization options
 │   ├── orders.py              # Order CRUD + pricing engine + logo upload
-│   ├── chat.py                # RAG chatbot + n8n integration + log storage
+│   ├── chat.py                # Gemini AI + RAG retrieval + chat log storage
 │   ├── inventory.py           # Inventory CRUD
 │   ├── users.py               # Admin user management
 │   ├── analytics.py           # Dashboard statistics aggregation
@@ -846,6 +763,11 @@ custom-clothing-/
 │
 ├── utils/
 │   └── email.py               # SMTP email sender (4 templates)
+│
+├── n8n/
+│   ├── aura-wear-workflow.json  # n8n workflow (Gemini-powered chatbot pipeline)
+│   ├── docker-compose.n8n.yml  # Standalone n8n compose reference
+│   └── README-n8n.md           # n8n setup guide
 │
 └── uploads/
     └── logos/                 # Customer-uploaded logo files
@@ -855,8 +777,8 @@ custom-clothing-/
 
 ## License
 
-This project is developed as a Final Year Project (FYP) for academic purposes.
+Developed as a Final Year Project (FYP) for academic purposes.
 
-**Developer:** Umer Javed
+**Developer:** Sharjeel Sohail
 **Institution:** FYP 2025–2026
-**Stack:** FastAPI · PostgreSQL · Vanilla JS · Docker · n8n
+**Stack:** FastAPI · PostgreSQL · Vanilla JS · Three.js · Google Gemini AI · n8n · Docker
