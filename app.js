@@ -2071,14 +2071,14 @@ async function submitChatMessage(queryText) {
   messagesContainer.appendChild(typingIndicator);
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-  // TODO: replace this block with the real API call once AI is integrated:
-  //   const data = await api('/api/chat', 'POST', { message: queryText, session_id: state.chatSessionId });
-  //   document.getElementById('chat-typing-bubble')?.remove();
-  //   if (data) renderMessageBubble(data.reply, 'bot');
-  await new Promise(r => setTimeout(r, 2000 + Math.random() * 3000)); // 2–5 s simulated think
-  document.getElementById('chat-typing-bubble')?.remove();
-  const ragResults = executeMySQLRetrievalNode(queryText);
-  renderMessageBubble(ragResults.reply, 'bot');
+  try {
+    const data = await api('/api/chat', 'POST', { message: queryText, session_id: state.chatSessionId });
+    document.getElementById('chat-typing-bubble')?.remove();
+    if (data?.reply) renderMessageBubble(data.reply, 'bot');
+  } catch (err) {
+    document.getElementById('chat-typing-bubble')?.remove();
+    renderMessageBubble("Sorry, I'm having trouble connecting right now. Please try again shortly.", 'bot');
+  }
 }
 
 function renderMessageBubble(text, sender) {
