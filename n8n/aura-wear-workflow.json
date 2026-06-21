@@ -24,7 +24,7 @@
       "typeVersion": 2,
       "position": [460, 300],
       "parameters": {
-        "jsCode": "const body = $input.first().json.body || $input.first().json;\n\nconst query      = body.query      || '';\nconst context    = body.context    || '';\nconst session_id = body.session_id || 'unknown';\nconst user_id    = body.user_id    || null;\n\nconst systemPrompt = `You are AURA-AI, the official AI assistant for AURA-WEAR — a premium custom clothing brand based in Pakistan.\n\nYou help customers with:\n- Fabric recommendations (Cotton, Fleece, Polyester, Blended) and GSM grades\n- Garment types (T-Shirts, Hoodies, Jackets, Sports Uniforms)\n- Print methods (DTG, Screen Print, Embroidery, Heat Transfer)\n- Order tracking and status updates\n- Pricing in PKR including GST and shipping\n\nRULES:\n- Answer ONLY based on the database context provided\n- When order data is in context, clearly state the order ID, status, and total\n- Keep answers concise (2-4 sentences), friendly and professional\n- Always quote prices in PKR\n- Never mention internal system names like database connectors or APIs`;\n\nconst userMessage = `DATABASE CONTEXT:\\n${context}\\n\\nCUSTOMER QUESTION:\\n${query}`;\n\n// Build Gemini API request body\nconst geminiBody = {\n  systemInstruction: { parts: [{ text: systemPrompt }] },\n  contents: [{ role: 'user', parts: [{ text: userMessage }] }],\n  generationConfig: { temperature: 0.3, maxOutputTokens: 512 }\n};\n\nreturn [{ json: { query, context, session_id, user_id, geminiBody } }];"
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\n\nconst query      = body.query      || '';\nconst context    = body.context    || '';\nconst session_id = body.session_id || 'unknown';\nconst user_id    = body.user_id    || null;\n\nconst systemPrompt = `You are AURA-AI, the official AI assistant for AURA-WEAR — a premium custom clothing brand based in Pakistan.\n\nYou help customers with fabric recommendations, garment types, print methods, order tracking, and pricing in PKR.\n\nRULES:\n- Use the database context to answer; if no specific context, reply helpfully using general AURA-WEAR knowledge\n- When order data is in context, clearly state the order ID, status, and total\n- For greetings, respond warmly and invite the customer to ask about products or orders\n- Keep answers concise (2-4 sentences), friendly and professional\n- Always quote prices in PKR\n- Never mention internal system names, tools, APIs, or how data is retrieved`;\n\nconst userMessage = `DATABASE CONTEXT:\\n${context}\\n\\nCUSTOMER QUESTION:\\n${query}`;\n\nconst geminiBody = {\n  systemInstruction: { parts: [{ text: systemPrompt }] },\n  contents: [{ role: 'user', parts: [{ text: userMessage }] }],\n  generationConfig: { temperature: 0.3, maxOutputTokens: 1024 }\n};\n\nreturn [{ json: { query, context, session_id, user_id, geminiBody } }];"
       }
     },
     {
@@ -35,7 +35,7 @@
       "position": [680, 300],
       "parameters": {
         "method": "POST",
-        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={{ $env.GEMINI_API_KEY }}",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={{ $env.GEMINI_API_KEY }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -56,7 +56,7 @@
       "typeVersion": 2,
       "position": [900, 300],
       "parameters": {
-        "jsCode": "const data = $input.first().json;\n\nlet reply = '';\n\ntry {\n  // Gemini response: candidates[0].content.parts[0].text\n  reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '';\n} catch(e) {\n  reply = '';\n}\n\nif (!reply) {\n  reply = 'I am unable to generate a response right now. Please try again shortly.';\n}\n\nreturn [{ json: { output: reply.trim() } }];"
+        "jsCode": "const data = $input.first().json;\n\nlet reply = '';\n\ntry {\n  // gemini-flash-latest is a thinking model — collect text from all non-thought parts\n  const parts = data.candidates?.[0]?.content?.parts || [];\n  reply = parts\n    .filter(p => !p.thought)\n    .map(p => p.text || '')\n    .join('')\n    .trim();\n} catch(e) {\n  reply = '';\n}\n\nif (!reply) {\n  reply = 'I am AURA-AI, your custom clothing assistant. How can I help you today?';\n}\n\nreturn [{ json: { output: reply } }];"
       }
     },
     {
@@ -67,7 +67,7 @@
       "position": [1120, 300],
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify($json) }}",
+        "responseBody": "={{ $json }}",
         "options": {
           "responseCode": 200,
           "responseHeaders": {
