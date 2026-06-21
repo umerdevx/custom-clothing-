@@ -14,15 +14,16 @@ router = APIRouter(prefix="/api/chat", tags=["AI RAG Chatbot"])
 
 N8N_WEBHOOK_URL  = os.getenv("N8N_WEBHOOK_URL", "")
 GEMINI_API_KEY   = os.getenv("GEMINI_API_KEY", "")
-GEMINI_URL       = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+GEMINI_URL       = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent"
 
 SYSTEM_PROMPT = (
     "You are AURA-AI, the official AI assistant for AURA-WEAR — a premium custom clothing brand based in Pakistan. "
     "Help customers with fabric recommendations, garment types, print methods, order tracking, and pricing in PKR. "
-    "Answer ONLY based on the database context provided. "
+    "Use the DATABASE CONTEXT provided to answer questions; if no relevant context is present, reply helpfully using general knowledge about AURA-WEAR. "
     "When order data is in context, clearly state the order ID, status, and total. "
+    "For greetings or small talk, respond warmly and invite the customer to ask about products, fabrics, or orders. "
     "Keep answers concise (2-4 sentences), friendly, and professional. "
-    "Never mention internal system names like database connectors or APIs."
+    "Never reveal internal system names, tools, APIs, or how data is retrieved."
 )
 
 
@@ -138,7 +139,7 @@ async def chat(
                 gemini_payload = {
                     "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
                     "contents": [{"role": "user", "parts": [{"text": user_message}]}],
-                    "generationConfig": {"temperature": 0.3, "maxOutputTokens": 512},
+                    "generationConfig": {"temperature": 0.3, "maxOutputTokens": 1024},
                 }
                 r = await client.post(
                     GEMINI_URL,
@@ -146,31 +147,23 @@ async def chat(
                     json=gemini_payload,
                 )
                 if r.status_code == 200:
-                    ai_reply = (
+                    parts = (
                         r.json()
                         .get("candidates", [{}])[0]
                         .get("content", {})
-                        .get("parts", [{}])[0]
-                        .get("text", "")
-                        .strip()
+                        .get("parts", [])
                     )
+                    # Thinking models return a thought part first (no text / thought=True),
+                    # then the actual response part. Grab all non-thought text.
+                    ai_reply = "".join(
+                        p.get("text", "") for p in parts if not p.get("thought", False)
+                    ).strip()
+                else:
+                    print(f"[CHAT] Gemini error {r.status_code}: {r.text[:200]}")
         except Exception as e:
             print(f"[CHAT] Gemini error: {e}")
 
-    # Secondary: n8n webhook (if Gemini key not set)
-    if not ai_reply and N8N_WEBHOOK_URL:
-        try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
-                r = await client.post(N8N_WEBHOOK_URL, json={
-                    "query": query,
-                    "context": retrieved_context,
-                    "session_id": chat_req.session_id,
-                    "user_id": current_user.user_id if current_user else None,
-                })
-                if r.status_code == 200:
-                    ai_reply = r.json().get("output", r.json().get("reply", ""))
-        except Exception as e:
-            print(f"[CHAT] n8n error: {e}")
+    # n8n webhook disabled — Gemini is primary; local fallback handles failures
 
     # ── 3. LOCAL FALLBACK (if n8n unreachable or not configured) ─────────────
 
@@ -205,6 +198,11 @@ async def chat(
             ai_reply = "Standard delivery across Pakistan takes 7–10 working days. Free shipping on orders over PKR 5,000; otherwise PKR 250 flat rate."
         elif any(kw in clean_query for kw in ["discount", "bulk", "wholesale"]):
             ai_reply = "Bulk orders get 10% off for 10–49 units, and 20% off for 50+ units."
+        elif any(kw in clean_query for kw in ["hi", "hello", "hey", "salam", "assalam"]):
+            ai_reply = (
+                "Hello! Welcome to AURA-WEAR. I'm AURA-AI, your personal style assistant. "
+                "Ask me about our fabrics, products, pricing, or track your order — I'm here to help!"
+            )
         else:
             ai_reply = (
                 "I'm AURA-AI, your custom clothing assistant. I can help with fabric recommendations, "
