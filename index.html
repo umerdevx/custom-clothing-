@@ -419,53 +419,79 @@
 
           <!-- TAB 4: Logo Upload & Print Method / Finishing -->
           <div class="tab-content" id="tab-logo">
+
+            <!-- Logo List & Add Button -->
             <div class="control-group">
-              <label class="group-title">Logo Placement</label>
-              <div class="tile-grid text-only-grid">
-                <div class="tile-card active" onclick="setLogoPlacement('chest')" id="tile-logo-chest">
-                  <span>Chest Center</span>
-                </div>
-                <div class="tile-card" onclick="setLogoPlacement('back')" id="tile-logo-back">
-                  <span>Back Center</span>
-                </div>
-                <div class="tile-card" onclick="setLogoPlacement('left_sleeve')" id="tile-logo-left_sleeve">
-                  <span>Left Sleeve</span>
-                </div>
-                <div class="tile-card" onclick="setLogoPlacement('right_sleeve')" id="tile-logo-right_sleeve">
-                  <span>Right Sleeve</span>
-                </div>
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem;">
+                <label class="group-title" style="margin:0">Logos on Design</label>
+                <button id="btn-add-logo" class="btn btn-sm btn-outline" onclick="addLogo()">
+                  <i class="fa-solid fa-plus"></i> Add Logo
+                </button>
               </div>
+              <div id="logo-list" class="logo-list-container"></div>
             </div>
 
-            <div class="control-group">
-              <label class="group-title">Upload Custom Logo</label>
-              <div class="logo-uploader-box">
-                <div class="logo-preview-thumbnail" id="logo-thumbnail-preview">
-                  <i class="fa-solid fa-image"></i>
-                </div>
-                <div class="upload-controls">
-                  <input type="file" id="logo-file-input" accept="image/png, image/jpeg" style="display:none" onchange="handleLogoUpload(event)">
-                  <button class="btn btn-sm btn-outline" onclick="document.getElementById('logo-file-input').click()">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Select Image
-                  </button>
-                  <button class="btn btn-sm btn-text text-danger" onclick="clearUploadedLogo()">Clear</button>
-                  <span class="upload-hint">PNG/JPG under 5MB</span>
+            <!-- Per-Logo Editor (shown when a logo is selected) -->
+            <div id="logo-editor-panel" style="display:none">
+              <div class="control-group">
+                <label class="group-title">Placement</label>
+                <div class="tile-grid text-only-grid" id="logo-placement-tiles">
+                  <div class="tile-card" onclick="setActiveLogoPlacement('chest')" id="tile-logo-chest">
+                    <span>Chest</span>
+                  </div>
+                  <div class="tile-card" onclick="setActiveLogoPlacement('back')" id="tile-logo-back">
+                    <span>Back Center</span>
+                  </div>
+                  <div class="tile-card" onclick="setActiveLogoPlacement('left_sleeve')" id="tile-logo-left_sleeve">
+                    <span>Left Sleeve</span>
+                  </div>
+                  <div class="tile-card" onclick="setActiveLogoPlacement('right_sleeve')" id="tile-logo-right_sleeve">
+                    <span>Right Sleeve</span>
+                  </div>
                 </div>
               </div>
-              
-              <!-- Quick Presets -->
-              <div class="preset-logo-row">
-                <span class="small-title">Or use preset graphics:</span>
-                <div class="presets-container">
-                  <button class="btn-preset-logo" onclick="usePresetLogo('cyberpunk')" title="Cyberpunk Eagle">
-                    <i class="fa-solid fa-burst"></i> Cyber
-                  </button>
-                  <button class="btn-preset-logo" onclick="usePresetLogo('streetwear')" title="Aura Brand Crest">
-                    <i class="fa-solid fa-shield-halved"></i> Aura
-                  </button>
-                  <button class="btn-preset-logo" onclick="usePresetLogo('athletic')" title="Lightning Bolt">
-                    <i class="fa-solid fa-bolt-lightning"></i> Bolt
-                  </button>
+
+              <div class="control-group">
+                <label class="group-title">Logo Graphic</label>
+                <div class="logo-uploader-box">
+                  <div class="logo-preview-thumbnail" id="logo-thumbnail-preview">
+                    <i class="fa-solid fa-image"></i>
+                  </div>
+                  <div class="upload-controls">
+                    <input type="file" id="logo-file-input" accept="image/png, image/jpeg" style="display:none" onchange="handleActiveLogoUpload(event)">
+                    <button class="btn btn-sm btn-outline" onclick="document.getElementById('logo-file-input').click()">
+                      <i class="fa-solid fa-cloud-arrow-up"></i> Upload
+                    </button>
+                    <button class="btn btn-sm btn-text text-danger" onclick="clearActiveLogo()">Clear</button>
+                    <span class="upload-hint">PNG/JPG under 5MB</span>
+                  </div>
+                </div>
+                <div class="preset-logo-row">
+                  <span class="small-title">Or use presets:</span>
+                  <div class="presets-container">
+                    <button class="btn-preset-logo" onclick="usePresetForActiveLogo('cyberpunk')" title="Cyberpunk Eagle">
+                      <i class="fa-solid fa-burst"></i> Cyber
+                    </button>
+                    <button class="btn-preset-logo" onclick="usePresetForActiveLogo('streetwear')" title="Aura Brand Crest">
+                      <i class="fa-solid fa-shield-halved"></i> Aura
+                    </button>
+                    <button class="btn-preset-logo" onclick="usePresetForActiveLogo('athletic')" title="Lightning Bolt">
+                      <i class="fa-solid fa-bolt-lightning"></i> Bolt
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label class="group-title">
+                  Size &nbsp;<span id="logo-scale-value" style="color:var(--teal-neon)">1.0×</span>
+                </label>
+                <input type="range" id="logo-scale-slider" min="0.5" max="2.5" step="0.1" value="1.0"
+                       oninput="setActiveLogoScale(this.value)"
+                       style="width:100%; accent-color:var(--teal-neon);">
+                <div style="display:flex; justify-content:space-between;">
+                  <span class="upload-hint">Small (0.5×)</span>
+                  <span class="upload-hint">Large (2.5×)</span>
                 </div>
               </div>
             </div>

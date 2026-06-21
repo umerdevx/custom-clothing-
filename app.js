@@ -698,9 +698,8 @@ let state = {
     primaryColor: '#1e1e24',
     secondaryColor: '#00f0ff',
     stitchingStyle: 'flatlock',
-    logoPlacement: 'chest',
-    logoPreset: '',
-    logoDataUrl: '',
+    logos: [],           // array of { id, placement, preset, dataUrl, scale }
+    activeLogoIndex: 0,  // which logo is selected in the editor
     printMethod: 'dtg',
     washFinish: 'standard',
     quantity: 1,
@@ -834,9 +833,10 @@ function switchView(viewName) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   // ── Post-render hooks ─────────────────────────────────────────────────────
-  if (viewName === 'admin')   renderAdminDashboard();
-  if (viewName === 'orders')  loadMyOrders();
-  if (viewName === 'profile') loadProfile();
+  if (viewName === 'admin')      renderAdminDashboard();
+  if (viewName === 'orders')     loadMyOrders();
+  if (viewName === 'profile')    loadProfile();
+  if (viewName === 'customizer') renderLogoEditor();
 }
 
 // --- Catalog Rendering & Filters ---
@@ -974,64 +974,52 @@ function renderCustomizerPreview() {
   const secondary = state.currentCustomization.secondaryColor;
   const view = state.previewMode;
   
-  // 1. Build logo markup depending on placement/presets
+  // 1. Build logo markup for all logos
   let logoMarkup = '';
-  const placement = state.currentCustomization.logoPlacement;
-  
-  // Decide coordinates and sizing for logo positioning based on apparel type & placement
-  let coords = { x: 155, y: 135, w: 40, h: 40 };
-  let shouldRenderLogo = false;
-  
-  if (view === 'front') {
+  const logos = state.currentCustomization.logos || [];
+
+  function _getLogoCoords(placement, scale) {
+    scale = scale || 1.0;
+    let base;
     if (placement === 'chest') {
-      shouldRenderLogo = true;
-      coords = (type === 'hoodie') ? { x: 150, y: 218, w: 42, h: 42 } :
-               (type === 'jacket') ? { x: 100, y: 248, w: 30, h: 30 } :
-               (type === 'uniform') ? { x: 152, y: 195, w: 40, h: 40 } :
-               { x: 155, y: 165, w: 40, h: 40 };
+      base = (type === 'hoodie') ? { x: 150, y: 218, w: 42, h: 42 } :
+             (type === 'jacket') ? { x: 100, y: 248, w: 30, h: 30 } :
+             (type === 'uniform') ? { x: 152, y: 195, w: 40, h: 40 } :
+             { x: 155, y: 165, w: 40, h: 40 };
     } else if (placement === 'left_sleeve') {
-      shouldRenderLogo = true;
-      coords = (type === 'jacket') ? { x: 24, y: 218, w: 20, h: 20 } :
-               (type === 'hoodie') ? { x: 10, y: 228, w: 20, h: 20 } :
-               { x: 48, y: 160, w: 22, h: 22 };
+      base = (type === 'jacket') ? { x: 24, y: 218, w: 20, h: 20 } :
+             (type === 'hoodie') ? { x: 10, y: 228, w: 20, h: 20 } :
+             { x: 48, y: 160, w: 22, h: 22 };
     } else if (placement === 'right_sleeve') {
-      shouldRenderLogo = true;
-      coords = (type === 'jacket') ? { x: 316, y: 218, w: 20, h: 20 } :
-               (type === 'hoodie') ? { x: 320, y: 228, w: 20, h: 20 } :
-               { x: 280, y: 160, w: 22, h: 22 };
-    }
-  } else if (view === 'back') {
-    if (placement === 'back') {
-      shouldRenderLogo = true;
-      coords = (type === 'jacket') ? { x: 128, y: 240, w: 104, h: 104 } :
-               (type === 'hoodie') ? { x: 120, y: 255, w: 95, h: 95 } :
-               { x: 135, y: 165, w: 80, h: 80 };
-    }
-  }
-  
-  if (shouldRenderLogo) {
-    const preset = state.currentCustomization.logoPreset;
-    const upload = state.currentCustomization.logoDataUrl;
-    
-    if (preset && LOGO_PRESETS[preset]) {
-      // Injects raw SVG preset code styled with the secondary color
-      logoMarkup = `
-        <g transform="translate(${coords.x}, ${coords.y}) scale(${coords.w / 50})" color="${secondary}">
-          ${LOGO_PRESETS[preset]}
-        </g>
-      `;
-    } else if (upload) {
-      // Injects Base64 image
-      logoMarkup = `
-        <image href="${upload}" x="${coords.x}" y="${coords.y}" width="${coords.w}" height="${coords.h}" />
-      `;
+      base = (type === 'jacket') ? { x: 316, y: 218, w: 20, h: 20 } :
+             (type === 'hoodie') ? { x: 320, y: 228, w: 20, h: 20 } :
+             { x: 280, y: 160, w: 22, h: 22 };
+    } else if (placement === 'back') {
+      base = (type === 'jacket') ? { x: 128, y: 240, w: 104, h: 104 } :
+             (type === 'hoodie') ? { x: 120, y: 255, w: 95, h: 95 } :
+             { x: 135, y: 165, w: 80, h: 80 };
     } else {
-      // Fallback tiny label
-      logoMarkup = `
-        <text x="${coords.x + coords.w/2}" y="${coords.y + coords.h/2}" font-size="8" text-anchor="middle" fill="${secondary}" font-family="sans-serif">LOGO</text>
-      `;
+      base = { x: 155, y: 165, w: 40, h: 40 };
     }
+    const w = base.w * scale;
+    const h = base.h * scale;
+    const cx = base.x + base.w / 2;
+    const cy = base.y + base.h / 2;
+    return { x: cx - w / 2, y: cy - h / 2, w, h };
   }
+
+  logos.forEach(logo => {
+    const isBackLogo = logo.placement === 'back';
+    if ((view === 'front' && isBackLogo) || (view === 'back' && !isBackLogo)) return;
+    const coords = _getLogoCoords(logo.placement, logo.scale || 1.0);
+    if (logo.preset && LOGO_PRESETS[logo.preset]) {
+      logoMarkup += `<g transform="translate(${coords.x}, ${coords.y}) scale(${coords.w / 50})" color="${secondary}">${LOGO_PRESETS[logo.preset]}</g>`;
+    } else if (logo.dataUrl) {
+      logoMarkup += `<image href="${logo.dataUrl}" x="${coords.x}" y="${coords.y}" width="${coords.w}" height="${coords.h}" />`;
+    } else {
+      logoMarkup += `<text x="${coords.x + coords.w/2}" y="${coords.y + coords.h/2}" font-size="8" text-anchor="middle" fill="${secondary}" font-family="sans-serif">LOGO</text>`;
+    }
+  });
   
   // 2. Fetch correct SVG function
   const svgTemplate = APPAREL_SVGS[type][view];
@@ -1049,10 +1037,11 @@ function togglePreviewMode(mode) {
 function switchControlTab(tabId) {
   document.querySelectorAll('.customizer-controls-pane .tab-btn').forEach(btn => btn.classList.remove('active'));
   document.querySelectorAll('.customizer-controls-pane .tab-content').forEach(cont => cont.classList.remove('active'));
-  
-  // Set Active
+
   event.target.classList.add('active');
   document.getElementById(`tab-${tabId}`).classList.add('active');
+
+  if (tabId === 'logo') renderLogoEditor();
 }
 
 function setApparelType(type) {
@@ -1115,75 +1104,177 @@ function setStitchStyle(style) {
   updatePrice();
 }
 
-function setLogoPlacement(placement) {
-  state.currentCustomization.logoPlacement = placement;
-  document.querySelectorAll('#tab-logo .tile-grid .tile-card').forEach(t => t.classList.remove('active'));
-  document.getElementById(`tile-logo-${placement}`).classList.add('active');
-  
-  // Automatically switch preview view to match logo placement (Front/Back)
-  if (placement === 'back') {
-    togglePreviewMode('back');
-  } else {
-    togglePreviewMode('front');
+// --- Multi-Logo Management ---
+const MAX_LOGOS = 4;
+
+function _getActiveLogoIndex() {
+  const idx = state.currentCustomization.activeLogoIndex;
+  const logos = state.currentCustomization.logos;
+  if (logos.length === 0) return -1;
+  return Math.min(idx, logos.length - 1);
+}
+
+function addLogo() {
+  const logos = state.currentCustomization.logos;
+  if (logos.length >= MAX_LOGOS) {
+    showToast('Limit Reached', `You can add up to ${MAX_LOGOS} logos per design.`, 'warning');
+    return;
   }
-  
+  logos.push({ id: Date.now(), placement: 'chest', preset: '', dataUrl: '', scale: 1.0 });
+  state.currentCustomization.activeLogoIndex = logos.length - 1;
+  renderLogoEditor();
+  renderCustomizerPreview();
+  showToast('Logo Added', `Logo ${logos.length} created — choose placement and graphic.`, 'success');
+}
+
+function removeLogo(index) {
+  const logos = state.currentCustomization.logos;
+  logos.splice(index, 1);
+  if (state.currentCustomization.activeLogoIndex >= logos.length) {
+    state.currentCustomization.activeLogoIndex = Math.max(0, logos.length - 1);
+  }
+  renderLogoEditor();
+  renderCustomizerPreview();
+  showToast('Logo Removed', 'Logo deleted from design.', 'info');
+}
+
+function setActiveLogo(index) {
+  state.currentCustomization.activeLogoIndex = index;
+  renderLogoEditor();
+}
+
+function setActiveLogoPlacement(placement) {
+  const idx = _getActiveLogoIndex();
+  if (idx === -1) return;
+  state.currentCustomization.logos[idx].placement = placement;
+  // Switch preview to match
+  togglePreviewMode(placement === 'back' ? 'back' : 'front');
+  renderLogoEditor();
   renderCustomizerPreview();
 }
 
-function handleLogoUpload(event) {
+function handleActiveLogoUpload(event) {
+  const idx = _getActiveLogoIndex();
+  if (idx === -1) return;
   const file = event.target.files[0];
   if (!file) return;
-  
   if (file.size > 5 * 1024 * 1024) {
     showToast('Upload Rejected', 'Logo file size exceeds 5MB limit.', 'danger');
     return;
   }
-  
   const reader = new FileReader();
   reader.onload = function(e) {
-    state.currentCustomization.logoDataUrl = e.target.result;
-    state.currentCustomization.logoPreset = ''; // reset presets
-    
-    // Update thumbnail in UI
-    const thumb = document.getElementById('logo-thumbnail-preview');
-    thumb.innerHTML = `<img src="${e.target.result}" alt="Logo thumbnail">`;
-    
-    showToast('Upload Successful', `Attached: ${file.name}`, 'success');
+    state.currentCustomization.logos[idx].dataUrl = e.target.result;
+    state.currentCustomization.logos[idx].preset = '';
+    renderLogoEditor();
     renderCustomizerPreview();
+    showToast('Upload Successful', `Logo ${idx + 1}: ${file.name}`, 'success');
   };
   reader.readAsDataURL(file);
 }
 
-function clearUploadedLogo() {
-  state.currentCustomization.logoDataUrl = '';
-  state.currentCustomization.logoPreset = '';
-  
-  const thumb = document.getElementById('logo-thumbnail-preview');
-  thumb.innerHTML = `<i class="fa-solid fa-image"></i>`;
-  
-  showToast('Logo Cleared', 'All personalized graphics removed.', 'info');
+function clearActiveLogo() {
+  const idx = _getActiveLogoIndex();
+  if (idx === -1) return;
+  state.currentCustomization.logos[idx].dataUrl = '';
+  state.currentCustomization.logos[idx].preset = '';
+  renderLogoEditor();
+  renderCustomizerPreview();
+  showToast('Graphic Cleared', `Logo ${idx + 1} graphic removed.`, 'info');
+}
+
+function usePresetForActiveLogo(presetName) {
+  const idx = _getActiveLogoIndex();
+  if (idx === -1) return;
+  state.currentCustomization.logos[idx].preset = presetName;
+  state.currentCustomization.logos[idx].dataUrl = '';
+  renderLogoEditor();
+  renderCustomizerPreview();
+  showToast('Preset Selected', `Applied AURA ${presetName.toUpperCase()} to Logo ${idx + 1}`, 'success');
+}
+
+function setActiveLogoScale(val) {
+  const idx = _getActiveLogoIndex();
+  if (idx === -1) return;
+  state.currentCustomization.logos[idx].scale = parseFloat(val);
+  document.getElementById('logo-scale-value').textContent = parseFloat(val).toFixed(1) + '×';
   renderCustomizerPreview();
 }
 
-function usePresetLogo(presetName) {
-  state.currentCustomization.logoPreset = presetName;
-  state.currentCustomization.logoDataUrl = '';
-  
-  // Set visual preview
+function renderLogoEditor() {
+  const logos = state.currentCustomization.logos;
+  const activeIdx = _getActiveLogoIndex();
+  const listEl = document.getElementById('logo-list');
+  const editorEl = document.getElementById('logo-editor-panel');
+  const addBtn = document.getElementById('btn-add-logo');
+
+  // Update add button state
+  if (addBtn) addBtn.disabled = logos.length >= MAX_LOGOS;
+
+  // Render logo list
+  if (!listEl) return;
+  if (logos.length === 0) {
+    listEl.innerHTML = `<p class="upload-hint" style="padding:0.5rem 0">No logos added yet. Click <strong>+ Add Logo</strong> to begin.</p>`;
+    if (editorEl) editorEl.style.display = 'none';
+    return;
+  }
+
+  const placementLabels = { chest: 'Chest', back: 'Back Center', left_sleeve: 'Left Sleeve', right_sleeve: 'Right Sleeve' };
+  listEl.innerHTML = logos.map((logo, i) => {
+    const label = placementLabels[logo.placement] || logo.placement;
+    const graphic = logo.preset ? `AURA ${logo.preset.toUpperCase()}` : logo.dataUrl ? 'Custom Upload' : 'No Graphic';
+    return `
+      <div class="logo-list-item ${i === activeIdx ? 'active' : ''}" onclick="setActiveLogo(${i})">
+        <span class="logo-item-num">${i + 1}</span>
+        <span class="logo-item-info"><strong>${label}</strong><small>${graphic} &middot; ${(logo.scale || 1).toFixed(1)}×</small></span>
+        <button class="logo-item-remove" onclick="event.stopPropagation(); removeLogo(${i})" title="Remove">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>`;
+  }).join('');
+
+  // Show editor for active logo
+  if (!editorEl) return;
+  if (activeIdx === -1) { editorEl.style.display = 'none'; return; }
+  editorEl.style.display = '';
+  const logo = logos[activeIdx];
+
+  // Update placement tiles
+  document.querySelectorAll('#logo-placement-tiles .tile-card').forEach(t => t.classList.remove('active'));
+  const placTile = document.getElementById(`tile-logo-${logo.placement}`);
+  if (placTile) placTile.classList.add('active');
+
+  // Update thumbnail
   const thumb = document.getElementById('logo-thumbnail-preview');
-  let iconHtml = presetName === 'cyberpunk' ? '<i class="fa-solid fa-burst"></i>' :
-                 presetName === 'streetwear' ? '<i class="fa-solid fa-shield-halved"></i>' :
-                 '<i class="fa-solid fa-bolt-lightning"></i>';
-                 
-  thumb.innerHTML = `<div style="color: var(--teal-neon); font-size: 1.4rem;">${iconHtml}</div>`;
-  
-  showToast('Preset Selected', `Applied AURA ${presetName.toUpperCase()} vector graphics`, 'success');
-  renderCustomizerPreview();
+  if (thumb) {
+    if (logo.dataUrl) {
+      thumb.innerHTML = `<img src="${logo.dataUrl}" alt="Logo thumbnail">`;
+    } else if (logo.preset) {
+      const iconHtml = logo.preset === 'cyberpunk' ? '<i class="fa-solid fa-burst"></i>' :
+                       logo.preset === 'streetwear' ? '<i class="fa-solid fa-shield-halved"></i>' :
+                       '<i class="fa-solid fa-bolt-lightning"></i>';
+      thumb.innerHTML = `<div style="color:var(--teal-neon);font-size:1.4rem;">${iconHtml}</div>`;
+    } else {
+      thumb.innerHTML = `<i class="fa-solid fa-image"></i>`;
+    }
+  }
+
+  // Update scale slider
+  const slider = document.getElementById('logo-scale-slider');
+  const scaleLabel = document.getElementById('logo-scale-value');
+  if (slider) slider.value = logo.scale || 1.0;
+  if (scaleLabel) scaleLabel.textContent = (logo.scale || 1.0).toFixed(1) + '×';
 }
+
+// Legacy compat — AI chat may call these
+function setLogoPlacement(placement) { setActiveLogoPlacement(placement); }
+function handleLogoUpload(event) { handleActiveLogoUpload(event); }
+function clearUploadedLogo() { clearActiveLogo(); }
+function usePresetLogo(presetName) { usePresetForActiveLogo(presetName); }
 
 function setPrintMethod(method) {
   state.currentCustomization.printMethod = method;
-  document.querySelectorAll('#tab-logo .tile-grid .tile-card').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#tab-logo .tile-grid:not(#logo-placement-tiles) .tile-card').forEach(t => t.classList.remove('active'));
   document.getElementById(`tile-print-${method}`).classList.add('active');
   
   updatePrice();
@@ -1284,9 +1375,7 @@ function quickAddToCart(productId) {
     stitchingStyle: 'flatlock',
     printMethod: 'dtg',
     washFinish: 'standard',
-    logoPlacement: 'chest',
-    logoPreset: '',
-    logoDataUrl: '',
+    logos: [],
     quantity: 1,
     basePrice: p.basePrice,
     unitPrice: p.basePrice,
@@ -1329,9 +1418,18 @@ function renderCart() {
     // Draw visual thumbnail inside the cart item card
     const previewBox = document.createElement('div');
     previewBox.className = 'cart-item-preview';
-    // Generate inline SVG thumb scaled down
+    // Generate inline SVG thumb — render first front logo in miniature
     let logoMini = '';
-    if (item.logoPreset) {
+    const cartLogos = item.logos || [];
+    const firstFrontLogo = cartLogos.find(l => l.placement !== 'back');
+    if (firstFrontLogo) {
+      if (firstFrontLogo.preset && LOGO_PRESETS[firstFrontLogo.preset]) {
+        logoMini = `<g transform="translate(15, 15) scale(0.4)" color="${item.secondaryColor}">${LOGO_PRESETS[firstFrontLogo.preset]}</g>`;
+      } else if (firstFrontLogo.dataUrl) {
+        logoMini = `<image href="${firstFrontLogo.dataUrl}" x="15" y="15" width="16" height="16" />`;
+      }
+    } else if (item.logoPreset) {
+      // Backwards compat for old cart items
       logoMini = `<g transform="translate(15, 15) scale(0.4)" color="${item.secondaryColor}">${LOGO_PRESETS[item.logoPreset]}</g>`;
     }
     const svgThumb = APPAREL_SVGS[item.svgType || item.apparelType]?.front(item.primaryColor, item.secondaryColor, logoMini) || '';
@@ -1451,7 +1549,7 @@ async function handlePlaceOrder(event) {
     print_method: item.printMethod,
     wash_finish: item.washFinish,
     quantity: item.quantity,
-    logo_base64: item.logoDataUrl || null,
+    logo_base64: (item.logos || []).find(l => l.dataUrl)?.dataUrl || item.logoDataUrl || null,
     notes: null
   }));
 
@@ -1613,7 +1711,27 @@ function _clearAuthState() {
 
 function handleLogout() {
   _clearAuthState();
-  showToast('Signed out', 'See you soon!', 'info');
+  // Discard all customization changes made during the session
+  const base = state.currentCustomization.basePrice || 1200;
+  state.currentCustomization = {
+    apparelType: state.currentCustomization.apparelType || 'tshirt',
+    svgType: state.currentCustomization.svgType || 'tshirt',
+    fabricType: 'cotton',
+    fabricGrade: 1,
+    size: 'M',
+    primaryColor: '#1e1e24',
+    secondaryColor: '#00f0ff',
+    stitchingStyle: 'flatlock',
+    logos: [],
+    activeLogoIndex: 0,
+    printMethod: 'dtg',
+    washFinish: 'standard',
+    quantity: 1,
+    basePrice: base,
+    unitPrice: base,
+    totalPrice: base
+  };
+  showToast('Signed out', 'Your customization has been discarded.', 'info');
   switchView('landing');
 }
 
@@ -1708,9 +1826,7 @@ function reorder(orderId, items) {
       printMethod: item.print_method,
       washFinish: item.wash_finish,
       quantity: item.quantity,
-      logoDataUrl: '',
-      logoPreset: '',
-      logoPlacement: 'chest',
+      logos: [],
       unitPrice: item.unit_price,
       totalPrice: item.unit_price * item.quantity
     });
