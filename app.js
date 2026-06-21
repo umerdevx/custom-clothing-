@@ -2081,11 +2081,18 @@ async function submitChatMessage(queryText) {
   }
 }
 
+function markdownToHtml(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+}
+
 function renderMessageBubble(text, sender) {
   const container = document.getElementById('chat-messages-container');
   const bubble = document.createElement('div');
   bubble.className = `chat-message ${sender}`;
-  bubble.innerHTML = `<div class="msg-text">${text}</div>`;
+  bubble.innerHTML = `<div class="msg-text">${markdownToHtml(text)}</div>`;
   container.appendChild(bubble);
   container.scrollTop = container.scrollHeight;
   _saveChatHistory();
