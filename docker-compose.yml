@@ -62,7 +62,7 @@ services:
     depends_on:
       n8n:
         condition: service_healthy
-    entrypoint: ["/bin/sh", "/scripts/init-n8n.sh"]
+    entrypoint: ["/bin/sh", "-c", "tr -d '\\r' < /scripts/init-n8n.sh > /tmp/init.sh && sh /tmp/init.sh"]
     environment:
       N8N_URL:      "http://n8n:5678"
       N8N_EMAIL:    ${N8N_EMAIL:-admin@aura-wear.com}
