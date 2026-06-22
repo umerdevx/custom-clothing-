@@ -45,6 +45,31 @@ services:
     volumes:
       - n8n_data:/home/node/.n8n
       - ./n8n/aura-wear-workflow.json:/data/aura-wear-workflow.json:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5678/healthz > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - aura_network
+
+  # ─── n8n Auto-Configurator (runs once on first boot) ──────────────────────
+  n8n-init:
+    image: alpine:3.19
+    container_name: aura_n8n_init
+    restart: "no"
+    depends_on:
+      n8n:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "/scripts/init-n8n.sh"]
+    environment:
+      N8N_URL:      "http://n8n:5678"
+      N8N_EMAIL:    ${N8N_EMAIL:-admin@aura-wear.com}
+      N8N_PASSWORD: ${N8N_PASSWORD:-AuraAdmin2024!}
+    volumes:
+      - ./n8n/init-n8n.sh:/scripts/init-n8n.sh:ro
+      - ./n8n/aura-wear-workflow.json:/data/aura-wear-workflow.json:ro
     networks:
       - aura_network
 
@@ -73,8 +98,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      n8n:
-        condition: service_started
+      n8n-init:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8001/docs')\""]
       interval: 30s
