@@ -49,7 +49,7 @@ def add_toc_entry(doc, text, level=0):
 
     run = para.add_run(text + '\t')
     run.font.name = 'Times New Roman'
-    run.font.size = Pt(12)
+    run.font.size = Pt(11)
     run.bold = (level == 0)
     return para
 
@@ -402,7 +402,7 @@ def add_page_number_footer(doc):
     fldChar2.set(qn('w:fldCharType'), 'end')
     run._r.append(fldChar2)
     run.font.name = 'Times New Roman'
-    run.font.size = Pt(12)
+    run.font.size = Pt(11)
 
 def add_section_break(doc, break_type='nextPage'):
     """Add a section break (nextPage) to start a new section."""
@@ -426,7 +426,7 @@ def add_section_break(doc, break_type='nextPage'):
     return para
 
 def styled_para(doc, text, style_name='Normal', bold=False, italic=False,
-                align=WD_ALIGN_PARAGRAPH.LEFT, size=12, space_before=0,
+                align=WD_ALIGN_PARAGRAPH.LEFT, size=11, space_before=0,
                 space_after=6, font_name='Times New Roman'):
     para = doc.add_paragraph(style=style_name)
     para.alignment = align
@@ -442,20 +442,47 @@ def styled_para(doc, text, style_name='Normal', bold=False, italic=False,
     return para
 
 def heading_para(doc, text, level=1):
-    """Add chapter/section heading with proper style."""
+    """Add heading: H1=14pt, H2=12pt, H3=11pt — all bold, TNR."""
     para = doc.add_paragraph(style=f'Heading {level}')
     para.alignment = WD_ALIGN_PARAGRAPH.LEFT
     para.paragraph_format.space_before = Pt(12)
     para.paragraph_format.space_after = Pt(6)
+    para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
     run = para.add_run(text)
     run.font.name = 'Times New Roman'
     run.font.bold = True
     if level == 1:
-        run.font.size = Pt(14)
+        run.font.size = Pt(14)   # Major heading
     elif level == 2:
-        run.font.size = Pt(13)
+        run.font.size = Pt(12)   # Sub heading
     else:
-        run.font.size = Pt(12)
+        run.font.size = Pt(11)   # Sub-sub heading
+    return para
+
+def table_caption(doc, text):
+    """Add a table caption BEFORE the table (bold, 11pt, centred)."""
+    para = doc.add_paragraph()
+    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    para.paragraph_format.space_before = Pt(6)
+    para.paragraph_format.space_after = Pt(2)
+    para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
+    run = para.add_run(text)
+    run.bold = True
+    run.font.name = 'Times New Roman'
+    run.font.size = Pt(11)
+    return para
+
+def figure_caption(doc, text):
+    """Add a figure caption AFTER the figure (italic, 11pt, centred)."""
+    para = doc.add_paragraph()
+    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    para.paragraph_format.space_before = Pt(2)
+    para.paragraph_format.space_after = Pt(6)
+    para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
+    run = para.add_run(text)
+    run.italic = True
+    run.font.name = 'Times New Roman'
+    run.font.size = Pt(11)
     return para
 
 def chapter_divider(doc, chapter_num, title):
@@ -682,14 +709,15 @@ print(f"  Loaded {len(uc_data)} use cases, {len(ssd_data)} SSDs, {len(tc_data)} 
 print("Building document...")
 doc = Document()
 
-# Set default styles
+# Set default styles — 11pt TNR, 1.5 line spacing, 6pt after
 style = doc.styles['Normal']
 style.font.name = 'Times New Roman'
-style.font.size = Pt(12)
+style.font.size = Pt(11)
 style.paragraph_format.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
+style.paragraph_format.space_after = Pt(6)
 
-# Setup heading styles
-for level, size in [(1, 14), (2, 13), (3, 12)]:
+# Heading styles: H1=14pt, H2=12pt, H3=11pt — all bold, black, TNR
+for level, size in [(1, 14), (2, 12), (3, 11)]:
     h_style = doc.styles[f'Heading {level}']
     h_style.font.name = 'Times New Roman'
     h_style.font.size = Pt(size)
@@ -697,6 +725,17 @@ for level, size in [(1, 14), (2, 13), (3, 12)]:
     h_style.font.color.rgb = RGBColor(0, 0, 0)
     h_style.paragraph_format.space_before = Pt(12)
     h_style.paragraph_format.space_after = Pt(6)
+    h_style.paragraph_format.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
+
+# List bullet style — 11pt TNR
+try:
+    lb = doc.styles['List Bullet']
+    lb.font.name = 'Times New Roman'
+    lb.font.size = Pt(11)
+    lb.paragraph_format.space_after = Pt(6)
+    lb.paragraph_format.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
+except Exception:
+    pass
 
 # Set initial margins
 set_margins(doc.sections[0])
@@ -1171,6 +1210,7 @@ rev_rows = [
     ('v3.0', 'Mar 2026', 'Tech stack upgraded to FastAPI + Python, JWT authentication added, AI chatbot design finalized.', 'Muhammad Umer Javed'),
     ('v4.0', 'Jun 2026', 'Final version: all 56 functional requirements implemented, complete test cases, user manual added.', 'Both Authors'),
 ]
+table_caption(doc, 'Table 1: Revision History')
 add_simple_table(doc, ['Version', 'Date', 'Description', 'Author'], rev_rows,
                  col_widths=[0.7, 0.8, 3.6, 1.4])
 doc.add_paragraph()
@@ -1265,6 +1305,7 @@ survey_rows = [
     ('Spreadshirt', 'No', 'Basic', 'Limited', 'Yes', 'Yes'),
     ('AURA-WEAR', 'Yes (RAG)', 'Yes (Canvas)', 'Yes (Full)', 'Yes (Dynamic)', 'Yes'),
 ]
+table_caption(doc, 'Table 2: Comparative Survey of Custom Clothing Platforms')
 add_simple_table(doc, ['System Name','AI Chatbot','2D Preview','Custom Fabric','Real-Time Pricing','Order Tracking'],
                  survey_rows, col_widths=[1.3, 1.1, 1.1, 1.1, 1.3, 1.1])
 doc.add_paragraph()
@@ -1369,10 +1410,7 @@ if os.path.exists(img_path):
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.add_run().add_picture(img_path, width=Inches(3.5))
-    p2 = doc.add_paragraph()
-    p2.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r = p2.add_run('Figure 1: Activity Diagram — Customer Order Flow')
-    r.italic = True; r.font.name = 'Times New Roman'; r.font.size = Pt(11)
+    figure_caption(doc, 'Figure 1: Activity Diagram — Customer Order Flow')
 
 doc.add_paragraph()
 
@@ -1382,10 +1420,7 @@ if os.path.exists(img_path):
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.add_run().add_picture(img_path, width=Inches(5.5))
-    p2 = doc.add_paragraph()
-    p2.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r = p2.add_run('Figure 2: System Architecture Diagram — 4-Tier Layered Architecture')
-    r.italic = True; r.font.name = 'Times New Roman'; r.font.size = Pt(11)
+    figure_caption(doc, 'Figure 2: System Architecture Diagram — 4-Tier Layered Architecture')
 
 heading_para(doc, '1.11  Process Model Used', 2)
 styled_para(doc,
@@ -1507,6 +1542,7 @@ defn_rows = [
     ('HTTPS', 'Hypertext Transfer Protocol Secure: encrypted version of HTTP using TLS.'),
     ('TLS', 'Transport Layer Security: cryptographic protocol for secure internet communications.'),
 ]
+table_caption(doc, 'Table 3: Glossary of Terms and Abbreviations')
 add_simple_table(doc, ['Term', 'Definition'], defn_rows, col_widths=[1.3, 5.2])
 doc.add_paragraph()
 
@@ -1700,10 +1736,7 @@ else:
     r = p.add_run('[Use Case Diagram — AURA-WEAR]')
     r.italic = True; r.font.name = 'Times New Roman'; r.font.size = Pt(11)
 
-p2 = doc.add_paragraph()
-p2.alignment = WD_ALIGN_PARAGRAPH.CENTER
-r = p2.add_run('Figure 3: Use Case Diagram — AURA-WEAR AI-Integrated Custom Clothing Website')
-r.italic = True; r.font.name = 'Times New Roman'; r.font.size = Pt(11)
+figure_caption(doc, 'Figure 3: Use Case Diagram — AURA-WEAR AI-Integrated Custom Clothing Website')
 
 heading_para(doc, '3.2  Fully Dressed Use Cases', 2)
 styled_para(doc,
@@ -1716,6 +1749,7 @@ styled_para(doc,
 for i, uc in enumerate(uc_data):
     uc_name = uc.get('Use Case Name', f'UC-{i+1:02d}')
     heading_para(doc, f'UC-{i+1:02d}: {uc_name}', 3)
+    table_caption(doc, f'Table UC-{i+1:02d}: Use Case — {uc_name}')
     add_uc_table(doc, uc)
     doc.add_paragraph()
 
@@ -1728,13 +1762,11 @@ styled_para(doc,
     align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=6)
 
 # Domain model — no dedicated image, show table only
-p = doc.add_paragraph()
-p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-r = p.add_run('Figure 4: Domain Model — AURA-WEAR Entity Relationships (see table below)')
-r.italic = True; r.font.name = 'Times New Roman'; r.font.size = Pt(11)
+figure_caption(doc, 'Figure 4: Domain Model — AURA-WEAR Entity Relationships (see table below)')
 
 # Domain model table
 if domain_rows:
+    table_caption(doc, 'Table 4: Domain Model — Key Entities and Relationships')
     add_simple_table(doc, domain_rows[0], domain_rows[1:], col_widths=[1.5, 2.5, 2.5])
     doc.add_paragraph()
 
@@ -1755,14 +1787,12 @@ for ssd_img_path, ssd_caption in [
         p = doc.add_paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p.add_run().add_picture(ssd_img_path, width=Inches(5.5))
-        p2 = doc.add_paragraph()
-        p2.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        r = p2.add_run(ssd_caption)
-        r.italic = True; r.font.name = 'Times New Roman'; r.font.size = Pt(11)
+        figure_caption(doc, ssd_caption)
         doc.add_paragraph()
 
 for i, (title, rows) in enumerate(zip(ssd_titles, ssd_data)):
     heading_para(doc, title, 3)
+    table_caption(doc, f'Table SSD-{i+1:02d}: {title}')
     add_ssd_table(doc, rows[1:], title)
     doc.add_paragraph()
 
@@ -1780,14 +1810,12 @@ if os.path.exists(img_path):
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.add_run().add_picture(img_path, width=Inches(5.8))
-    p2 = doc.add_paragraph()
-    p2.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r = p2.add_run('Figure 8: Entity-Relationship (ER) Diagram — AURA-WEAR Database Schema')
-    r.italic = True; r.font.name = 'Times New Roman'; r.font.size = Pt(11)
+    figure_caption(doc, 'Figure 8: Entity-Relationship (ER) Diagram — AURA-WEAR Database Schema')
 
 for schema_name, schema_rows in zip(schema_names, schema_tables):
-    heading_para(doc, f'Table: {schema_name}', 3)
+    heading_para(doc, schema_name, 3)
     if len(schema_rows) > 1:
+        table_caption(doc, f'Table: {schema_name} — Schema Definition')
         add_simple_table(doc, schema_rows[0], schema_rows[1:], col_widths=[2.0, 1.8, 2.7])
     doc.add_paragraph()
 
@@ -1805,12 +1833,10 @@ styled_para(doc,
     align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=6)
 
 # No separate class diagram image — table represents the class structure
-p = doc.add_paragraph()
-p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-r = p.add_run('Figure 9: Class Diagram — AURA-WEAR System Classes and Relationships (tabular representation below)')
-r.italic = True; r.font.name = 'Times New Roman'; r.font.size = Pt(11)
+figure_caption(doc, 'Figure 9: Class Diagram — AURA-WEAR System Classes and Relationships (tabular representation below)')
 
 if len(class_table_rows) > 1:
+    table_caption(doc, 'Table 5: Class Diagram — AURA-WEAR System Classes and Attributes')
     add_simple_table(doc, class_table_rows[0], class_table_rows[1:],
                      col_widths=[1.5, 2.0, 1.8, 1.2])
 doc.add_paragraph()
@@ -1978,6 +2004,7 @@ styled_para(doc,
     align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=6)
 
 if len(query_rows) > 1:
+    table_caption(doc, 'Table 6: Sample SQL Queries — AURA-WEAR Core Data Access Operations')
     add_simple_table(doc, query_rows[0], query_rows[1:], col_widths=[2.3, 4.2])
 doc.add_paragraph()
 
@@ -1999,6 +2026,7 @@ styled_para(doc,
 for i, tc in enumerate(tc_data):
     tc_name = tc.get('Test Case Name', f'TC-{i+1:02d}')
     heading_para(doc, f'TC-{i+1:02d} {tc_name}', 3)
+    table_caption(doc, f'Table TC-{i+1:02d}: Test Case — {tc_name}')
     add_tc_table(doc, tc)
     doc.add_paragraph()
 
