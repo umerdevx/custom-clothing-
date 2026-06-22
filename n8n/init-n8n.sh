@@ -15,7 +15,7 @@ log() { echo "[n8n-init] $*"; }
 # ── 1. Wait for n8n to be ready ──────────────────────────────────────────────
 log "Waiting for n8n at ${N8N_URL}..."
 ATTEMPTS=0
-until curl -sf "${N8N_URL}/healthz" > /dev/null 2>&1; do
+until curl -sf "${N8N_URL}/rest/settings" > /dev/null 2>&1; do
   ATTEMPTS=$((ATTEMPTS + 1))
   if [ "$ATTEMPTS" -ge 90 ]; then
     log "ERROR: n8n did not become ready after 270 seconds. Giving up."
@@ -51,7 +51,7 @@ LOGIN_CODE=$(curl -s -c "$COOKIE_JAR" -b "$COOKIE_JAR" \
   -o /tmp/login_resp.json -w "%{http_code}" \
   -X POST "${N8N_URL}/rest/login" \
   -H "Content-Type: application/json" \
-  -d "{\"email\":\"${N8N_EMAIL}\",\"password\":\"${N8N_PASSWORD}\"}")
+  -d "{\"emailOrLdapLoginId\":\"${N8N_EMAIL}\",\"password\":\"${N8N_PASSWORD}\"}")
 
 if [ "$LOGIN_CODE" != "200" ]; then
   log "ERROR: Login failed (HTTP ${LOGIN_CODE})."
