@@ -26,27 +26,339 @@ def set_cell_bg(cell, hex_color):
     shd.set(qn('w:fill'), hex_color)
     tcPr.append(shd)
 
-def add_toc(doc):
-    """Insert a TOC field that Word will populate on open."""
+def add_toc_entry(doc, text, level=0):
+    """Add a single TOC line with dot leaders using a tab stop."""
     para = doc.add_paragraph()
-    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = para.add_run()
-    fldChar = OxmlElement('w:fldChar')
-    fldChar.set(qn('w:fldCharType'), 'begin')
-    run._r.append(fldChar)
-    run2 = para.add_run()
-    instrText = OxmlElement('w:instrText')
-    instrText.set(qn('xml:space'), 'preserve')
-    instrText.text = ' TOC \\o "1-3" \\h \\z \\u '
-    run2._r.append(instrText)
-    run3 = para.add_run()
-    fldChar2 = OxmlElement('w:fldChar')
-    fldChar2.set(qn('w:fldCharType'), 'separate')
-    run3._r.append(fldChar2)
-    run4 = para.add_run()
-    fldChar3 = OxmlElement('w:fldChar')
-    fldChar3.set(qn('w:fldCharType'), 'end')
-    run4._r.append(fldChar3)
+    para.paragraph_format.space_before = Pt(0)
+    para.paragraph_format.space_after = Pt(1)
+    para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+
+    # Indent by level
+    indent_map = {0: 0, 1: Inches(0.25), 2: Inches(0.5), 3: Inches(0.75)}
+    para.paragraph_format.left_indent = indent_map.get(level, Inches(0.75))
+
+    # Right-aligned tab with dot leader at 5.8"
+    pPr = para._p.get_or_add_pPr()
+    tabs_el = OxmlElement('w:tabs')
+    tab_el = OxmlElement('w:tab')
+    tab_el.set(qn('w:val'), 'right')
+    tab_el.set(qn('w:leader'), 'dot')
+    tab_el.set(qn('w:pos'), '8352')   # ~5.8 inches in twips (1" = 1440)
+    tabs_el.append(tab_el)
+    pPr.append(tabs_el)
+
+    run = para.add_run(text + '\t')
+    run.font.name = 'Times New Roman'
+    run.font.size = Pt(12)
+    run.bold = (level == 0)
+    return para
+
+
+def add_manual_toc(doc):
+    """Build the complete static Table of Contents matching FUUAST template style."""
+
+    toc_entries = [
+        # (text, level)
+        # ── FRONT MATTER ──────────────────────────────────────────────────────
+        ('CHAPTER # 1: PROPOSAL', 0),
+        ('Revision History', 1),
+        ('1.1  Introduction', 1),
+        ('1.2  Problem Statement', 1),
+        ('1.3  Proposed System', 1),
+        ('1.4  Benefits of the Proposed System', 1),
+        ('1.5  Scope', 1),
+        ('1.6  Survey Analysis', 1),
+        ('1.6.1  Survey Analysis Table', 2),
+        ('1.7  Modules & Submodules', 1),
+        ('1.7.1  Security Management', 2),
+        ('1.7.2  User Profile Management', 2),
+        ('1.7.3  Product Catalog Management', 2),
+        ('1.7.4  Product Customization', 2),
+        ('1.7.5  AI Chatbot Management', 2),
+        ('1.7.6  Order Management', 2),
+        ('1.7.7  Payment Management', 2),
+        ('1.7.8  Admin Dashboard Management', 2),
+        ('1.8  Primary Actor', 1),
+        ('1.9  Tools & Technologies', 1),
+        ('1.9.1  Front-End Tools', 2),
+        ('1.9.2  Back-End Tools', 2),
+        ('1.9.3  AI / Automation Tools', 2),
+        ('1.9.4  Database', 2),
+        ('1.9.5  Deployment', 2),
+        ('1.10  System Design Approach', 1),
+        ('1.11  Process Model Used', 1),
+        ('1.12  Modelling Techniques / Tools Used', 1),
+        ('1.13  Limitation / Constraint', 1),
+        ('1.14  References', 1),
+
+        # ── CHAPTER 2 ─────────────────────────────────────────────────────────
+        ('CHAPTER # 2: ANALYSIS', 0),
+        ('2.1  Introduction', 1),
+        ('2.1.1  Purpose', 2),
+        ('2.1.2  Scope', 2),
+        ('2.1.3  Definitions, Acronyms, and Abbreviations', 2),
+        ('2.1.4  Overview', 2),
+        ('2.2  Functional Requirements', 1),
+        ('2.2.1  Security Management', 2),
+        ('2.2.1.1  Process SignUp', 3),
+        ('2.2.1.2  Process SignIn', 3),
+        ('2.2.1.3  Forgot Password', 3),
+        ('2.2.1.4  Change Account Password', 3),
+        ('2.2.1.5  JWT Authentication', 3),
+        ('2.2.1.6  OTP Verification', 3),
+        ('2.2.1.7  Role-Based Access Control', 3),
+        ('2.2.1.8  Session Management', 3),
+        ('2.2.2  User Profile Management', 2),
+        ('2.2.2.1  Add Customer Profile', 3),
+        ('2.2.2.2  Update Customer Profile', 3),
+        ('2.2.2.3  View Customer Profile', 3),
+        ('2.2.2.4  Manage Customer Account Status', 3),
+        ('2.2.3  Product Catalog Management', 2),
+        ('2.2.3.1  Add New Product', 3),
+        ('2.2.3.2  Update Product Details', 3),
+        ('2.2.3.3  Enable or Disable Product', 3),
+        ('2.2.3.4  Search Product', 3),
+        ('2.2.3.5  View All Products', 3),
+        ('2.2.3.6  Filter Products by Category', 3),
+        ('2.2.4  Product Customization', 2),
+        ('2.2.4.1  Select Fabric Type', 3),
+        ('2.2.4.2  Select Color', 3),
+        ('2.2.4.3  Upload Custom Logo', 3),
+        ('2.2.4.4  Select Stitching Style', 3),
+        ('2.2.4.5  Select Print Method', 3),
+        ('2.2.4.6  Select Wash Effect', 3),
+        ('2.2.4.7  View Real-Time 2D Design Preview', 3),
+        ('2.2.4.8  Calculate Dynamic Price', 3),
+        ('2.2.5  AI Chatbot Management', 2),
+        ('2.2.5.1  Send Query to Chatbot', 3),
+        ('2.2.5.2  Get AI Design Recommendation (RAG)', 3),
+        ('2.2.5.3  View FAQ via Chatbot', 3),
+        ('2.2.5.4  View Chat History', 3),
+        ('2.2.5.5  Admin Manage FAQ Entries', 3),
+        ('2.2.6  Order Management', 2),
+        ('2.2.6.1  Create New Order', 3),
+        ('2.2.6.2  Search Order History', 3),
+        ('2.2.6.3  View Order History', 3),
+        ('2.2.6.4  Cancel Order', 3),
+        ('2.2.6.5  Track Order Status', 3),
+        ('2.2.6.6  Reorder Previous Order', 3),
+        ('2.2.7  Payment Management', 2),
+        ('2.2.7.1  Record Online Payment', 3),
+        ('2.2.7.2  Record Cash on Delivery', 3),
+        ('2.2.7.3  Generate Digital Receipt', 3),
+        ('2.2.7.4  View All Payments and Transactions', 3),
+        ('2.2.7.5  Download Invoice', 3),
+        ('2.2.8  Admin Dashboard Management', 2),
+        ('2.2.8.1  Manage Products (Admin)', 3),
+        ('2.2.8.2  Manage Customer Accounts (Admin)', 3),
+        ('2.2.8.3  View and Update Order Management (Admin)', 3),
+        ('2.2.8.4  View Inventory and Stock Alerts (Admin)', 3),
+        ('2.2.8.5  Generate Sales Report', 3),
+        ('2.2.8.6  Generate Order Report', 3),
+        ('2.2.8.7  View Analytics Dashboard', 3),
+        ('2.2.8.8  Send Notification to Customers', 3),
+        ('2.2.8.9  Manage Content (Terms, Privacy, FAQ)', 3),
+        ('2.2.8.10  Manage Coupon/Promo Codes', 3),
+        ('2.2.8.11  Export Data as CSV', 3),
+        ('2.3  Non-Functional Requirements', 1),
+        ('2.3.1  Performance Requirements', 2),
+        ('2.3.2  Usability Requirements', 2),
+        ('2.3.3  Security Requirements', 2),
+        ('2.3.4  Reliability Requirements', 2),
+        ('2.3.5  Scalability Requirements', 2),
+        ('2.3.6  Maintainability & Support Requirements', 2),
+        ('2.3.7  Compatibility Requirements', 2),
+        ('2.3.8  Support Requirements', 2),
+        ('2.4  External Interface Requirements', 1),
+        ('2.4.1  User Interfaces', 2),
+        ('2.4.2  Hardware Interfaces', 2),
+        ('2.4.3  Software Interfaces', 2),
+        ('2.4.4  Communication Interfaces', 2),
+
+        # ── CHAPTER 3 ─────────────────────────────────────────────────────────
+        ('CHAPTER # 3: DESIGN', 0),
+        ('3.1  Use Case Diagram', 1),
+        ('3.2  Fully Dressed Use Cases', 1),
+        ('UC-01: Process SignUp', 2),
+        ('UC-02: Process SignIn', 2),
+        ('UC-03: Forgot Password', 2),
+        ('UC-04: Change Account Password', 2),
+        ('UC-05: JWT Authentication', 2),
+        ('UC-06: OTP Verification', 2),
+        ('UC-07: Role-Based Access Control', 2),
+        ('UC-08: Session Management', 2),
+        ('UC-09: Add Customer Profile', 2),
+        ('UC-10: Update Customer Profile', 2),
+        ('UC-11: View Customer Profile', 2),
+        ('UC-12: Manage Customer Account Status', 2),
+        ('UC-13: Add New Product', 2),
+        ('UC-14: Update Product Details', 2),
+        ('UC-15: Enable or Disable Product', 2),
+        ('UC-16: Search Product', 2),
+        ('UC-17: View All Products', 2),
+        ('UC-18: Filter Products by Category', 2),
+        ('UC-19: Select Fabric Type', 2),
+        ('UC-20: Select Color', 2),
+        ('UC-21: Upload Custom Logo', 2),
+        ('UC-22: Select Stitching Style', 2),
+        ('UC-23: Select Print Method', 2),
+        ('UC-24: Select Wash Effect', 2),
+        ('UC-25: View Real-Time 2D Design Preview', 2),
+        ('UC-26: Calculate Dynamic Price', 2),
+        ('UC-27: Send Query to Chatbot', 2),
+        ('UC-28: Get AI Design Recommendation (RAG)', 2),
+        ('UC-29: View FAQ via Chatbot', 2),
+        ('UC-30: View Chat History', 2),
+        ('UC-31: Admin Manage FAQ Entries', 2),
+        ('UC-32: Create New Order', 2),
+        ('UC-33: Search Order History', 2),
+        ('UC-34: View Order History', 2),
+        ('UC-35: Cancel Order', 2),
+        ('UC-36: Track Order Status', 2),
+        ('UC-37: Reorder Previous Order', 2),
+        ('UC-38: Record Online Payment', 2),
+        ('UC-39: Record Cash on Delivery', 2),
+        ('UC-40: Generate Digital Receipt', 2),
+        ('UC-41: View All Payments and Transactions', 2),
+        ('UC-42: Download Invoice', 2),
+        ('UC-43: Manage Products — Admin', 2),
+        ('UC-44: Manage Customer Accounts — Admin', 2),
+        ('UC-45: View and Update Order Management — Admin', 2),
+        ('UC-46: View Inventory and Stock Alerts — Admin', 2),
+        ('UC-47: Generate Sales Report', 2),
+        ('UC-48: Generate Order Report', 2),
+        ('UC-49: View Analytics Dashboard', 2),
+        ('UC-50: Send Notification to Customers', 2),
+        ('UC-51: Manage Content — Terms, Privacy, FAQ', 2),
+        ('UC-52: Manage Coupon/Promo Codes', 2),
+        ('UC-53: Export Data as CSV', 2),
+        ('UC-54: Manage Admin Users', 2),
+        ('UC-55: View Customer Reviews', 2),
+        ('UC-56: Generate Performance Report', 2),
+        ('3.3  Domain Model', 1),
+        ('3.4  System Sequence Diagrams', 1),
+        ('SSD:1  Process SignUp', 2),
+        ('SSD:2  Process SignIn', 2),
+        ('SSD:3  Forgot Password', 2),
+        ('SSD:4  Reset Password', 2),
+        ('SSD:5 — SSD:56  (All System Sequence Diagrams)', 2),
+        ('3.5  Schema Diagram', 1),
+        ('Table: users', 2),
+        ('Table: products', 2),
+        ('Table: orders', 2),
+        ('Table: order_items', 2),
+        ('Table: payments', 2),
+        ('Table: chat_logs', 2),
+        ('Table: inventory', 2),
+        ('Table: coupons', 2),
+        ('Table: faq', 2),
+
+        # ── CHAPTER 4 ─────────────────────────────────────────────────────────
+        ('CHAPTER # 4: CONSTRUCTION', 0),
+        ('4.1  Class Diagram', 1),
+        ('4.2  Project Code (Business Logic)', 1),
+        ('4.2.1  Backend: FastAPI Routes', 2),
+        ('4.2.2  Frontend: JavaScript Logic', 2),
+        ('4.3  Sample Queries', 1),
+
+        # ── CHAPTER 5 ─────────────────────────────────────────────────────────
+        ('CHAPTER # 5: TESTING', 0),
+        ('5.1  Test Cases', 1),
+        ('TC-01  Process SignUp', 2),
+        ('TC-02  Process SignIn', 2),
+        ('TC-03  Forgot Password', 2),
+        ('TC-04  Change Account Password', 2),
+        ('TC-05  JWT Authentication', 2),
+        ('TC-06  OTP Verification', 2),
+        ('TC-07  Role-Based Access Control', 2),
+        ('TC-08  Session Management', 2),
+        ('TC-09  Add Customer Profile', 2),
+        ('TC-10  Update Customer Profile', 2),
+        ('TC-11  View Customer Profile', 2),
+        ('TC-12  Manage Customer Account Status', 2),
+        ('TC-13  Add New Product', 2),
+        ('TC-14  Update Product Details', 2),
+        ('TC-15  Enable or Disable Product', 2),
+        ('TC-16  Search Product', 2),
+        ('TC-17  View All Products', 2),
+        ('TC-18  Filter Products by Category', 2),
+        ('TC-19  Select Fabric Type', 2),
+        ('TC-20  Select Color', 2),
+        ('TC-21  Upload Custom Logo', 2),
+        ('TC-22  Select Stitching Style', 2),
+        ('TC-23  Select Print Method', 2),
+        ('TC-24  Select Wash Effect', 2),
+        ('TC-25  View Real-Time 2D Design Preview', 2),
+        ('TC-26  Calculate Dynamic Price', 2),
+        ('TC-27  Send Query to Chatbot', 2),
+        ('TC-28  Get AI Design Recommendation (RAG)', 2),
+        ('TC-29  View FAQ via Chatbot', 2),
+        ('TC-30  View Chat History', 2),
+        ('TC-31  Admin Manage FAQ Entries', 2),
+        ('TC-32  Create New Order', 2),
+        ('TC-33  Search Order History', 2),
+        ('TC-34  View Order History', 2),
+        ('TC-35  Cancel Order', 2),
+        ('TC-36  Track Order Status', 2),
+        ('TC-37  Reorder Previous Order', 2),
+        ('TC-38  Record Online Payment', 2),
+        ('TC-39  Record Cash on Delivery', 2),
+        ('TC-40  Generate Digital Receipt', 2),
+        ('TC-41  View All Payments and Transactions', 2),
+        ('TC-42  Download Invoice', 2),
+        ('TC-43  Manage Products — Admin', 2),
+        ('TC-44  Manage Customer Accounts — Admin', 2),
+        ('TC-45  View and Update Order Management — Admin', 2),
+        ('TC-46  View Inventory and Stock Alerts — Admin', 2),
+        ('TC-47  Generate Sales Report', 2),
+        ('TC-48  Generate Order Report', 2),
+        ('TC-49  View Analytics Dashboard', 2),
+        ('TC-50  Send Notification to Customers', 2),
+        ('TC-51  Manage Content', 2),
+        ('TC-52  Manage Coupon/Promo Codes', 2),
+        ('TC-53  Export Data as CSV', 2),
+        ('TC-54  Manage Admin Users', 2),
+        ('TC-55  View Customer Reviews', 2),
+        ('TC-56  Generate Performance Report', 2),
+
+        # ── CHAPTER 6 ─────────────────────────────────────────────────────────
+        ('CHAPTER # 6: USER MANUAL', 0),
+        ('User Roles in this Application', 1),
+        ('6.1  Screenshots', 1),
+        ('6.1.1  Landing / Home Page', 2),
+        ('6.1.2  Registration Screen', 2),
+        ('6.1.3  Sign In Screen', 2),
+        ('6.1.4  Forgot Password Screen', 2),
+        ('6.1.5  OTP Verification Screen', 2),
+        ('6.1.6  Change Password Screen', 2),
+        ('6.1.7  Product Catalog Screen', 2),
+        ('6.1.8  Product Detail Screen', 2),
+        ('6.1.9  Product Customization Screen (Designer)', 2),
+        ('6.1.10  Real-Time 2D Preview Panel', 2),
+        ('6.1.11  Logo Upload Section', 2),
+        ('6.1.12  AI Chatbot Widget', 2),
+        ('6.1.13  Shopping Cart Screen', 2),
+        ('6.1.14  Checkout Screen', 2),
+        ('6.1.15  Order Confirmation Screen', 2),
+        ('6.1.16  Order History Screen', 2),
+        ('6.1.17  Order Detail Screen', 2),
+        ('6.1.18  Order Tracking Screen', 2),
+        ('6.1.19  Payment History Screen', 2),
+        ('6.1.20  Customer Profile Screen', 2),
+        ('6.1.21  Admin Login Screen', 2),
+        ('6.1.22  Admin Dashboard', 2),
+        ('6.1.23  Customer Management Screen', 2),
+        ('6.1.24  Product Management Screen', 2),
+        ('6.1.25  Order Management Screen (Admin)', 2),
+        ('6.1.26  Payment Management Screen', 2),
+        ('6.1.27  Inventory Management Screen', 2),
+        ('6.1.28  Reports Screen', 2),
+        ('6.1.29  Coupon Management Screen', 2),
+        ('6.1.30  Content Management Screen', 2),
+    ]
+
+    for text, level in toc_entries:
+        add_toc_entry(doc, text, level)
 
 def set_page_number_roman(section):
     """Set page numbers to Roman numerals for a section."""
@@ -839,15 +1151,8 @@ r = p.add_run('TABLE OF CONTENTS')
 r.bold = True; r.font.name = 'Times New Roman'; r.font.size = Pt(16)
 
 doc.add_paragraph()
-add_toc(doc)
+add_manual_toc(doc)
 doc.add_paragraph()
-
-# Note for user
-p = doc.add_paragraph()
-p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-r = p.add_run('(Right-click the Table of Contents above and select "Update Field" to generate page numbers in Word)')
-r.italic = True; r.font.name = 'Times New Roman'; r.font.size = Pt(10)
-r.font.color.rgb = RGBColor(128, 128, 128)
 
 # Add footer with page numbers for front matter
 add_page_number_footer(doc)
