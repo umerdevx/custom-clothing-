@@ -287,6 +287,7 @@
             <button class="tab-btn" onclick="switchControlTab('fabric')">Fabric</button>
             <button class="tab-btn" onclick="switchControlTab('design')">Design</button>
             <button class="tab-btn" onclick="switchControlTab('logo')">Logo & Finish</button>
+            <button class="tab-btn tab-btn-ai" onclick="switchControlTab('aigen')"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Image</button>
           </div>
 
           <!-- TAB 1: Base Apparel Choice -->
@@ -554,6 +555,86 @@
             </div>
           </div>
 
+          <!-- TAB 5: AI Image Generation -->
+          <div class="tab-content" id="tab-aigen">
+
+            <!-- Step 1: Category Selection -->
+            <div id="aigen-step-category" class="aigen-step">
+              <div class="control-group">
+                <label class="group-title"><i class="fa-solid fa-layer-group"></i> Step 1 — Choose Garment Type</label>
+                <p class="hint-text">Select the type of clothing you want to design.</p>
+                <div class="tile-grid">
+                  <div class="tile-card" onclick="selectAIGenCategory('tshirt')" id="aigen-tile-tshirt">
+                    <i class="fa-solid fa-shirt"></i>
+                    <span>T-Shirt</span>
+                  </div>
+                  <div class="tile-card" onclick="selectAIGenCategory('hoodie')" id="aigen-tile-hoodie">
+                    <i class="fa-solid fa-circle-user"></i>
+                    <span>Hoodie</span>
+                  </div>
+                  <div class="tile-card" onclick="selectAIGenCategory('jacket')" id="aigen-tile-jacket">
+                    <i class="fa-solid fa-vest"></i>
+                    <span>Jacket</span>
+                  </div>
+                  <div class="tile-card" onclick="selectAIGenCategory('uniform')" id="aigen-tile-uniform">
+                    <i class="fa-solid fa-person-running"></i>
+                    <span>Sport Jersey</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2: Prompt Input (revealed after category pick) -->
+            <div id="aigen-step-prompt" class="aigen-step" style="display:none">
+              <div class="control-group">
+                <label class="group-title">
+                  <i class="fa-solid fa-pen-nib"></i> Step 2 — Describe Your Design
+                  <button class="btn btn-sm btn-text" style="font-size:0.75rem;margin-left:auto" onclick="resetAIGenCategory()">
+                    <i class="fa-solid fa-arrow-left"></i> Change Type
+                  </button>
+                </label>
+                <div id="aigen-selected-badge" class="aigen-badge"></div>
+                <textarea id="aigen-prompt-input"
+                  class="aigen-prompt-textarea"
+                  rows="4"
+                  placeholder="e.g. Dark navy with orange flame graphics on the chest, streetwear vibe, bold typography saying AURA on the back…"></textarea>
+                <p class="hint-text"><i class="fa-solid fa-circle-info"></i> Be specific — colors, patterns, graphics, mood, placement.</p>
+              </div>
+              <button class="btn btn-primary btn-grow" id="aigen-generate-btn" onclick="generateAIImage()">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Design
+              </button>
+            </div>
+
+            <!-- Step 3: Result Display -->
+            <div id="aigen-step-result" class="aigen-step" style="display:none">
+              <div class="control-group">
+                <label class="group-title"><i class="fa-solid fa-image"></i> Generated Design</label>
+                <div class="aigen-result-box">
+                  <img id="aigen-result-img" src="" alt="AI Generated Design" class="aigen-result-img" />
+                </div>
+                <div class="aigen-result-actions">
+                  <button class="btn btn-outline btn-sm" onclick="useAIImageAsLogo()">
+                    <i class="fa-solid fa-plus"></i> Use as Logo
+                  </button>
+                  <button class="btn btn-outline btn-sm" onclick="downloadAIImage()">
+                    <i class="fa-solid fa-download"></i> Download
+                  </button>
+                  <button class="btn btn-sm btn-text" onclick="resetAIGen()">
+                    <i class="fa-solid fa-rotate-left"></i> Generate Again
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="aigen-loading" class="aigen-loading" style="display:none">
+              <div class="aigen-spinner"></div>
+              <p>AURA AI is generating your design…</p>
+              <small class="hint-text">This may take 10–20 seconds</small>
+            </div>
+
+          </div>
+
           <!-- Checkout / Action Footer -->
           <div class="controls-footer">
             <div class="qty-selector">
@@ -694,6 +775,7 @@
               <div class="log-list">
                 <div class="log-item"><span class="log-time">Live</span><span class="log-msg"><strong class="text-info"><i class="fa-solid fa-database"></i> Database</strong> PostgreSQL connected via SQLAlchemy asyncpg engine.</span></div>
                 <div class="log-item"><span class="log-time">Live</span><span class="log-msg"><strong class="text-info"><i class="fa-solid fa-robot"></i> Gemini AI</strong> Chat endpoint active — Google Gemini Flash (gemini-flash-latest) with RAG retrieval.</span></div>
+                <div class="log-item"><span class="log-time">Live</span><span class="log-msg"><strong class="text-info"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Image Gen</strong> Design image endpoint active — Flux model via Pollinations.ai (no API key required).</span></div>
                 <div class="log-item"><span class="log-time">Live</span><span class="log-msg"><strong class="text-info"><i class="fa-solid fa-cube"></i> 3D Engine</strong> Three.js WebGL renderer active — interactive garment preview enabled.</span></div>
                 <div class="log-item"><span class="log-time">Live</span><span class="log-msg"><strong class="text-info"><i class="fa-solid fa-lock"></i> Auth</strong> JWT authentication enabled.</span></div>
               </div>

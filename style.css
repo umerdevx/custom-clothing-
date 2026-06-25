@@ -2663,3 +2663,103 @@ select.select-input:focus, .catalog-filters select:focus {
   from { opacity: 1; transform: translateX(0); }
   to   { opacity: 0; transform: translateX(50px); }
 }
+
+/* ==========================================================================
+   AI IMAGE GENERATION TAB
+   ========================================================================== */
+
+.tab-btn-ai {
+  background: linear-gradient(135deg, rgba(0,255,213,0.12), rgba(120,80,255,0.12));
+  border: 1px solid rgba(0,255,213,0.25);
+  color: var(--teal-neon);
+  font-weight: 600;
+  gap: 0.35rem;
+}
+.tab-btn-ai.active {
+  background: linear-gradient(135deg, rgba(0,255,213,0.25), rgba(120,80,255,0.25));
+  border-color: var(--teal-neon);
+}
+
+.aigen-step { animation: fadeInUp 0.25s ease; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.aigen-badge { margin-bottom: 0.6rem; }
+.aigen-badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(0,255,213,0.12);
+  border: 1px solid rgba(0,255,213,0.35);
+  color: var(--teal-neon);
+  border-radius: 20px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.aigen-prompt-textarea {
+  width: 100%;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  color: #fff;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  resize: vertical;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  transition: border-color 0.2s;
+}
+.aigen-prompt-textarea:focus {
+  outline: none;
+  border-color: var(--teal-neon);
+}
+.aigen-prompt-textarea::placeholder { color: var(--text-muted); }
+
+.aigen-result-box {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+}
+.aigen-result-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 10px;
+}
+.aigen-result-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.aigen-loading {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+.aigen-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid rgba(0,255,213,0.15);
+  border-top-color: var(--teal-neon);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

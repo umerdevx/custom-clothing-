@@ -1233,6 +1233,113 @@ function switchControlTab(tabId) {
   if (tabId === 'logo') renderLogoEditor();
 }
 
+// ── AI Image Generation ───────────────────────────────────────────────────────
+
+let _aiGenCategory = null;
+let _aiGenImageBase64 = null;
+let _aiGenMimeType = 'image/png';
+
+const AIGEN_LABELS = {
+  tshirt:  'T-Shirt',
+  hoodie:  'Hoodie',
+  jacket:  'Jacket',
+  uniform: 'Sport Jersey',
+};
+
+function selectAIGenCategory(category) {
+  _aiGenCategory = category;
+
+  document.querySelectorAll('[id^="aigen-tile-"]').forEach(t => t.classList.remove('active'));
+  document.getElementById(`aigen-tile-${category}`)?.classList.add('active');
+
+  document.getElementById('aigen-selected-badge').innerHTML =
+    `<span class="aigen-badge-chip"><i class="fa-solid fa-check"></i> ${AIGEN_LABELS[category] || category}</span>`;
+
+  document.getElementById('aigen-step-category').style.display = 'none';
+  document.getElementById('aigen-step-prompt').style.display = '';
+  document.getElementById('aigen-prompt-input').focus();
+}
+
+function resetAIGenCategory() {
+  _aiGenCategory = null;
+  document.getElementById('aigen-step-category').style.display = '';
+  document.getElementById('aigen-step-prompt').style.display = 'none';
+  document.getElementById('aigen-step-result').style.display = 'none';
+  document.getElementById('aigen-loading').style.display = 'none';
+  document.querySelectorAll('[id^="aigen-tile-"]').forEach(t => t.classList.remove('active'));
+}
+
+function resetAIGen() {
+  document.getElementById('aigen-step-result').style.display = 'none';
+  document.getElementById('aigen-step-prompt').style.display = '';
+  document.getElementById('aigen-prompt-input').value = '';
+  document.getElementById('aigen-prompt-input').focus();
+}
+
+async function generateAIImage() {
+  const prompt = document.getElementById('aigen-prompt-input').value.trim();
+  if (!prompt) {
+    showToast('Missing Description', 'Please describe the design you want.', 'error');
+    return;
+  }
+  if (!_aiGenCategory) {
+    showToast('No Category', 'Please select a garment type first.', 'error');
+    return;
+  }
+
+  document.getElementById('aigen-step-prompt').style.display = 'none';
+  document.getElementById('aigen-step-result').style.display = 'none';
+  document.getElementById('aigen-loading').style.display = 'flex';
+
+  try {
+    const data = await api('/api/image-gen', 'POST', { category: _aiGenCategory, prompt });
+    _aiGenImageBase64 = data.image_base64;
+    _aiGenMimeType = data.mime_type || 'image/png';
+
+    const imgEl = document.getElementById('aigen-result-img');
+    imgEl.src = `data:${_aiGenMimeType};base64,${_aiGenImageBase64}`;
+
+    document.getElementById('aigen-loading').style.display = 'none';
+    document.getElementById('aigen-step-result').style.display = '';
+    showToast('Design Ready!', 'Your AI-generated design is ready.', 'success');
+  } catch (err) {
+    document.getElementById('aigen-loading').style.display = 'none';
+    document.getElementById('aigen-step-prompt').style.display = '';
+    showToast('Generation Failed', err.message || 'Could not generate image.', 'error');
+  }
+}
+
+function downloadAIImage() {
+  if (!_aiGenImageBase64) return;
+  const a = document.createElement('a');
+  a.href = `data:${_aiGenMimeType};base64,${_aiGenImageBase64}`;
+  a.download = `aura-design-${_aiGenCategory}-${Date.now()}.png`;
+  a.click();
+}
+
+function useAIImageAsLogo() {
+  if (!_aiGenImageBase64) return;
+  const dataUrl = `data:${_aiGenMimeType};base64,${_aiGenImageBase64}`;
+
+  addLogo();
+  const logos = state.currentCustomization.logos;
+  const active = logos.at(-1);
+  if (active) {
+    active.dataUrl = dataUrl;
+    renderLogoEditor();
+    renderCustomizerPreview();
+    // Switch to Logo & Finish tab
+    document.querySelectorAll('.customizer-controls-pane .tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.customizer-controls-pane .tab-content').forEach(c => c.classList.remove('active'));
+    const logoTabBtn = [...document.querySelectorAll('.customizer-controls-pane .tab-btn')].find(b => b.textContent.includes('Logo'));
+    if (logoTabBtn) logoTabBtn.classList.add('active');
+    document.getElementById('tab-logo')?.classList.add('active');
+    showToast('Logo Applied', 'AI design added as logo — adjust placement and size in the Logo tab.', 'success');
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 function setApparelType(type) {
   state.currentCustomization.apparelType = type;
   
