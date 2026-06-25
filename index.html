@@ -825,6 +825,39 @@
               </form>
             </div>
 
+            <!-- Filter Bar -->
+            <div class="products-filter-bar">
+              <div class="filter-search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="product-search" placeholder="Search by name or ID…" oninput="filterAdminProducts()" autocomplete="off">
+              </div>
+              <select id="product-filter-category" class="select-input filter-select" onchange="filterAdminProducts()">
+                <option value="">All Categories</option>
+                <option>T-Shirt</option>
+                <option>Hoodie</option>
+                <option>Jacket</option>
+                <option>Sports Uniform</option>
+                <option>Joggers</option>
+                <option>Other</option>
+              </select>
+              <select id="product-filter-gender" class="select-input filter-select" onchange="filterAdminProducts()">
+                <option value="">All Genders</option>
+                <option>Men</option>
+                <option>Women</option>
+                <option>Unisex</option>
+                <option>Children</option>
+              </select>
+              <select id="product-filter-status" class="select-input filter-select" onchange="filterAdminProducts()">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              <button class="btn btn-sm btn-text" onclick="clearProductFilters()" id="product-filter-clear" style="display:none">
+                <i class="fa-solid fa-xmark"></i> Clear
+              </button>
+              <span id="product-filter-count" class="filter-count-badge"></span>
+            </div>
+
             <div class="table-responsive">
               <table class="admin-table">
                 <thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Gender</th><th>Price</th><th>Discount</th><th>Status</th><th colspan="3">Actions</th></tr></thead>

@@ -2533,13 +2533,27 @@ async function renderAdminRAGLogsTable() {
   }
 }
 
+let _allAdminProducts = [];
+
 async function renderAdminProductsTable() {
   const container = document.getElementById('admin-products-list');
   if (!container) return;
   container.innerHTML = `<tr><td colspan="9" style="text-align:center"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
   try {
-    const products = await api('/api/products/admin/all') || [];
-    container.innerHTML = '';
+    _allAdminProducts = await api('/api/products/admin/all') || [];
+    renderFilteredProducts(_allAdminProducts);
+  } catch(e) {
+    container.innerHTML = `<tr><td colspan="9" style="color:#ff6b6b">${e.message}</td></tr>`;
+  }
+}
+
+function renderFilteredProducts(products) {
+  const container = document.getElementById('admin-products-list');
+  if (!container) return;
+  container.innerHTML = '';
+  if (products.length === 0) {
+    container.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:2rem">No products match your filters.</td></tr>`;
+  } else {
     products.forEach(p => {
       const discTag = (p.discount_percent || 0) > 0
         ? `<span class="badge badge-inproduction">-${p.discount_percent}%</span>`
@@ -2564,9 +2578,47 @@ async function renderAdminProductsTable() {
         </td>`;
       container.appendChild(row);
     });
-  } catch(e) {
-    container.innerHTML = `<tr><td colspan="9" style="color:#ff6b6b">${e.message}</td></tr>`;
   }
+
+  // Update count badge
+  const countEl = document.getElementById('product-filter-count');
+  if (countEl) {
+    const total = _allAdminProducts.length;
+    countEl.textContent = products.length < total
+      ? `${products.length} of ${total}`
+      : `${total} products`;
+  }
+}
+
+function filterAdminProducts() {
+  const search   = (document.getElementById('product-search')?.value || '').toLowerCase().trim();
+  const category = document.getElementById('product-filter-category')?.value || '';
+  const gender   = document.getElementById('product-filter-gender')?.value || '';
+  const status   = document.getElementById('product-filter-status')?.value || '';
+
+  const isFiltering = search || category || gender || status;
+  const clearBtn = document.getElementById('product-filter-clear');
+  if (clearBtn) clearBtn.style.display = isFiltering ? '' : 'none';
+
+  const filtered = _allAdminProducts.filter(p => {
+    if (search && !p.product_id.toLowerCase().includes(search) && !p.name.toLowerCase().includes(search)) return false;
+    if (category && p.category !== category) return false;
+    if (gender && (p.gender || 'Unisex') !== gender) return false;
+    if (status === 'active' && !p.is_active) return false;
+    if (status === 'inactive' && p.is_active) return false;
+    return true;
+  });
+
+  renderFilteredProducts(filtered);
+}
+
+function clearProductFilters() {
+  document.getElementById('product-search').value = '';
+  document.getElementById('product-filter-category').value = '';
+  document.getElementById('product-filter-gender').value = '';
+  document.getElementById('product-filter-status').value = '';
+  document.getElementById('product-filter-clear').style.display = 'none';
+  renderFilteredProducts(_allAdminProducts);
 }
 
 function openProductEditModal(id, name, category, gender, price, discount, desc, img) {

@@ -2665,6 +2665,72 @@ select.select-input:focus, .catalog-filters select:focus {
 }
 
 /* ==========================================================================
+   ADMIN PRODUCTS FILTER BAR
+   ========================================================================== */
+
+.products-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+
+.filter-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: 7px;
+  padding: 0.4rem 0.75rem;
+  flex: 1;
+  min-width: 180px;
+  transition: border-color 0.2s;
+}
+.filter-search-wrap:focus-within {
+  border-color: var(--teal-neon);
+}
+.filter-search-wrap i {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.filter-search-wrap input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  width: 100%;
+}
+.filter-search-wrap input::placeholder { color: var(--text-muted); }
+
+.filter-select {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  color: #fff;
+  border-radius: 7px;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.filter-select:focus { outline: none; border-color: var(--teal-neon); }
+
+.filter-count-badge {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
    AI IMAGE GENERATION TAB
    ========================================================================== */
 
