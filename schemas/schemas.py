@@ -63,6 +63,7 @@ class OrderItemCreate(BaseModel):
     wash_finish: str
     quantity: int = Field(..., gt=0)
     logo_base64: Optional[str] = None # For custom logo uploaded on client
+    design_preview: Optional[str] = None # Base64 PNG snapshot of the 2D canvas design
     notes: Optional[str] = None
 
 class OrderCreate(BaseModel):
@@ -87,6 +88,7 @@ class OrderItemOut(BaseModel):
     quantity: int
     unit_price: float
     logo_path: Optional[str]
+    design_preview_path: Optional[str] = None
     notes: Optional[str]
 
     class Config:

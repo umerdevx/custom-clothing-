@@ -1658,13 +1658,39 @@ function toggleCartDrawer() {
   document.getElementById('cart-drawer').classList.toggle('active');
 }
 
-function addToCartFromCustomizer() {
-  // Deep clone current customization settings
+function captureDesignPreview() {
+  return new Promise(resolve => {
+    const container = document.getElementById('apparel-canvas-container');
+    const svgEl = container && container.querySelector('svg');
+    if (!svgEl) return resolve(null);
+    try {
+      const svgData = new XMLSerializer().serializeToString(svgEl);
+      const svgUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
+      const img = new Image();
+      img.onload = () => {
+        const cvs = document.createElement('canvas');
+        cvs.width = 380; cvs.height = 500;
+        const ctx = cvs.getContext('2d');
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fillRect(0, 0, cvs.width, cvs.height);
+        ctx.drawImage(img, 0, 0, cvs.width, cvs.height);
+        resolve(cvs.toDataURL('image/png'));
+      };
+      img.onerror = () => resolve(null);
+      img.src = svgUrl;
+    } catch (e) {
+      resolve(null);
+    }
+  });
+}
+
+async function addToCartFromCustomizer() {
   const cartItem = JSON.parse(JSON.stringify(state.currentCustomization));
-  
-  // Attach human readable names for summary details
   cartItem.fabricName = FABRICS_INFO[cartItem.fabricType].name;
-  
+
+  // Capture the live 2D design preview as a PNG data URL
+  cartItem.designPreviewDataUrl = await captureDesignPreview();
+
   state.cart.push(cartItem);
   localStorage.setItem('aura_cart', JSON.stringify(state.cart));
   renderCart();
@@ -1865,6 +1891,7 @@ async function handlePlaceOrder(event) {
     wash_finish: item.washFinish,
     quantity: item.quantity,
     logo_base64: (item.logos || []).find(l => l.dataUrl)?.dataUrl || item.logoDataUrl || null,
+    design_preview: item.designPreviewDataUrl || null,
     notes: null
   }));
 
@@ -2102,26 +2129,31 @@ function renderMyOrders(orders) {
   }
   container.innerHTML = orders.map(o => {
     const itemPreviews = o.items.map(item => {
-      const productImg = _getProductImg(item.product_id);
       const productName = (_products.find(x => x.id === item.product_id) || INITIAL_PRODUCTS.find(x => x.id === item.product_id))?.name || item.product_id.toUpperCase();
-      const productThumb = productImg
-        ? `<img src="${productImg}" alt="${productName}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">`
-        : `<div style="width:56px;height:56px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:1.4rem">👕</div>`;
-      const designThumb = item.logo_path
-        ? `<img src="${item.logo_path}" alt="Design" title="Uploaded design / AI logo" style="width:40px;height:40px;object-fit:contain;border-radius:4px;border:1px solid rgba(0,240,255,0.3);background:rgba(0,0,0,0.3)">`
+
+      // Priority: saved design snapshot > product catalog image > emoji fallback
+      const mainImgSrc = item.design_preview_path || _getProductImg(item.product_id);
+      const mainThumb = mainImgSrc
+        ? `<img src="${mainImgSrc}" alt="Design Preview" style="width:72px;height:88px;object-fit:cover;border-radius:8px;border:1px solid rgba(0,240,255,0.25);background:#111;flex-shrink:0">`
+        : `<div style="width:72px;height:88px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0">👕</div>`;
+
+      // If there's also an uploaded logo, show it as a small overlay badge
+      const logoBadge = item.logo_path && item.design_preview_path
+        ? `<img src="${item.logo_path}" title="Logo / AI Design applied" style="width:28px;height:28px;object-fit:contain;border-radius:4px;border:1px solid rgba(0,240,255,0.4);background:#000">`
         : '';
+
       return `
-        <div style="display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0;border-bottom:1px solid rgba(255,255,255,0.05)">
-          ${productThumb}
-          ${designThumb}
-          <div style="font-size:0.82rem;color:var(--text-secondary)">
-            <div style="color:var(--text-primary);font-weight:500">${productName}</div>
-            <div>Qty: ${item.quantity} &bull; PKR ${item.unit_price.toLocaleString()} each</div>
-            <div style="display:flex;gap:4px;align-items:center;margin-top:2px">
-              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${item.primary_color};border:1px solid rgba(255,255,255,0.3)"></span>
-              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${item.secondary_color};border:1px solid rgba(255,255,255,0.3)"></span>
-              <span style="font-size:0.75rem">${item.fabric_type} &bull; ${item.stitching_style}</span>
+        <div style="display:flex;align-items:flex-start;gap:0.75rem;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+          ${mainThumb}
+          <div style="font-size:0.82rem;color:var(--text-secondary);flex:1;min-width:0">
+            <div style="color:var(--text-primary);font-weight:600;margin-bottom:3px">${productName}</div>
+            <div>Qty: ${item.quantity} &bull; PKR ${item.unit_price.toLocaleString()} / pc</div>
+            <div style="display:flex;gap:4px;align-items:center;margin-top:4px;flex-wrap:wrap">
+              <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${item.primary_color};border:1px solid rgba(255,255,255,0.3)" title="Primary colour"></span>
+              <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${item.secondary_color};border:1px solid rgba(255,255,255,0.3)" title="Secondary colour"></span>
+              <span style="font-size:0.75rem;opacity:0.7">${item.fabric_type} &bull; ${item.stitching_style} &bull; ${item.print_method}</span>
             </div>
+            ${logoBadge ? `<div style="margin-top:4px;display:flex;align-items:center;gap:4px"><span style="font-size:0.7rem;opacity:0.6">Logo:</span>${logoBadge}</div>` : ''}
           </div>
         </div>`;
     }).join('');
@@ -2401,15 +2433,16 @@ async function renderAdminOrdersTable() {
     }
     orders.forEach(order => {
       const itemsHtml = order.items.map(i => {
-        const productImg = _getProductImg(i.product_id);
         const productName = (_products.find(x => x.id === i.product_id) || INITIAL_PRODUCTS.find(x => x.id === i.product_id))?.name || i.product_id.toUpperCase();
-        const thumbHtml = productImg
-          ? `<img src="${productImg}" alt="${productName}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:4px">`
-          : `<span style="display:inline-block;width:40px;height:40px;border-radius:4px;background:rgba(255,255,255,0.07);vertical-align:middle;margin-right:4px;text-align:center;line-height:40px">👕</span>`;
-        const designHtml = i.logo_path
-          ? `<img src="${i.logo_path}" alt="Design" title="Design / AI logo" style="width:32px;height:32px;object-fit:contain;border-radius:3px;border:1px solid rgba(0,240,255,0.4);background:#000;vertical-align:middle;margin-right:4px">`
+        // Show design snapshot if saved, otherwise fall back to product catalog image
+        const mainSrc = i.design_preview_path || _getProductImg(i.product_id);
+        const mainThumb = mainSrc
+          ? `<img src="${mainSrc}" alt="Design" title="${i.design_preview_path ? 'Customer design snapshot' : 'Product image'}" style="width:52px;height:64px;object-fit:cover;border-radius:5px;border:1px solid rgba(0,240,255,0.2);background:#111;flex-shrink:0">`
+          : `<span style="display:inline-block;width:52px;height:64px;border-radius:5px;background:rgba(255,255,255,0.05);text-align:center;line-height:64px;font-size:1.4rem">👕</span>`;
+        const logoBadge = i.logo_path && i.design_preview_path
+          ? `<img src="${i.logo_path}" title="Applied logo / AI image" style="width:22px;height:22px;object-fit:contain;border-radius:3px;border:1px solid rgba(0,240,255,0.35);background:#000;flex-shrink:0">`
           : '';
-        return `<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">${thumbHtml}${designHtml}<span style="font-size:0.8rem">${i.quantity}× ${productName}</span></div>`;
+        return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">${mainThumb}<div><div style="font-size:0.78rem;font-weight:500">${i.quantity}× ${productName}</div><div style="display:flex;gap:3px;align-items:center;margin-top:3px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${i.primary_color}"></span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${i.secondary_color}"></span><span style="font-size:0.7rem;opacity:0.6">${i.fabric_type}</span></div>${logoBadge}</div></div>`;
       }).join('');
       const statusSlug = order.status.toLowerCase().replace(/ /g, '');
       const row = document.createElement('tr');

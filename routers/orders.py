@@ -15,7 +15,9 @@ from typing import List
 router = APIRouter(prefix="/api/orders", tags=["Order Management"])
 
 UPLOAD_DIR = "./uploads/logos"
+DESIGN_DIR = "./uploads/designs"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(DESIGN_DIR, exist_ok=True)
 
 # Helper: Save base64 image helper
 def save_logo_file(base64_str: str) -> str:
@@ -39,6 +41,19 @@ def save_logo_file(base64_str: str) -> str:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Failed to decode and save logo image: {e}"
         )
+
+def save_design_preview(base64_str: str) -> str:
+    try:
+        if "," in base64_str:
+            base64_str = base64_str.split(",")[1]
+        img_data = base64.b64decode(base64_str)
+        filename = f"design_{uuid.uuid4().hex}.png"
+        filepath = os.path.join(DESIGN_DIR, filename)
+        with open(filepath, "wb") as f:
+            f.write(img_data)
+        return f"/uploads/designs/{filename}"
+    except Exception as e:
+        return None
 
 # Create Order Endpoint
 @router.post("", response_model=OrderOut, status_code=status.HTTP_201_CREATED)
@@ -115,7 +130,12 @@ async def create_order(
         logo_path = None
         if item.logo_base64:
             logo_path = save_logo_file(item.logo_base64)
-            
+
+        # Design preview snapshot
+        design_preview_path = None
+        if item.design_preview:
+            design_preview_path = save_design_preview(item.design_preview)
+
         # Create ORM child OrderItem
         db_item = OrderItem(
             product_id=item.product_id,
@@ -129,6 +149,7 @@ async def create_order(
             quantity=item.quantity,
             unit_price=unit_price,
             logo_path=logo_path,
+            design_preview_path=design_preview_path,
             notes=item.notes
         )
         db_items.append(db_item)

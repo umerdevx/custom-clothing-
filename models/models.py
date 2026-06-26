@@ -102,6 +102,7 @@ class OrderItem(Base):
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     unit_price: Mapped[float] = mapped_column(Float, nullable=False)
     logo_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    design_preview_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     order: Mapped["Order"] = relationship("Order", back_populates="items")

@@ -29,6 +29,7 @@ app.add_middleware(
 
 # Ensure upload directory exists
 os.makedirs("./uploads/logos", exist_ok=True)
+os.makedirs("./uploads/designs", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Serve 3D GLB model files
@@ -53,11 +54,19 @@ async def startup_event():
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+        # Add design_preview_path column to order_items if it doesn't exist yet
+        try:
+            async with engine.begin() as conn:
+                await conn.exec_driver_sql(
+                    "ALTER TABLE order_items ADD COLUMN design_preview_path VARCHAR(255)"
+                )
+                print("[STARTUP] Migrated: added design_preview_path to order_items.")
+        except Exception:
+            pass  # Column already exists
         print("[STARTUP] Seeding initial configurations...")
         await seed_data()
         print("[STARTUP] Database setup and seeding complete.")
     except Exception as e:
-        # Tables already exist (race on multi-worker start) — safe to continue
         print(f"[STARTUP] Skipped (already initialized): {e.__class__.__name__}")
 
 _NO_CACHE = {"Cache-Control": "no-store, no-cache, must-revalidate", "Pragma": "no-cache"}
