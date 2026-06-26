@@ -2072,6 +2072,11 @@ async function loadMyOrders() {
   }
 }
 
+function _getProductImg(productId) {
+  const p = _products.find(x => x.id === productId) || INITIAL_PRODUCTS.find(x => x.id === productId);
+  return p ? p.img : '';
+}
+
 function renderMyOrders(orders) {
   const container = document.getElementById('my-orders-container');
   if (!container) return;
@@ -2079,15 +2084,42 @@ function renderMyOrders(orders) {
     container.innerHTML = `<p style="text-align:center;color:var(--text-muted);padding:2rem">No orders yet. Design something!</p>`;
     return;
   }
-  container.innerHTML = orders.map(o => `
+  container.innerHTML = orders.map(o => {
+    const itemPreviews = o.items.map(item => {
+      const productImg = _getProductImg(item.product_id);
+      const productName = (_products.find(x => x.id === item.product_id) || INITIAL_PRODUCTS.find(x => x.id === item.product_id))?.name || item.product_id.toUpperCase();
+      const productThumb = productImg
+        ? `<img src="${productImg}" alt="${productName}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">`
+        : `<div style="width:56px;height:56px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:1.4rem">👕</div>`;
+      const designThumb = item.logo_path
+        ? `<img src="${item.logo_path}" alt="Design" title="Uploaded design / AI logo" style="width:40px;height:40px;object-fit:contain;border-radius:4px;border:1px solid rgba(0,240,255,0.3);background:rgba(0,0,0,0.3)">`
+        : '';
+      return `
+        <div style="display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+          ${productThumb}
+          ${designThumb}
+          <div style="font-size:0.82rem;color:var(--text-secondary)">
+            <div style="color:var(--text-primary);font-weight:500">${productName}</div>
+            <div>Qty: ${item.quantity} &bull; PKR ${item.unit_price.toLocaleString()} each</div>
+            <div style="display:flex;gap:4px;align-items:center;margin-top:2px">
+              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${item.primary_color};border:1px solid rgba(255,255,255,0.3)"></span>
+              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${item.secondary_color};border:1px solid rgba(255,255,255,0.3)"></span>
+              <span style="font-size:0.75rem">${item.fabric_type} &bull; ${item.stitching_style}</span>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    return `
     <div class="order-card glass" style="padding:1rem;margin-bottom:1rem;border-radius:10px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
         <strong>${o.order_id}</strong>
         <span class="badge badge-${o.status.toLowerCase().replace(/ /g,'')} ">${o.status}</span>
       </div>
       <div style="margin-top:0.5rem;color:var(--text-secondary);font-size:0.85rem">
-        ${o.items.length} item(s) &mdash; PKR ${o.total_price.toLocaleString()} &mdash; ${new Date(o.created_at).toLocaleDateString()}
+        PKR ${o.total_price.toLocaleString()} &mdash; ${new Date(o.created_at).toLocaleDateString()}
       </div>
+      <div style="margin-top:0.7rem">${itemPreviews}</div>
       <div style="margin-top:0.6rem;display:flex;gap:0.5rem;flex-wrap:wrap">
         <button class="btn btn-sm btn-outline" onclick="submitChatMessage('Track order ${o.order_id}');toggleChatbot()">
           <i class="fa-solid fa-location-dot"></i> Track
@@ -2097,8 +2129,8 @@ function renderMyOrders(orders) {
           <i class="fa-solid fa-rotate-right"></i> Reorder
         </button>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 async function cancelOrder(orderId) {
@@ -2352,13 +2384,23 @@ async function renderAdminOrdersTable() {
       return;
     }
     orders.forEach(order => {
-      const itemsText = order.items.map(i => `${i.quantity}× ${i.product_id.toUpperCase()}`).join('<br>');
+      const itemsHtml = order.items.map(i => {
+        const productImg = _getProductImg(i.product_id);
+        const productName = (_products.find(x => x.id === i.product_id) || INITIAL_PRODUCTS.find(x => x.id === i.product_id))?.name || i.product_id.toUpperCase();
+        const thumbHtml = productImg
+          ? `<img src="${productImg}" alt="${productName}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:4px">`
+          : `<span style="display:inline-block;width:40px;height:40px;border-radius:4px;background:rgba(255,255,255,0.07);vertical-align:middle;margin-right:4px;text-align:center;line-height:40px">👕</span>`;
+        const designHtml = i.logo_path
+          ? `<img src="${i.logo_path}" alt="Design" title="Design / AI logo" style="width:32px;height:32px;object-fit:contain;border-radius:3px;border:1px solid rgba(0,240,255,0.4);background:#000;vertical-align:middle;margin-right:4px">`
+          : '';
+        return `<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">${thumbHtml}${designHtml}<span style="font-size:0.8rem">${i.quantity}× ${productName}</span></div>`;
+      }).join('');
       const statusSlug = order.status.toLowerCase().replace(/ /g, '');
       const row = document.createElement('tr');
       row.innerHTML = `
         <td><strong>${order.order_id}</strong><br><small style="color:var(--text-muted)">${new Date(order.created_at).toLocaleDateString()}</small></td>
         <td>User #${order.user_id}</td>
-        <td>${itemsText}</td>
+        <td>${itemsHtml}</td>
         <td>PKR ${order.total_price.toLocaleString()}</td>
         <td><span class="badge ${order.payment_status.includes('Paid') ? 'badge-delivered' : 'badge-pending'}">${order.payment_status}</span></td>
         <td><span class="badge badge-${statusSlug}" id="badge-status-${order.order_id}">${order.status}</span></td>
