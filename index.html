@@ -81,10 +81,13 @@
         <div class="hero-content">
           <div class="badge-premium"><i class="fa-solid fa-crown"></i> NEXT-GEN APPAREL DESIGN</div>
           <h1>Create Your Identity with <span class="gradient-text">AI Customization</span></h1>
-          <p class="hero-lead">Design high-performance streetwear & sportswear in real-time. Our Gemini-powered AI assistant guides every fabric choice — and your design renders live in both 2D flat view and interactive 3D preview.</p>
+          <p class="hero-lead">Design high-performance streetwear & sportswear in real-time. Generate unique clothing designs with our AI Image Generator, get personalized recommendations from our Gemini-powered chatbot, and preview your creation live in both 2D Canvas and interactive 3D.</p>
           <div class="hero-actions">
             <button class="btn btn-primary btn-lg" onclick="switchView('customizer')">
               <i class="fa-solid fa-compass"></i> Enter AI Customizer
+            </button>
+            <button class="btn btn-outline btn-lg" onclick="openAIGenModal()">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> AI Image Gen
             </button>
             <button class="btn btn-outline btn-lg" onclick="switchView('catalog')">
               Browse Catalog
@@ -94,6 +97,10 @@
             <div class="stat-item">
               <h3>2D+3D</h3>
               <span>Live Preview</span>
+            </div>
+            <div class="stat-item">
+              <h3>AI Gen</h3>
+              <span>Image Design</span>
             </div>
             <div class="stat-item">
               <h3>Gemini</h3>
@@ -125,6 +132,11 @@
       <!-- Features Section -->
       <div class="features-grid">
         <div class="feature-card glass">
+          <div class="feature-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+          <h3>AI Image Generation</h3>
+          <p>Describe your design in plain text and our AI generates a unique garment artwork instantly. Apply it directly as a logo onto your custom apparel.</p>
+        </div>
+        <div class="feature-card glass">
           <div class="feature-icon"><i class="fa-solid fa-crop-simple"></i></div>
           <h3>2D Live Canvas</h3>
           <p>Swap colors, fabrics, and stitching in real-time with front/back views. Upload and position custom logos instantly.</p>
@@ -141,8 +153,13 @@
         </div>
         <div class="feature-card glass">
           <div class="feature-icon"><i class="fa-solid fa-truck-fast"></i></div>
-          <h3>Order Tracking</h3>
-          <p>Monitor your apparel from production floor, quality check, and shipping all the way to your door.</p>
+          <h3>5-Stage Order Tracking</h3>
+          <p>Monitor your apparel through Pending, In Production, Quality Check, Shipped, and Delivered stages — with email updates at every step.</p>
+        </div>
+        <div class="feature-card glass">
+          <div class="feature-icon"><i class="fa-solid fa-tags"></i></div>
+          <h3>Dynamic Pricing & Coupons</h3>
+          <p>Pricing updates live as you customise — bulk discounts kick in at 10+ units. Apply promo codes at checkout for additional savings.</p>
         </div>
       </div>
 

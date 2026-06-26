@@ -39,10 +39,18 @@ const FABRICS_INFO = {
 };
 
 const FAQS_DB = [
-  { question: 'delivery time shipping cost timeline', answer: 'Standard delivery across Pakistan takes 7 to 10 working days. Free shipping is provided for orders exceeding PKR 5,000, otherwise flat rate of PKR 250 applies.' },
-  { question: 'return exchange policy size guide', answer: 'We offer a 14-day hassle-free return and exchange policy for items in original condition. Custom apparel with personalized logos can only be returned if there is a manufacturing defect.' },
-  { question: 'bulk order pricing discounts wholesale', answer: 'Yes! We support bulk manufacturing. Orders of 10-49 units receive a 10% discount, and 50+ units receive a 20% discount. Chat with our AI or email support for wholesale inquiries.' },
-  { question: 'care instructions wash guide laundry', answer: 'For direct-to-garment or screen prints, wash inside out in cold water. Do not tumble dry on high heat. Iron inside-out to protect logos and prints.' }
+  { question: 'delivery time shipping cost timeline', answer: 'Standard delivery across Pakistan takes 7 to 10 working days. Free shipping is provided for orders exceeding PKR 5,000, otherwise a flat rate of PKR 250 applies. We partner with DHL Express, TCS, Leopards, and BlueEx for reliable nationwide delivery.' },
+  { question: 'return exchange policy size guide refund', answer: 'We offer a 14-day hassle-free return and exchange policy for items in original condition. Custom apparel with personalized logos or AI-generated designs can only be returned if there is a manufacturing defect. Contact support within 14 days of delivery to initiate a return.' },
+  { question: 'bulk order pricing discounts wholesale', answer: 'Yes! We support bulk manufacturing. Orders of 10–49 units receive a 10% discount, and 50+ units receive a 20% discount. All bulk discounts are applied automatically at checkout. Contact our team for wholesale partnership inquiries.' },
+  { question: 'care instructions wash guide laundry fabric', answer: 'For direct-to-garment (DTG) or screen-printed items, wash inside-out in cold water on a gentle cycle. Do not tumble dry on high heat — air dry or use low heat. Iron inside-out only to protect logos and print areas. Embroidered pieces can be washed normally.' },
+  { question: 'ai image generation design prompt how to use', answer: 'Click the "AI Image Gen" button on the homepage or in the customizer. Select your garment type (T-Shirt, Hoodie, Jacket, or Jersey), type a description of your design (e.g. "galaxy nebula streetwear graphic"), and hit Generate. Your AI-generated design will appear in seconds. You can download it or apply it directly as a logo on your customized garment.' },
+  { question: 'payment methods cod payfast online bank transfer', answer: 'AURA-WEAR accepts Cash on Delivery (COD) for all orders across Pakistan, and online payment via PayFast (debit/credit card and mobile wallets). COD orders are confirmed immediately; online payments are verified before production begins.' },
+  { question: 'order cancellation how to cancel pending', answer: 'You can cancel an order that is still in Pending status from your Order History page — just click the Cancel button next to your order. Once an order moves to In Production status it cannot be cancelled. For urgent cases contact support.' },
+  { question: 'order tracking status stages production', answer: 'Every order goes through five stages: Pending → In Production → Quality Check → Shipped → Delivered. You receive an email notification at each stage change. You can also ask our AI chatbot "Where is my order?" and it will fetch your latest status.' },
+  { question: 'customization options fabric stitch print wash', answer: 'You can fully customize: Fabric Type (Cotton, Fleece, Dry-Fit Polyester, Ripstop, Linen), Fabric Grade (1–5 quality tiers), Primary & Secondary Colors, Stitching Style (Flatlock, Overlock, Chain, Double-needle, Standard), Print Method (DTG, Screen Print, Embroidery, Sublimation, Heat Transfer), and Wash Finish (Standard, Stone Wash, Acid Wash, Enzyme Wash). Pricing updates live as you adjust each option.' },
+  { question: 'coupon promo code discount how to apply', answer: 'At the checkout page, enter your promo code in the "Coupon Code" field and click Apply. Valid codes will deduct either a fixed PKR amount or a percentage from your order total. Coupon codes are periodically shared via our social media and email newsletter.' },
+  { question: 'account register signup login forgot password', answer: 'Click Sign In / Register in the top navigation. New users can register with their name, email, and a password (minimum 8 characters). If you forget your password, use "Forgot Password" to receive a 6-digit OTP on your email — enter the OTP to reset your password securely.' },
+  { question: 'product categories garments available tshirt hoodie jacket jersey', answer: 'AURA-WEAR currently offers four garment categories: T-Shirts (Men, Women, Kids), Hoodies (Oversized & Cropped), Technical Jackets (Windbreaker), and Sports Uniforms (V-neck Athletic Jersey). All four can be fully customized through our 2D Canvas designer with live 3D preview.' }
 ];
 
 const INITIAL_INVENTORY = [
@@ -1231,6 +1239,14 @@ function switchControlTab(tabId) {
   document.getElementById(`tab-${tabId}`).classList.add('active');
 
   if (tabId === 'logo') renderLogoEditor();
+}
+
+function openAIGenModal() {
+  switchView('customizer');
+  setTimeout(() => {
+    const aiTabBtn = [...document.querySelectorAll('.customizer-controls-pane .tab-btn')].find(b => b.textContent.includes('AI Image'));
+    if (aiTabBtn) aiTabBtn.click();
+  }, 100);
 }
 
 // ── AI Image Generation ───────────────────────────────────────────────────────
